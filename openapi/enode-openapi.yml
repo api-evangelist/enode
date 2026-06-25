@@ -1,0 +1,823 @@
+openapi: 3.0.1
+info:
+  title: Enode API
+  description: >-
+    Enode connects and controls electric vehicles, EV chargers, HVAC systems,
+    home batteries, solar inverters, and smart meters through a single API.
+    End users authorize access to their devices via the Enode Link OAuth flow;
+    applications then read normalized device telemetry, issue control actions
+    (charging, climate, battery mode), configure smart charging, and subscribe
+    to webhooks. Access tokens are obtained via the OAuth 2.0
+    client_credentials grant and presented as a Bearer token.
+  termsOfService: https://enode.com/legal/terms-of-service
+  contact:
+    name: Enode Support
+    url: https://developers.enode.com
+  version: '2024-10-01'
+servers:
+  - url: https://enode-api.production.enode.io
+    description: Production
+  - url: https://enode-api.sandbox.enode.io
+    description: Sandbox
+security:
+  - bearerAuth: []
+tags:
+  - name: Users
+    description: Manage end users and Link sessions.
+  - name: Vehicles
+    description: Read and control connected electric vehicles.
+  - name: Chargers
+    description: Read and control connected EV chargers.
+  - name: HVAC
+    description: Read and control connected HVAC units.
+  - name: Batteries
+    description: Read and control connected home batteries.
+  - name: Inverters
+    description: Read connected solar inverters.
+  - name: Meters
+    description: Read connected smart meters.
+  - name: Smart Charging
+    description: Configure smart-charging policies and overrides for vehicles.
+  - name: Webhooks
+    description: Manage event webhooks.
+paths:
+  /users/{userId}/link:
+    post:
+      operationId: linkUser
+      tags:
+        - Users
+      summary: Create a Link session for a user.
+      description: >-
+        Returns a hosted Link URL the end user opens to authorize one or more
+        vendors. Creates the user if it does not already exist.
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LinkUserRequest'
+      responses:
+        '200':
+          description: Link session created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkSession'
+  /users/{userId}:
+    get:
+      operationId: getUser
+      tags:
+        - Users
+      summary: Get a user.
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '200':
+          description: A user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    delete:
+      operationId: deleteUser
+      tags:
+        - Users
+      summary: Deauthorize and delete a user.
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '204':
+          description: User deleted.
+  /users:
+    get:
+      operationId: listUsers
+      tags:
+        - Users
+      summary: List users.
+      parameters:
+        - $ref: '#/components/parameters/pageAfter'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: A paginated list of users.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserList'
+  /vehicles:
+    get:
+      operationId: listVehicles
+      tags:
+        - Vehicles
+      summary: List vehicles.
+      parameters:
+        - $ref: '#/components/parameters/pageAfter'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: A paginated list of vehicles.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleList'
+  /vehicles/{vehicleId}:
+    get:
+      operationId: getVehicle
+      tags:
+        - Vehicles
+      summary: Get a vehicle.
+      parameters:
+        - $ref: '#/components/parameters/vehicleId'
+      responses:
+        '200':
+          description: A vehicle.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+  /vehicles/{vehicleId}/charging:
+    post:
+      operationId: controlVehicleCharging
+      tags:
+        - Vehicles
+      summary: Start or stop vehicle charging.
+      parameters:
+        - $ref: '#/components/parameters/vehicleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChargeActionRequest'
+      responses:
+        '200':
+          description: Charge action accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Action'
+  /vehicles/{vehicleId}/smart-charging-policy:
+    get:
+      operationId: getVehicleSmartChargingPolicy
+      tags:
+        - Smart Charging
+      summary: Get a vehicle smart-charging policy.
+      parameters:
+        - $ref: '#/components/parameters/vehicleId'
+      responses:
+        '200':
+          description: The smart-charging policy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SmartChargingPolicy'
+    post:
+      operationId: setVehicleSmartChargingPolicy
+      tags:
+        - Smart Charging
+      summary: Set a vehicle smart-charging policy.
+      parameters:
+        - $ref: '#/components/parameters/vehicleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SmartChargingPolicy'
+      responses:
+        '200':
+          description: The updated smart-charging policy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SmartChargingPolicy'
+  /vehicles/{vehicleId}/smart-charging-plans:
+    get:
+      operationId: getVehicleSmartChargingPlans
+      tags:
+        - Smart Charging
+      summary: Get a vehicle smart-charging plans.
+      parameters:
+        - $ref: '#/components/parameters/vehicleId'
+      responses:
+        '200':
+          description: Smart-charging plans for the vehicle.
+          content:
+            application/json:
+              schema:
+                type: object
+  /chargers:
+    get:
+      operationId: listChargers
+      tags:
+        - Chargers
+      summary: List chargers.
+      parameters:
+        - $ref: '#/components/parameters/pageAfter'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: A paginated list of chargers.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChargerList'
+  /chargers/{chargerId}:
+    get:
+      operationId: getCharger
+      tags:
+        - Chargers
+      summary: Get a charger.
+      parameters:
+        - $ref: '#/components/parameters/chargerId'
+      responses:
+        '200':
+          description: A charger.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Charger'
+  /chargers/{chargerId}/charging:
+    post:
+      operationId: controlChargerCharging
+      tags:
+        - Chargers
+      summary: Start or stop charger charging.
+      parameters:
+        - $ref: '#/components/parameters/chargerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChargeActionRequest'
+      responses:
+        '200':
+          description: Charge action accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Action'
+  /hvacs:
+    get:
+      operationId: listHvacs
+      tags:
+        - HVAC
+      summary: List HVAC units.
+      parameters:
+        - $ref: '#/components/parameters/pageAfter'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: A paginated list of HVAC units.
+          content:
+            application/json:
+              schema:
+                type: object
+  /hvacs/{hvacId}:
+    get:
+      operationId: getHvac
+      tags:
+        - HVAC
+      summary: Get an HVAC unit.
+      parameters:
+        - $ref: '#/components/parameters/hvacId'
+      responses:
+        '200':
+          description: An HVAC unit.
+          content:
+            application/json:
+              schema:
+                type: object
+  /batteries:
+    get:
+      operationId: listBatteries
+      tags:
+        - Batteries
+      summary: List batteries.
+      parameters:
+        - $ref: '#/components/parameters/pageAfter'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: A paginated list of batteries.
+          content:
+            application/json:
+              schema:
+                type: object
+  /batteries/{batteryId}:
+    get:
+      operationId: getBattery
+      tags:
+        - Batteries
+      summary: Get a battery.
+      parameters:
+        - $ref: '#/components/parameters/batteryId'
+      responses:
+        '200':
+          description: A battery.
+          content:
+            application/json:
+              schema:
+                type: object
+  /batteries/{batteryId}/operation-mode:
+    post:
+      operationId: setBatteryOperationMode
+      tags:
+        - Batteries
+      summary: Set battery operation mode.
+      parameters:
+        - $ref: '#/components/parameters/batteryId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                action:
+                  type: string
+      responses:
+        '200':
+          description: Operation-mode action accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Action'
+  /inverters:
+    get:
+      operationId: listInverters
+      tags:
+        - Inverters
+      summary: List solar inverters.
+      parameters:
+        - $ref: '#/components/parameters/pageAfter'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: A paginated list of inverters.
+          content:
+            application/json:
+              schema:
+                type: object
+  /inverters/{inverterId}:
+    get:
+      operationId: getInverter
+      tags:
+        - Inverters
+      summary: Get a solar inverter.
+      parameters:
+        - $ref: '#/components/parameters/inverterId'
+      responses:
+        '200':
+          description: An inverter.
+          content:
+            application/json:
+              schema:
+                type: object
+  /meters:
+    get:
+      operationId: listMeters
+      tags:
+        - Meters
+      summary: List smart meters.
+      parameters:
+        - $ref: '#/components/parameters/pageAfter'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: A paginated list of meters.
+          content:
+            application/json:
+              schema:
+                type: object
+  /meters/{meterId}:
+    get:
+      operationId: getMeter
+      tags:
+        - Meters
+      summary: Get a smart meter.
+      parameters:
+        - $ref: '#/components/parameters/meterId'
+      responses:
+        '200':
+          description: A meter.
+          content:
+            application/json:
+              schema:
+                type: object
+  /webhooks:
+    get:
+      operationId: listWebhooks
+      tags:
+        - Webhooks
+      summary: List webhooks.
+      responses:
+        '200':
+          description: A list of webhooks.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Webhook'
+    post:
+      operationId: createWebhook
+      tags:
+        - Webhooks
+      summary: Create a webhook.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookRequest'
+      responses:
+        '201':
+          description: Webhook created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+  /webhooks/{webhookId}:
+    get:
+      operationId: getWebhook
+      tags:
+        - Webhooks
+      summary: Get a webhook.
+      parameters:
+        - $ref: '#/components/parameters/webhookId'
+      responses:
+        '200':
+          description: A webhook.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+    delete:
+      operationId: deleteWebhook
+      tags:
+        - Webhooks
+      summary: Delete a webhook.
+      parameters:
+        - $ref: '#/components/parameters/webhookId'
+      responses:
+        '204':
+          description: Webhook deleted.
+  /webhooks/{webhookId}/test:
+    post:
+      operationId: testWebhook
+      tags:
+        - Webhooks
+      summary: Send a test event to a webhook.
+      parameters:
+        - $ref: '#/components/parameters/webhookId'
+      responses:
+        '204':
+          description: Test event dispatched.
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >-
+        OAuth 2.0 access token obtained via the client_credentials grant from
+        the Enode OAuth token endpoint
+        (https://oauth.production.enode.io/oauth2/token for production,
+        https://oauth.sandbox.enode.io/oauth2/token for sandbox), presented as
+        a Bearer token.
+  parameters:
+    userId:
+      name: userId
+      in: path
+      required: true
+      description: Your unique identifier for the end user.
+      schema:
+        type: string
+    vehicleId:
+      name: vehicleId
+      in: path
+      required: true
+      schema:
+        type: string
+    chargerId:
+      name: chargerId
+      in: path
+      required: true
+      schema:
+        type: string
+    hvacId:
+      name: hvacId
+      in: path
+      required: true
+      schema:
+        type: string
+    batteryId:
+      name: batteryId
+      in: path
+      required: true
+      schema:
+        type: string
+    inverterId:
+      name: inverterId
+      in: path
+      required: true
+      schema:
+        type: string
+    meterId:
+      name: meterId
+      in: path
+      required: true
+      schema:
+        type: string
+    webhookId:
+      name: webhookId
+      in: path
+      required: true
+      schema:
+        type: string
+    pageAfter:
+      name: after
+      in: query
+      required: false
+      description: Cursor for pagination, returned as the previous page's pageInfo.after.
+      schema:
+        type: string
+    pageSize:
+      name: pageSize
+      in: query
+      required: false
+      description: Number of results to return per page.
+      schema:
+        type: integer
+        default: 50
+  schemas:
+    PageInfo:
+      type: object
+      properties:
+        after:
+          type: string
+          nullable: true
+        before:
+          type: string
+          nullable: true
+    LinkUserRequest:
+      type: object
+      properties:
+        vendor:
+          type: string
+          description: Specific vendor to link, or omit to show vendor selection.
+        vendorType:
+          type: string
+          enum:
+            - vehicle
+            - charger
+            - hvac
+            - battery
+            - inverter
+            - meter
+        language:
+          type: string
+        scopes:
+          type: array
+          items:
+            type: string
+        redirectUri:
+          type: string
+          format: uri
+    LinkSession:
+      type: object
+      properties:
+        linkUrl:
+          type: string
+          format: uri
+        linkToken:
+          type: string
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        vehicles:
+          type: array
+          items:
+            type: string
+        chargers:
+          type: array
+          items:
+            type: string
+        linkedVendors:
+          type: array
+          items:
+            type: object
+            properties:
+              vendor:
+                type: string
+              vendorType:
+                type: string
+              isValid:
+                type: boolean
+    UserList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        pageInfo:
+          $ref: '#/components/schemas/PageInfo'
+    Vehicle:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        vendor:
+          type: string
+        isReachable:
+          type: boolean
+        lastSeen:
+          type: string
+          format: date-time
+        information:
+          type: object
+          properties:
+            brand:
+              type: string
+            model:
+              type: string
+            year:
+              type: integer
+            vin:
+              type: string
+        chargeState:
+          type: object
+          properties:
+            batteryLevel:
+              type: integer
+              description: State of charge as a percentage.
+            isCharging:
+              type: boolean
+            isPluggedIn:
+              type: boolean
+            range:
+              type: number
+            chargeLimit:
+              type: integer
+            powerDeliveryState:
+              type: string
+        location:
+          type: object
+          properties:
+            latitude:
+              type: number
+            longitude:
+              type: number
+        odometer:
+          type: object
+          properties:
+            distance:
+              type: number
+    VehicleList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Vehicle'
+        pageInfo:
+          $ref: '#/components/schemas/PageInfo'
+    Charger:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        vendor:
+          type: string
+        isReachable:
+          type: boolean
+        lastSeen:
+          type: string
+          format: date-time
+        information:
+          type: object
+          properties:
+            brand:
+              type: string
+            model:
+              type: string
+        chargeState:
+          type: object
+          properties:
+            isPluggedIn:
+              type: boolean
+            isCharging:
+              type: boolean
+            chargeRate:
+              type: number
+            maxCurrent:
+              type: integer
+            powerDeliveryState:
+              type: string
+    ChargerList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Charger'
+        pageInfo:
+          $ref: '#/components/schemas/PageInfo'
+    ChargeActionRequest:
+      type: object
+      required:
+        - action
+      properties:
+        action:
+          type: string
+          enum:
+            - START
+            - STOP
+    Action:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        targetId:
+          type: string
+        targetType:
+          type: string
+        state:
+          type: string
+          enum:
+            - PENDING
+            - CONFIRMED
+            - FAILED
+            - CANCELLED
+        kind:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+    SmartChargingPolicy:
+      type: object
+      properties:
+        deadline:
+          type: string
+          description: Time the vehicle should be charged by, e.g. "07:30".
+        isEnabled:
+          type: boolean
+        minimumChargeLimit:
+          type: integer
+    Webhook:
+      type: object
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+          format: uri
+        events:
+          type: array
+          items:
+            type: string
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+    WebhookRequest:
+      type: object
+      required:
+        - url
+        - events
+      properties:
+        url:
+          type: string
+          format: uri
+        secret:
+          type: string
+        events:
+          type: array
+          items:
+            type: string
+            example: user:vehicle:updated
+        authentication:
+          type: object
+          properties:
+            headerName:
+              type: string
+            headerValue:
+              type: string

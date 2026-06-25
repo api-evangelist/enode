@@ -1,0 +1,195 @@
+aid: enode
+url: https://raw.githubusercontent.com/api-evangelist/enode/refs/heads/main/apis.yml
+name: Enode
+kind: company
+description: Enode provides a single API to connect and control electric vehicles,
+  chargers, HVAC systems, batteries, solar inverters, and smart meters across more
+  than a thousand hardware brands. The energy-transition API links end-user devices
+  via OAuth, normalizes telemetry, and exposes smart-charging and device-control
+  endpoints for energy apps, VPPs, and home energy management.
+image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+tags:
+- Energy
+- Electric Vehicles
+- EV Charging
+- Smart Charging
+- Energy Transition
+created: '2026-06-21'
+modified: '2026-06-21'
+specificationVersion: '0.19'
+apis:
+- aid: enode:users-link-api
+  name: Enode Users & Link API
+  tags:
+  - Users
+  - Link
+  - OAuth
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://developers.enode.com/api/reference#users
+  baseURL: https://enode-api.production.enode.io
+  properties:
+  - url: https://developers.enode.com/docs/linking
+    type: Documentation
+  - url: https://developers.enode.com/api/reference#users
+    type: APIReference
+  - url: openapi/enode-openapi.yml
+    type: OpenAPI
+  - url: collections/enode.postman_collection.json
+    type: PostmanCollection
+  - url: collections/enode.opencollection.json
+    type: OpenCollection
+  description: Create and manage end users and generate Link sessions so users can
+    authorize Enode to access their connected energy devices via vendor OAuth.
+- aid: enode:vehicles-api
+  name: Enode Vehicles API
+  tags:
+  - Vehicles
+  - Electric Vehicles
+  - Telemetry
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://developers.enode.com/api/reference#vehicles
+  baseURL: https://enode-api.production.enode.io
+  properties:
+  - url: https://developers.enode.com/docs/vehicles
+    type: Documentation
+  - url: https://developers.enode.com/api/reference#vehicles
+    type: APIReference
+  - url: openapi/enode-openapi.yml
+    type: OpenAPI
+  - url: collections/enode.postman_collection.json
+    type: PostmanCollection
+  - url: collections/enode.opencollection.json
+    type: OpenCollection
+  description: List and read connected electric vehicles, retrieve charge state,
+    battery, location, and odometer telemetry, and issue charge start/stop and
+    max-current control actions.
+- aid: enode:chargers-api
+  name: Enode Chargers API
+  tags:
+  - Chargers
+  - EV Charging
+  - Control
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://developers.enode.com/api/reference#chargers
+  baseURL: https://enode-api.production.enode.io
+  properties:
+  - url: https://developers.enode.com/docs/chargers
+    type: Documentation
+  - url: https://developers.enode.com/api/reference#chargers
+    type: APIReference
+  - url: openapi/enode-openapi.yml
+    type: OpenAPI
+  - url: collections/enode.postman_collection.json
+    type: PostmanCollection
+  - url: collections/enode.opencollection.json
+    type: OpenCollection
+  description: List and read connected EV chargers, monitor charge state and power
+    draw, and control charging including start/stop, max-current, and charge-rate
+    limits.
+- aid: enode:hvac-api
+  name: Enode HVAC API
+  tags:
+  - HVAC
+  - Heat Pumps
+  - Thermostats
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://developers.enode.com/api/reference#hvacs
+  baseURL: https://enode-api.production.enode.io
+  properties:
+  - url: https://developers.enode.com/docs/hvac
+    type: Documentation
+  - url: https://developers.enode.com/api/reference#hvacs
+    type: APIReference
+  - url: openapi/enode-openapi.yml
+    type: OpenAPI
+  - url: collections/enode.postman_collection.json
+    type: PostmanCollection
+  - url: collections/enode.opencollection.json
+    type: OpenCollection
+  description: List and read connected HVAC units such as heat pumps and thermostats,
+    and control set point, mode, schedule following, and permanent hold.
+- aid: enode:batteries-inverters-api
+  name: Enode Batteries & Inverters API
+  tags:
+  - Batteries
+  - Inverters
+  - Solar
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://developers.enode.com/api/reference#batteries
+  baseURL: https://enode-api.production.enode.io
+  properties:
+  - url: https://developers.enode.com/docs/batteries
+    type: Documentation
+  - url: https://developers.enode.com/api/reference#batteries
+    type: APIReference
+  - url: openapi/enode-openapi.yml
+    type: OpenAPI
+  - url: collections/enode.postman_collection.json
+    type: PostmanCollection
+  - url: collections/enode.opencollection.json
+    type: OpenCollection
+  description: List and read connected home batteries and solar inverters, retrieve
+    charge level and production statistics, and set battery operation mode.
+- aid: enode:smart-charging-api
+  name: Enode Smart Charging API
+  tags:
+  - Smart Charging
+  - Optimization
+  - Tariffs
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://developers.enode.com/api/reference#smart-charging
+  baseURL: https://enode-api.production.enode.io
+  properties:
+  - url: https://developers.enode.com/docs/smart-charging
+    type: Documentation
+  - url: https://developers.enode.com/api/reference#smart-charging
+    type: APIReference
+  - url: openapi/enode-openapi.yml
+    type: OpenAPI
+  - url: collections/enode.postman_collection.json
+    type: PostmanCollection
+  - url: collections/enode.opencollection.json
+    type: OpenCollection
+  description: Configure smart-charging policies, plans, overrides, and status for
+    vehicles, optimizing charging against electricity tariffs, location, and user
+    deadlines.
+- aid: enode:webhooks-api
+  name: Enode Webhooks API
+  tags:
+  - Webhooks
+  - Events
+  - Notifications
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://developers.enode.com/api/reference#webhooks
+  baseURL: https://enode-api.production.enode.io
+  properties:
+  - url: https://developers.enode.com/docs/webhooks
+    type: Documentation
+  - url: https://developers.enode.com/api/reference#webhooks
+    type: APIReference
+  - url: openapi/enode-openapi.yml
+    type: OpenAPI
+  - url: collections/enode.postman_collection.json
+    type: PostmanCollection
+  - url: collections/enode.opencollection.json
+    type: OpenCollection
+  description: Register, list, update, test, and delete webhooks to receive
+    near-real-time device-update and user-event notifications instead of polling.
+common:
+- type: GitHubOrganization
+  url: https://github.com/enode
+- type: LinkedIn
+  url: https://www.linkedin.com/company/enode-energy
+- type: Website
+  url: https://www.enode.com
+- type: Documentation
+  url: https://developers.enode.com/docs
+- type: Plans
+  url: plans/enode-plans-pricing.yml
+- type: RateLimits
+  url: rate-limits/enode-rate-limits.yml
+- type: FinOps
+  url: finops/enode-finops.yml
+maintainers:
+- FN: Kin Lane
+  email: kin@apievangelist.com

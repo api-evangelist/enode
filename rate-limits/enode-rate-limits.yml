@@ -1,0 +1,60 @@
+specification: API Commons Rate Limits
+specificationVersion: '0.1'
+schema: https://raw.githubusercontent.com/api-evangelist/interface-research/main/schema/api-commons.yml#/$defs/RateLimits
+provider: Enode
+providerId: enode
+created: '2026-06-21'
+modified: '2026-06-21'
+reconciled: false
+tags:
+- Energy
+- Electric Vehicles
+- EV Charging
+- Smart Charging
+- Energy Transition
+- Rate Limiting
+- Quotas
+- Throttling
+description: >-
+  The Enode API enforces per-client rate limits to protect both the platform
+  and upstream device-vendor integrations. Limits are applied per OAuth client
+  and vary by endpoint class, with control actions and refresh-hints subject
+  to tighter limits than reads because they reach through to vendor cloud
+  APIs. Enode recommends webhooks over polling and respects per-vendor refresh
+  intervals. Specific numeric limits are not published and are not reconciled
+  in this artifact.
+notes: >-
+  Per-endpoint numeric limits are not publicly documented; verify with Enode
+  during reconciliation. Refresh-hint and control-action throttling is bounded
+  by upstream vendor capabilities.
+sources:
+- https://developers.enode.com/docs
+- https://developers.enode.com/api/reference
+responseCodes:
+  throttled: 429
+limits:
+- name: Requests Per Client
+  scope: client
+  metric: requests
+  limit: see provider documentation
+  notes: Per OAuth client request rate; varies by endpoint class.
+- name: Control Actions
+  scope: client
+  metric: actions
+  limit: see provider documentation
+  notes: Charge/control actions reach through to vendor clouds and are limited more tightly than reads.
+- name: Refresh Hints
+  scope: device
+  metric: requests
+  limit: see provider documentation
+  notes: refresh-hint calls are bounded by per-vendor refresh intervals.
+policies:
+- name: Prefer Webhooks
+  description: Subscribe to webhooks for device and user updates instead of polling read endpoints.
+- name: Backoff Strategy
+  description: Clients should implement exponential backoff with jitter and honor Retry-After on 429 responses.
+- name: Respect Vendor Intervals
+  description: Telemetry freshness and refresh frequency are constrained by each upstream device vendor.
+maintainers:
+- FN: Kin Lane
+  email: kin@apievangelist.com

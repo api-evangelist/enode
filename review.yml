@@ -1,0 +1,84 @@
+aid: enode
+name: Enode
+review:
+  question: Does Enode expose a documented public WebSocket API?
+  answer: false
+  date: '2026-06-21'
+  reviewer: API Evangelist
+  asyncapiSpecCreated: false
+  asyncapiScopeNote: |
+    Per API Evangelist scope, HTTP Server-Sent Events (SSE) is in-scope for
+    AsyncAPI modeling and WebSocket is the primary event transport modeled.
+    Enode delivers asynchronous device and user updates over HTTP webhooks
+    (outbound POST callbacks), not WebSocket or SSE. No AsyncAPI document was
+    authored because the event surface is a webhook callback, which is modeled
+    as a REST/OpenAPI webhook surface rather than a streaming channel.
+findings:
+  summary: |
+    Enode does not publish a documented public WebSocket API. The Enode
+    platform exposes only REST (HTTPS) endpoints under
+    https://enode-api.production.enode.io (and the sandbox host
+    https://enode-api.sandbox.enode.io). Authentication uses the OAuth 2.0
+    client_credentials grant against the OAuth token host
+    (https://oauth.production.enode.io/oauth2/token) to obtain a Bearer
+    access token. Asynchronous delivery of device and user updates is
+    provided via outbound HTTP webhooks (server-to-server POST callbacks),
+    not via WebSocket (ws:// or wss://) or Server-Sent Events. No realtime
+    bidirectional streaming endpoint is documented.
+  transports:
+    - protocol: REST
+      scheme: https
+      baseURL: https://enode-api.production.enode.io
+      documented: true
+    - protocol: Webhooks
+      scheme: https
+      note: Outbound HTTP POST callbacks to subscriber-registered URLs for device/user update events. Not WebSocket.
+      documented: true
+    - protocol: WebSocket
+      scheme: wss
+      documented: false
+      note: No WebSocket endpoint is documented in Enode's API reference or developer docs as of the review date.
+  endpointsConfirmedRest:
+    - POST   https://enode-api.production.enode.io/users/{userId}/link
+    - GET    https://enode-api.production.enode.io/users/{userId}
+    - DELETE https://enode-api.production.enode.io/users/{userId}
+    - GET    https://enode-api.production.enode.io/users
+    - GET    https://enode-api.production.enode.io/vehicles
+    - GET    https://enode-api.production.enode.io/vehicles/{vehicleId}
+    - POST   https://enode-api.production.enode.io/vehicles/{vehicleId}/charging
+    - GET    https://enode-api.production.enode.io/vehicles/{vehicleId}/smart-charging-policy
+    - POST   https://enode-api.production.enode.io/vehicles/{vehicleId}/smart-charging-policy
+    - GET    https://enode-api.production.enode.io/chargers
+    - GET    https://enode-api.production.enode.io/chargers/{chargerId}
+    - POST   https://enode-api.production.enode.io/chargers/{chargerId}/charging
+    - GET    https://enode-api.production.enode.io/hvacs
+    - GET    https://enode-api.production.enode.io/hvacs/{hvacId}
+    - GET    https://enode-api.production.enode.io/batteries
+    - POST   https://enode-api.production.enode.io/batteries/{batteryId}/operation-mode
+    - GET    https://enode-api.production.enode.io/inverters
+    - GET    https://enode-api.production.enode.io/meters
+    - GET    https://enode-api.production.enode.io/webhooks
+    - POST   https://enode-api.production.enode.io/webhooks
+    - DELETE https://enode-api.production.enode.io/webhooks/{webhookId}
+    - POST   https://enode-api.production.enode.io/webhooks/{webhookId}/test
+sources:
+  - url: https://developers.enode.com/api/reference
+    type: APIReference
+    note: All documented endpoints are HTTPS REST; base URL https://enode-api.production.enode.io.
+  - url: https://developers.enode.com/docs
+    type: Documentation
+    note: Describes OAuth 2.0 client_credentials auth and webhook-based event delivery; no WebSocket mentioned.
+  - url: https://developers.enode.com/docs/webhooks
+    type: Documentation
+    note: Asynchronous events are delivered via outbound HTTP POST webhooks, not WebSocket or SSE.
+actions:
+  asyncapiPath: null
+  apisYmlUpdated: true
+  reason: |
+    No WebSocket protocol surface exists. Enode's asynchronous event delivery
+    is an outbound HTTP webhook callback, which is represented as a REST/
+    OpenAPI webhook surface rather than a streaming AsyncAPI channel, so no
+    AsyncAPI document was authored.
+maintainers:
+- FN: Kin Lane
+  email: kin@apievangelist.com

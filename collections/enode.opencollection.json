@@ -1,0 +1,203 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Enode API",
+    "version": "2024-10-01"
+  },
+  "request": {
+    "auth": {
+      "type": "bearer",
+      "token": "{{bearerToken}}"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Users & Link",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": { "name": "Create a Link session for a user.", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://enode-api.production.enode.io/users/{userId}/link",
+            "body": {
+              "type": "json",
+              "data": "{\n  \"vendorType\": \"vehicle\",\n  \"redirectUri\": \"https://example.com/callback\"\n}"
+            }
+          },
+          "docs": "Create a Link session so the user can authorize vendors via OAuth."
+        },
+        {
+          "info": { "name": "Get a user.", "type": "http" },
+          "http": { "method": "GET", "url": "https://enode-api.production.enode.io/users/{userId}" },
+          "docs": "Get a user."
+        },
+        {
+          "info": { "name": "List users.", "type": "http" },
+          "http": { "method": "GET", "url": "https://enode-api.production.enode.io/users" },
+          "docs": "List users."
+        },
+        {
+          "info": { "name": "Deauthorize and delete a user.", "type": "http" },
+          "http": { "method": "DELETE", "url": "https://enode-api.production.enode.io/users/{userId}" },
+          "docs": "Deauthorize and delete a user."
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Vehicles",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": { "name": "List vehicles.", "type": "http" },
+          "http": { "method": "GET", "url": "https://enode-api.production.enode.io/vehicles" },
+          "docs": "List vehicles."
+        },
+        {
+          "info": { "name": "Get a vehicle.", "type": "http" },
+          "http": { "method": "GET", "url": "https://enode-api.production.enode.io/vehicles/{vehicleId}" },
+          "docs": "Get a vehicle."
+        },
+        {
+          "info": { "name": "Start or stop vehicle charging.", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://enode-api.production.enode.io/vehicles/{vehicleId}/charging",
+            "body": { "type": "json", "data": "{\n  \"action\": \"START\"\n}" }
+          },
+          "docs": "Start or stop vehicle charging."
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Chargers",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": { "name": "List chargers.", "type": "http" },
+          "http": { "method": "GET", "url": "https://enode-api.production.enode.io/chargers" },
+          "docs": "List chargers."
+        },
+        {
+          "info": { "name": "Get a charger.", "type": "http" },
+          "http": { "method": "GET", "url": "https://enode-api.production.enode.io/chargers/{chargerId}" },
+          "docs": "Get a charger."
+        },
+        {
+          "info": { "name": "Start or stop charger charging.", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://enode-api.production.enode.io/chargers/{chargerId}/charging",
+            "body": { "type": "json", "data": "{\n  \"action\": \"START\"\n}" }
+          },
+          "docs": "Start or stop charger charging."
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "HVAC",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": { "name": "List HVAC units.", "type": "http" },
+          "http": { "method": "GET", "url": "https://enode-api.production.enode.io/hvacs" },
+          "docs": "List HVAC units."
+        },
+        {
+          "info": { "name": "Get an HVAC unit.", "type": "http" },
+          "http": { "method": "GET", "url": "https://enode-api.production.enode.io/hvacs/{hvacId}" },
+          "docs": "Get an HVAC unit."
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Batteries & Inverters",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": { "name": "List batteries.", "type": "http" },
+          "http": { "method": "GET", "url": "https://enode-api.production.enode.io/batteries" },
+          "docs": "List batteries."
+        },
+        {
+          "info": { "name": "Set battery operation mode.", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://enode-api.production.enode.io/batteries/{batteryId}/operation-mode",
+            "body": { "type": "json", "data": "{\n  \"action\": \"CHARGE\"\n}" }
+          },
+          "docs": "Set battery operation mode."
+        },
+        {
+          "info": { "name": "List solar inverters.", "type": "http" },
+          "http": { "method": "GET", "url": "https://enode-api.production.enode.io/inverters" },
+          "docs": "List solar inverters."
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Smart Charging",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": { "name": "Get a vehicle smart-charging policy.", "type": "http" },
+          "http": { "method": "GET", "url": "https://enode-api.production.enode.io/vehicles/{vehicleId}/smart-charging-policy" },
+          "docs": "Get a vehicle smart-charging policy."
+        },
+        {
+          "info": { "name": "Set a vehicle smart-charging policy.", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://enode-api.production.enode.io/vehicles/{vehicleId}/smart-charging-policy",
+            "body": { "type": "json", "data": "{\n  \"deadline\": \"07:30\",\n  \"isEnabled\": true,\n  \"minimumChargeLimit\": 20\n}" }
+          },
+          "docs": "Set a vehicle smart-charging policy."
+        }
+      ]
+    },
+    {
+      "info": {
+        "name": "Webhooks",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": { "name": "List webhooks.", "type": "http" },
+          "http": { "method": "GET", "url": "https://enode-api.production.enode.io/webhooks" },
+          "docs": "List webhooks."
+        },
+        {
+          "info": { "name": "Create a webhook.", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://enode-api.production.enode.io/webhooks",
+            "body": { "type": "json", "data": "{\n  \"url\": \"https://example.com/enode-webhook\",\n  \"secret\": \"<string>\",\n  \"events\": [\"user:vehicle:updated\"]\n}" }
+          },
+          "docs": "Create a webhook."
+        },
+        {
+          "info": { "name": "Delete a webhook.", "type": "http" },
+          "http": { "method": "DELETE", "url": "https://enode-api.production.enode.io/webhooks/{webhookId}" },
+          "docs": "Delete a webhook."
+        },
+        {
+          "info": { "name": "Send a test event to a webhook.", "type": "http" },
+          "http": { "method": "POST", "url": "https://enode-api.production.enode.io/webhooks/{webhookId}/test" },
+          "docs": "Send a test event to a webhook."
+        }
+      ]
+    }
+  ]
+}

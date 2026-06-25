@@ -1,0 +1,400 @@
+{
+  "info": {
+    "_postman_id": "b7c2f1a4-9d3e-4a21-8f6c-1e2d3c4b5a60",
+    "name": "Enode API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "Enode connects and controls electric vehicles, EV chargers, HVAC systems, home batteries, solar inverters, and smart meters through a single API. Authentication uses the OAuth 2.0 client_credentials grant; present the resulting access token as a Bearer token.\n\nContact Support:\n Name: Enode Support\n URL: https://developers.enode.com",
+      "type": "text/plain"
+    }
+  },
+  "variable": [
+    {
+      "type": "string",
+      "value": "https://enode-api.production.enode.io",
+      "key": "baseUrl"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{bearerToken}}"
+      }
+    ]
+  },
+  "event": [],
+  "item": [
+    {
+      "name": "Users & Link",
+      "description": {
+        "content": "Manage end users and Link sessions.",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "name": "Create a Link session for a user.",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/:userId/link",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":userId", "link"],
+              "variable": [{ "key": "userId", "value": "" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vendorType\": \"vehicle\",\n  \"redirectUri\": \"https://example.com/callback\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Get a user.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/:userId",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":userId"],
+              "variable": [{ "key": "userId", "value": "" }]
+            }
+          }
+        },
+        {
+          "name": "List users.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            }
+          }
+        },
+        {
+          "name": "Deauthorize and delete a user.",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/:userId",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":userId"],
+              "variable": [{ "key": "userId", "value": "" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vehicles",
+      "description": {
+        "content": "Read and control connected electric vehicles.",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "name": "List vehicles.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vehicles",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehicles"]
+            }
+          }
+        },
+        {
+          "name": "Get a vehicle.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vehicles/:vehicleId",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehicles", ":vehicleId"],
+              "variable": [{ "key": "vehicleId", "value": "" }]
+            }
+          }
+        },
+        {
+          "name": "Start or stop vehicle charging.",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vehicles/:vehicleId/charging",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehicles", ":vehicleId", "charging"],
+              "variable": [{ "key": "vehicleId", "value": "" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"START\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chargers",
+      "description": {
+        "content": "Read and control connected EV chargers.",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "name": "List chargers.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chargers",
+              "host": ["{{baseUrl}}"],
+              "path": ["chargers"]
+            }
+          }
+        },
+        {
+          "name": "Get a charger.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chargers/:chargerId",
+              "host": ["{{baseUrl}}"],
+              "path": ["chargers", ":chargerId"],
+              "variable": [{ "key": "chargerId", "value": "" }]
+            }
+          }
+        },
+        {
+          "name": "Start or stop charger charging.",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/chargers/:chargerId/charging",
+              "host": ["{{baseUrl}}"],
+              "path": ["chargers", ":chargerId", "charging"],
+              "variable": [{ "key": "chargerId", "value": "" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"START\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "HVAC",
+      "description": {
+        "content": "Read and control connected HVAC units.",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "name": "List HVAC units.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/hvacs",
+              "host": ["{{baseUrl}}"],
+              "path": ["hvacs"]
+            }
+          }
+        },
+        {
+          "name": "Get an HVAC unit.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/hvacs/:hvacId",
+              "host": ["{{baseUrl}}"],
+              "path": ["hvacs", ":hvacId"],
+              "variable": [{ "key": "hvacId", "value": "" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Batteries & Inverters",
+      "description": {
+        "content": "Read connected home batteries and solar inverters and control battery mode.",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "name": "List batteries.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/batteries",
+              "host": ["{{baseUrl}}"],
+              "path": ["batteries"]
+            }
+          }
+        },
+        {
+          "name": "Set battery operation mode.",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/batteries/:batteryId/operation-mode",
+              "host": ["{{baseUrl}}"],
+              "path": ["batteries", ":batteryId", "operation-mode"],
+              "variable": [{ "key": "batteryId", "value": "" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"CHARGE\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "List solar inverters.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/inverters",
+              "host": ["{{baseUrl}}"],
+              "path": ["inverters"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Smart Charging",
+      "description": {
+        "content": "Configure smart-charging policies for vehicles.",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "name": "Get a vehicle smart-charging policy.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vehicles/:vehicleId/smart-charging-policy",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehicles", ":vehicleId", "smart-charging-policy"],
+              "variable": [{ "key": "vehicleId", "value": "" }]
+            }
+          }
+        },
+        {
+          "name": "Set a vehicle smart-charging policy.",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vehicles/:vehicleId/smart-charging-policy",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehicles", ":vehicleId", "smart-charging-policy"],
+              "variable": [{ "key": "vehicleId", "value": "" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"deadline\": \"07:30\",\n  \"isEnabled\": true,\n  \"minimumChargeLimit\": 20\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Webhooks",
+      "description": {
+        "content": "Manage event webhooks.",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "name": "List webhooks.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/webhooks",
+              "host": ["{{baseUrl}}"],
+              "path": ["webhooks"]
+            }
+          }
+        },
+        {
+          "name": "Create a webhook.",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/webhooks",
+              "host": ["{{baseUrl}}"],
+              "path": ["webhooks"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"url\": \"https://example.com/enode-webhook\",\n  \"secret\": \"<string>\",\n  \"events\": [\"user:vehicle:updated\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Delete a webhook.",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/webhooks/:webhookId",
+              "host": ["{{baseUrl}}"],
+              "path": ["webhooks", ":webhookId"],
+              "variable": [{ "key": "webhookId", "value": "" }]
+            }
+          }
+        },
+        {
+          "name": "Send a test event to a webhook.",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/webhooks/:webhookId/test",
+              "host": ["{{baseUrl}}"],
+              "path": ["webhooks", ":webhookId", "test"],
+              "variable": [{ "key": "webhookId", "value": "" }]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

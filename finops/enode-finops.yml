@@ -1,0 +1,89 @@
+specification: FinOps Framework
+specificationVersion: '1.0'
+schema: https://www.finops.org/framework/
+provider: Enode
+providerId: enode
+created: '2026-06-21'
+modified: '2026-06-21'
+reconciled: false
+tags:
+- Energy
+- Electric Vehicles
+- EV Charging
+- Smart Charging
+- Energy Transition
+- FinOps
+- Cost Management
+- FOCUS
+description: >-
+  FinOps view of Enode spend. Enode bills on a sales-negotiated, per-
+  connected-device basis rather than per API call, so cost scales with the
+  count of unique connected devices (vehicles, chargers, inverters, batteries,
+  HVAC units, meters) rather than request volume. A device is counted once per
+  end user even when multiple hardware types are linked. Specific per-device
+  rates are not public and are not reconciled here.
+notes: >-
+  Per-device rates are sales-negotiated and not published; verify with Enode
+  during reconciliation. The primary cost driver is connected-device count,
+  not request count.
+sources:
+- https://enode.com/pricing
+- https://developers.enode.com/docs
+- https://focus.finops.org/focus-specification/v1-3/
+alignedWith:
+  framework: FinOps Foundation Framework
+  frameworkUrl: https://www.finops.org/framework/
+  dataSpec: FOCUS
+  dataSpecVersion: '1.3'
+  dataSpecUrl: https://focus.finops.org/focus-specification/v1-3/
+publisherName: Enode
+serviceCategory: Energy and IoT
+billingModel:
+  pricingCategory: Subscription-Based
+  billingFrequency: Monthly
+  billingCurrency: USD
+  chargeCategories:
+  - Usage
+  - Purchase
+focusColumns:
+  ServiceName: Enode API
+  ServiceCategory: Energy and IoT
+  ProviderName: Enode
+  PublisherName: Enode
+  InvoiceIssuerName: Enode
+  BillingCurrency: USD
+  ChargeCategory: Usage
+  PricingCategory: Subscription-Based
+meters:
+- name: connected_devices
+  description: Count of unique connected devices billed per period; one device per user even if multiple hardware types are linked.
+  unit: devices
+  aggregation: max
+  dimensions:
+  - account
+  - vendorType
+- name: control_actions
+  description: Control actions (charge start/stop, max-current, battery mode, HVAC) issued through the API.
+  unit: actions
+  aggregation: sum
+  dimensions:
+  - account
+  - vendorType
+- name: webhook_events
+  description: Webhook events dispatched for device and user updates.
+  unit: events
+  aggregation: sum
+  dimensions:
+  - account
+principles:
+- name: Visibility
+  description: Track connected-device counts per vendorType against the negotiated per-device rate.
+- name: Allocation
+  description: Map connected devices and OAuth clients to internal products and cost centers.
+- name: Optimization
+  description: Deauthorize and delete inactive users/devices promptly; prefer webhooks over polling to avoid unnecessary load; consolidate multi-device users.
+- name: Accountability
+  description: Assign owners per product/client; review active device counts monthly against budget and contract commitments.
+maintainers:
+- FN: Kin Lane
+  email: kin@apievangelist.com

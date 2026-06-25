@@ -1,0 +1,93 @@
+specification: API Commons Plans
+specificationVersion: '0.1'
+schema: https://raw.githubusercontent.com/api-evangelist/interface-research/main/schema/api-commons.yml#/$defs/Plans
+provider: Enode
+providerId: enode
+created: '2026-06-21'
+modified: '2026-06-21'
+reconciled: false
+tags:
+- Energy
+- Electric Vehicles
+- EV Charging
+- Smart Charging
+- Energy Transition
+- Plans
+description: >-
+  Enode uses a sales-led, custom pricing model billed primarily on the number
+  of connected devices. A device is defined as a piece of hardware connected
+  through the Enode API - a vehicle, charger, solar inverter, battery, HVAC
+  unit, or meter; a single end user with both a car and a charger counts as
+  one device. A free Starter plan is available for exploring the sandbox and
+  building proofs of concept, while production access and per-device rates are
+  negotiated with Enode sales. Specific per-device prices are not published.
+notes: >-
+  Per-device pricing is not publicly listed and is reconciled here as false.
+  Confirm tier names, device definitions, and rates directly with Enode sales
+  during reconciliation.
+sources:
+- https://enode.com/pricing
+- https://developers.enode.com/docs
+plans:
+- id: enode-starter
+  name: Starter
+  type: free
+  description: >-
+    Free access to the Enode sandbox for exploring the API and building proofs
+    of concept against simulated devices.
+  entries:
+  - label: Sandbox Connected Devices
+    name: sandbox_devices
+    type: usage
+    metric: devices
+    limit: -1
+    timeFrame: month
+    geo: global
+    unit: 1
+    price: free (sandbox)
+    userMultiplied: true
+  elements:
+  - name: Sandbox API Access
+  - name: Link SDK
+  - name: Vehicles
+  - name: Chargers
+  - name: HVAC
+  - name: Batteries & Inverters
+  - name: Meters
+  - name: Webhooks
+- id: enode-custom
+  name: Custom
+  type: enterprise
+  description: >-
+    Production access with custom, sales-negotiated per-connected-device
+    pricing, volume discounts, and support terms. Contact Enode sales.
+  entries:
+  - label: Connected Devices
+    name: connected_devices
+    type: usage
+    metric: devices
+    limit: -1
+    timeFrame: month
+    geo: global
+    unit: 1
+    price: contact sales (per connected device)
+    userMultiplied: true
+  - label: Production Agreement
+    name: production
+    type: flat
+    metric: contract
+    limit: -1
+    timeFrame: year
+    geo: global
+    unit: 1
+    price: contact sales
+    userMultiplied: false
+  elements:
+  - name: Production API Access
+  - name: Smart Charging
+  - name: Custom Volume Pricing
+  - name: Dedicated Support
+  - name: Startup Discounts
+maintainers:
+- FN: Kin Lane
+  email: kin@apievangelist.com
