@@ -176,6 +176,12 @@ apis:
   description: Register, list, update, test, and delete webhooks to receive
     near-real-time device-update and user-event notifications instead of polling.
 common:
+- type: VulnerabilityDisclosure
+  url: security/enode-vulnerability-disclosure.yml
+- type: DomainSecurity
+  url: security/enode-domain-security.yml
+- type: Authentication
+  url: authentication/enode-authentication.yml
 - type: GitHubOrganization
   url: https://github.com/enode
 - type: LinkedIn
@@ -190,6 +196,8 @@ common:
   url: rate-limits/enode-rate-limits.yml
 - type: FinOps
   url: finops/enode-finops.yml
+- url: https://www.enode.com/blog
+  type: Blog
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
