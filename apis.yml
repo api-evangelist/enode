@@ -176,6 +176,8 @@ apis:
   description: Register, list, update, test, and delete webhooks to receive
     near-real-time device-update and user-event notifications instead of polling.
 common:
+- type: AgenticAccess
+  url: agentic-access/enode-agentic-access.yml
 - type: VulnerabilityDisclosure
   url: security/enode-vulnerability-disclosure.yml
 - type: DomainSecurity
