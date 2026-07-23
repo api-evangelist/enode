@@ -1,0 +1,95 @@
+openapi: 3.0.1
+info:
+  title: Enode Batteries Smart Charging API
+  description: Enode connects and controls electric vehicles, EV chargers, HVAC systems, home batteries, solar inverters, and smart meters through a single API. End users authorize access to their devices via the Enode Link OAuth flow; applications then read normalized device telemetry, issue control actions (charging, climate, battery mode), configure smart charging, and subscribe to webhooks. Access tokens are obtained via the OAuth 2.0 client_credentials grant and presented as a Bearer token.
+  termsOfService: https://enode.com/legal/terms-of-service
+  contact:
+    name: Enode Support
+    url: https://developers.enode.com
+  version: '2024-10-01'
+servers:
+- url: https://enode-api.production.enode.io
+  description: Production
+- url: https://enode-api.sandbox.enode.io
+  description: Sandbox
+security:
+- bearerAuth: []
+tags:
+- name: Smart Charging
+  description: Configure smart-charging policies and overrides for vehicles.
+paths:
+  /vehicles/{vehicleId}/smart-charging-policy:
+    get:
+      operationId: getVehicleSmartChargingPolicy
+      tags:
+      - Smart Charging
+      summary: Get a vehicle smart-charging policy.
+      parameters:
+      - $ref: '#/components/parameters/vehicleId'
+      responses:
+        '200':
+          description: The smart-charging policy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SmartChargingPolicy'
+    post:
+      operationId: setVehicleSmartChargingPolicy
+      tags:
+      - Smart Charging
+      summary: Set a vehicle smart-charging policy.
+      parameters:
+      - $ref: '#/components/parameters/vehicleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SmartChargingPolicy'
+      responses:
+        '200':
+          description: The updated smart-charging policy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SmartChargingPolicy'
+  /vehicles/{vehicleId}/smart-charging-plans:
+    get:
+      operationId: getVehicleSmartChargingPlans
+      tags:
+      - Smart Charging
+      summary: Get a vehicle smart-charging plans.
+      parameters:
+      - $ref: '#/components/parameters/vehicleId'
+      responses:
+        '200':
+          description: Smart-charging plans for the vehicle.
+          content:
+            application/json:
+              schema:
+                type: object
+components:
+  parameters:
+    vehicleId:
+      name: vehicleId
+      in: path
+      required: true
+      schema:
+        type: string
+  schemas:
+    SmartChargingPolicy:
+      type: object
+      properties:
+        deadline:
+          type: string
+          description: Time the vehicle should be charged by, e.g. "07:30".
+        isEnabled:
+          type: boolean
+        minimumChargeLimit:
+          type: integer
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: OAuth 2.0 access token obtained via the client_credentials grant from the Enode OAuth token endpoint (https://oauth.production.enode.io/oauth2/token for production, https://oauth.sandbox.enode.io/oauth2/token for sandbox), presented as a Bearer token.

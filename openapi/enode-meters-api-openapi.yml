@@ -1,0 +1,80 @@
+openapi: 3.0.1
+info:
+  title: Enode Batteries Meters API
+  description: Enode connects and controls electric vehicles, EV chargers, HVAC systems, home batteries, solar inverters, and smart meters through a single API. End users authorize access to their devices via the Enode Link OAuth flow; applications then read normalized device telemetry, issue control actions (charging, climate, battery mode), configure smart charging, and subscribe to webhooks. Access tokens are obtained via the OAuth 2.0 client_credentials grant and presented as a Bearer token.
+  termsOfService: https://enode.com/legal/terms-of-service
+  contact:
+    name: Enode Support
+    url: https://developers.enode.com
+  version: '2024-10-01'
+servers:
+- url: https://enode-api.production.enode.io
+  description: Production
+- url: https://enode-api.sandbox.enode.io
+  description: Sandbox
+security:
+- bearerAuth: []
+tags:
+- name: Meters
+  description: Read connected smart meters.
+paths:
+  /meters:
+    get:
+      operationId: listMeters
+      tags:
+      - Meters
+      summary: List smart meters.
+      parameters:
+      - $ref: '#/components/parameters/pageAfter'
+      - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: A paginated list of meters.
+          content:
+            application/json:
+              schema:
+                type: object
+  /meters/{meterId}:
+    get:
+      operationId: getMeter
+      tags:
+      - Meters
+      summary: Get a smart meter.
+      parameters:
+      - $ref: '#/components/parameters/meterId'
+      responses:
+        '200':
+          description: A meter.
+          content:
+            application/json:
+              schema:
+                type: object
+components:
+  parameters:
+    meterId:
+      name: meterId
+      in: path
+      required: true
+      schema:
+        type: string
+    pageAfter:
+      name: after
+      in: query
+      required: false
+      description: Cursor for pagination, returned as the previous page's pageInfo.after.
+      schema:
+        type: string
+    pageSize:
+      name: pageSize
+      in: query
+      required: false
+      description: Number of results to return per page.
+      schema:
+        type: integer
+        default: 50
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: OAuth 2.0 access token obtained via the client_credentials grant from the Enode OAuth token endpoint (https://oauth.production.enode.io/oauth2/token for production, https://oauth.sandbox.enode.io/oauth2/token for sandbox), presented as a Bearer token.

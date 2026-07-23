@@ -1,0 +1,210 @@
+openapi: 3.0.1
+info:
+  title: Enode Batteries Vehicles API
+  description: Enode connects and controls electric vehicles, EV chargers, HVAC systems, home batteries, solar inverters, and smart meters through a single API. End users authorize access to their devices via the Enode Link OAuth flow; applications then read normalized device telemetry, issue control actions (charging, climate, battery mode), configure smart charging, and subscribe to webhooks. Access tokens are obtained via the OAuth 2.0 client_credentials grant and presented as a Bearer token.
+  termsOfService: https://enode.com/legal/terms-of-service
+  contact:
+    name: Enode Support
+    url: https://developers.enode.com
+  version: '2024-10-01'
+servers:
+- url: https://enode-api.production.enode.io
+  description: Production
+- url: https://enode-api.sandbox.enode.io
+  description: Sandbox
+security:
+- bearerAuth: []
+tags:
+- name: Vehicles
+  description: Read and control connected electric vehicles.
+paths:
+  /vehicles:
+    get:
+      operationId: listVehicles
+      tags:
+      - Vehicles
+      summary: List vehicles.
+      parameters:
+      - $ref: '#/components/parameters/pageAfter'
+      - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: A paginated list of vehicles.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleList'
+  /vehicles/{vehicleId}:
+    get:
+      operationId: getVehicle
+      tags:
+      - Vehicles
+      summary: Get a vehicle.
+      parameters:
+      - $ref: '#/components/parameters/vehicleId'
+      responses:
+        '200':
+          description: A vehicle.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+  /vehicles/{vehicleId}/charging:
+    post:
+      operationId: controlVehicleCharging
+      tags:
+      - Vehicles
+      summary: Start or stop vehicle charging.
+      parameters:
+      - $ref: '#/components/parameters/vehicleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChargeActionRequest'
+      responses:
+        '200':
+          description: Charge action accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Action'
+components:
+  schemas:
+    PageInfo:
+      type: object
+      properties:
+        after:
+          type: string
+          nullable: true
+        before:
+          type: string
+          nullable: true
+    Vehicle:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        vendor:
+          type: string
+        isReachable:
+          type: boolean
+        lastSeen:
+          type: string
+          format: date-time
+        information:
+          type: object
+          properties:
+            brand:
+              type: string
+            model:
+              type: string
+            year:
+              type: integer
+            vin:
+              type: string
+        chargeState:
+          type: object
+          properties:
+            batteryLevel:
+              type: integer
+              description: State of charge as a percentage.
+            isCharging:
+              type: boolean
+            isPluggedIn:
+              type: boolean
+            range:
+              type: number
+            chargeLimit:
+              type: integer
+            powerDeliveryState:
+              type: string
+        location:
+          type: object
+          properties:
+            latitude:
+              type: number
+            longitude:
+              type: number
+        odometer:
+          type: object
+          properties:
+            distance:
+              type: number
+    VehicleList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Vehicle'
+        pageInfo:
+          $ref: '#/components/schemas/PageInfo'
+    Action:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        targetId:
+          type: string
+        targetType:
+          type: string
+        state:
+          type: string
+          enum:
+          - PENDING
+          - CONFIRMED
+          - FAILED
+          - CANCELLED
+        kind:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+    ChargeActionRequest:
+      type: object
+      required:
+      - action
+      properties:
+        action:
+          type: string
+          enum:
+          - START
+          - STOP
+  parameters:
+    pageSize:
+      name: pageSize
+      in: query
+      required: false
+      description: Number of results to return per page.
+      schema:
+        type: integer
+        default: 50
+    vehicleId:
+      name: vehicleId
+      in: path
+      required: true
+      schema:
+        type: string
+    pageAfter:
+      name: after
+      in: query
+      required: false
+      description: Cursor for pagination, returned as the previous page's pageInfo.after.
+      schema:
+        type: string
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: OAuth 2.0 access token obtained via the client_credentials grant from the Enode OAuth token endpoint (https://oauth.production.enode.io/oauth2/token for production, https://oauth.sandbox.enode.io/oauth2/token for sandbox), presented as a Bearer token.

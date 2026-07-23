@@ -1,0 +1,188 @@
+openapi: 3.0.1
+info:
+  title: Enode Batteries Users API
+  description: Enode connects and controls electric vehicles, EV chargers, HVAC systems, home batteries, solar inverters, and smart meters through a single API. End users authorize access to their devices via the Enode Link OAuth flow; applications then read normalized device telemetry, issue control actions (charging, climate, battery mode), configure smart charging, and subscribe to webhooks. Access tokens are obtained via the OAuth 2.0 client_credentials grant and presented as a Bearer token.
+  termsOfService: https://enode.com/legal/terms-of-service
+  contact:
+    name: Enode Support
+    url: https://developers.enode.com
+  version: '2024-10-01'
+servers:
+- url: https://enode-api.production.enode.io
+  description: Production
+- url: https://enode-api.sandbox.enode.io
+  description: Sandbox
+security:
+- bearerAuth: []
+tags:
+- name: Users
+  description: Manage end users and Link sessions.
+paths:
+  /users/{userId}/link:
+    post:
+      operationId: linkUser
+      tags:
+      - Users
+      summary: Create a Link session for a user.
+      description: Returns a hosted Link URL the end user opens to authorize one or more vendors. Creates the user if it does not already exist.
+      parameters:
+      - $ref: '#/components/parameters/userId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LinkUserRequest'
+      responses:
+        '200':
+          description: Link session created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkSession'
+  /users/{userId}:
+    get:
+      operationId: getUser
+      tags:
+      - Users
+      summary: Get a user.
+      parameters:
+      - $ref: '#/components/parameters/userId'
+      responses:
+        '200':
+          description: A user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    delete:
+      operationId: deleteUser
+      tags:
+      - Users
+      summary: Deauthorize and delete a user.
+      parameters:
+      - $ref: '#/components/parameters/userId'
+      responses:
+        '204':
+          description: User deleted.
+  /users:
+    get:
+      operationId: listUsers
+      tags:
+      - Users
+      summary: List users.
+      parameters:
+      - $ref: '#/components/parameters/pageAfter'
+      - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: A paginated list of users.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserList'
+components:
+  schemas:
+    PageInfo:
+      type: object
+      properties:
+        after:
+          type: string
+          nullable: true
+        before:
+          type: string
+          nullable: true
+    UserList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        pageInfo:
+          $ref: '#/components/schemas/PageInfo'
+    LinkSession:
+      type: object
+      properties:
+        linkUrl:
+          type: string
+          format: uri
+        linkToken:
+          type: string
+    LinkUserRequest:
+      type: object
+      properties:
+        vendor:
+          type: string
+          description: Specific vendor to link, or omit to show vendor selection.
+        vendorType:
+          type: string
+          enum:
+          - vehicle
+          - charger
+          - hvac
+          - battery
+          - inverter
+          - meter
+        language:
+          type: string
+        scopes:
+          type: array
+          items:
+            type: string
+        redirectUri:
+          type: string
+          format: uri
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        vehicles:
+          type: array
+          items:
+            type: string
+        chargers:
+          type: array
+          items:
+            type: string
+        linkedVendors:
+          type: array
+          items:
+            type: object
+            properties:
+              vendor:
+                type: string
+              vendorType:
+                type: string
+              isValid:
+                type: boolean
+  parameters:
+    pageSize:
+      name: pageSize
+      in: query
+      required: false
+      description: Number of results to return per page.
+      schema:
+        type: integer
+        default: 50
+    userId:
+      name: userId
+      in: path
+      required: true
+      description: Your unique identifier for the end user.
+      schema:
+        type: string
+    pageAfter:
+      name: after
+      in: query
+      required: false
+      description: Cursor for pagination, returned as the previous page's pageInfo.after.
+      schema:
+        type: string
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: OAuth 2.0 access token obtained via the client_credentials grant from the Enode OAuth token endpoint (https://oauth.production.enode.io/oauth2/token for production, https://oauth.sandbox.enode.io/oauth2/token for sandbox), presented as a Bearer token.
