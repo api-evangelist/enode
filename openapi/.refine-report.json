@@ -1,0 +1,30 @@
+{
+  "provider": "enode",
+  "sources": [
+    "enode-batteries-api-openapi.yml",
+    "enode-chargers-api-openapi.yml",
+    "enode-hvac-api-openapi.yml",
+    "enode-inverters-api-openapi.yml",
+    "enode-meters-api-openapi.yml",
+    "enode-smart-charging-api-openapi.yml",
+    "enode-users-api-openapi.yml",
+    "enode-vehicles-api-openapi.yml",
+    "enode-webhooks-api-openapi.yml"
+  ],
+  "outputs": [
+    "enode-batteries-api-openapi.yml",
+    "enode-chargers-api-openapi.yml",
+    "enode-hvac-api-openapi.yml",
+    "enode-inverters-api-openapi.yml",
+    "enode-meters-api-openapi.yml",
+    "enode-smart-charging-api-openapi.yml",
+    "enode-users-api-openapi.yml",
+    "enode-vehicles-api-openapi.yml",
+    "enode-webhooks-api-openapi.yml"
+  ],
+  "archived": [],
+  "errors": [],
+  "warnings": [],
+  "notes": [],
+  "skipped": []
+}
