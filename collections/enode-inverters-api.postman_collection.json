@@ -1,0 +1,231 @@
+{
+  "item": [
+    {
+      "id": "2a8f3ee6-e81a-48af-bb33-138e5c429c68",
+      "name": "Inverters",
+      "description": {
+        "content": "Read connected solar inverters.",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "id": "76059d1d-03ba-40de-b008-4d526fe59e9a",
+          "name": "List solar inverters.",
+          "request": {
+            "name": "List solar inverters.",
+            "description": {},
+            "url": {
+              "path": [
+                "inverters"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "key": "after",
+                  "value": "<string>",
+                  "description": "Cursor for pagination, returned as the previous page's pageInfo.after."
+                },
+                {
+                  "disabled": false,
+                  "key": "pageSize",
+                  "value": "50",
+                  "description": "Number of results to return per page."
+                }
+              ],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "9d065465-5b5c-4728-be5c-f7b16996aa4e",
+              "name": "A paginated list of inverters.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "inverters"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "after",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "pageSize",
+                      "value": "50"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "047181ea-7994-4608-84d9-c7e33a555da3",
+          "name": "Get a solar inverter.",
+          "request": {
+            "name": "Get a solar inverter.",
+            "description": {},
+            "url": {
+              "path": [
+                "inverters",
+                ":inverterId"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "inverterId",
+                  "description": "(Required) "
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "c3b9e939-68c6-4ac1-a823-02a1977656eb",
+              "name": "An inverter.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "inverters",
+                    ":inverterId"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "inverterId",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "event": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "type": "string",
+      "value": "https://enode-api.production.enode.io",
+      "key": "baseUrl"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{bearerToken}}"
+      }
+    ]
+  },
+  "info": {
+    "_postman_id": "2affc88c-7368-440f-9822-f9ac15bed5ec",
+    "name": "Enode Batteries Inverters API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "Enode connects and controls electric vehicles, EV chargers, HVAC systems, home batteries, solar inverters, and smart meters through a single API. End users authorize access to their devices via the Enode Link OAuth flow; applications then read normalized device telemetry, issue control actions (charging, climate, battery mode), configure smart charging, and subscribe to webhooks. Access tokens are obtained via the OAuth 2.0 client_credentials grant and presented as a Bearer token.\n\nContact Support:\n Name: Enode Support",
+      "type": "text/plain"
+    }
+  }
+}

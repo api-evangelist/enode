@@ -1,0 +1,347 @@
+{
+  "item": [
+    {
+      "id": "798f7ad4-8346-46d5-a329-a0f0d3ce0ffe",
+      "name": "Batteries",
+      "description": {
+        "content": "Read and control connected home batteries.",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "id": "2b332692-34d1-4bd6-b974-4a6e3349a993",
+          "name": "List batteries.",
+          "request": {
+            "name": "List batteries.",
+            "description": {},
+            "url": {
+              "path": [
+                "batteries"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "key": "after",
+                  "value": "<string>",
+                  "description": "Cursor for pagination, returned as the previous page's pageInfo.after."
+                },
+                {
+                  "disabled": false,
+                  "key": "pageSize",
+                  "value": "50",
+                  "description": "Number of results to return per page."
+                }
+              ],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "9f950fd4-a0bb-4959-b49e-fd3ce0b5cb48",
+              "name": "A paginated list of batteries.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "batteries"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "after",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "pageSize",
+                      "value": "50"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "2903e4f8-2d00-42be-bac1-27f9035b7d49",
+          "name": "Get a battery.",
+          "request": {
+            "name": "Get a battery.",
+            "description": {},
+            "url": {
+              "path": [
+                "batteries",
+                ":batteryId"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "batteryId",
+                  "description": "(Required) "
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "1a36b372-643e-487d-b7c6-86b1e5d98860",
+              "name": "A battery.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "batteries",
+                    ":batteryId"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "batteryId",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "31008864-4a1a-4dce-a1e2-34007ac898ca",
+          "name": "Set battery operation mode.",
+          "request": {
+            "name": "Set battery operation mode.",
+            "description": {},
+            "url": {
+              "path": [
+                "batteries",
+                ":batteryId",
+                "operation-mode"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "batteryId",
+                  "description": "(Required) "
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": null,
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "3872ad60-c1cd-413f-b922-1f8597d05e2c",
+              "name": "Operation-mode action accepted.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "batteries",
+                    ":batteryId",
+                    "operation-mode"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "batteryId",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"action\": \"<string>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"string\",\n  \"userId\": \"string\",\n  \"targetId\": \"string\",\n  \"targetType\": \"string\",\n  \"state\": \"CANCELLED\",\n  \"kind\": \"string\",\n  \"createdAt\": \"2015-11-10T08:42:53.996Z\",\n  \"completedAt\": \"1990-10-06T23:51:38.602Z\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "event": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "type": "string",
+      "value": "https://enode-api.production.enode.io",
+      "key": "baseUrl"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{bearerToken}}"
+      }
+    ]
+  },
+  "info": {
+    "_postman_id": "89e08bb1-945f-4660-8e4f-dc420fd720b7",
+    "name": "Enode Batteries API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "Enode connects and controls electric vehicles, EV chargers, HVAC systems, home batteries, solar inverters, and smart meters through a single API. End users authorize access to their devices via the Enode Link OAuth flow; applications then read normalized device telemetry, issue control actions (charging, climate, battery mode), configure smart charging, and subscribe to webhooks. Access tokens are obtained via the OAuth 2.0 client_credentials grant and presented as a Bearer token.\n\nContact Support:\n Name: Enode Support",
+      "type": "text/plain"
+    }
+  }
+}

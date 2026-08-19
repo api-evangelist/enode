@@ -1,0 +1,82 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Enode Batteries Smart Charging API",
+    "version": "2024-10-01"
+  },
+  "request": {
+    "auth": {
+      "type": "bearer",
+      "token": "{{bearerToken}}"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Smart Charging",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Get a vehicle smart-charging policy.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://enode-api.production.enode.io/vehicles/:vehicleId/smart-charging-policy",
+            "params": [
+              {
+                "name": "vehicleId",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Get a vehicle smart-charging policy."
+        },
+        {
+          "info": {
+            "name": "Set a vehicle smart-charging policy.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://enode-api.production.enode.io/vehicles/:vehicleId/smart-charging-policy",
+            "params": [
+              {
+                "name": "vehicleId",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Set a vehicle smart-charging policy."
+        },
+        {
+          "info": {
+            "name": "Get a vehicle smart-charging plans.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://enode-api.production.enode.io/vehicles/:vehicleId/smart-charging-plans",
+            "params": [
+              {
+                "name": "vehicleId",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Get a vehicle smart-charging plans."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

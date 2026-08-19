@@ -1,0 +1,231 @@
+{
+  "item": [
+    {
+      "id": "9a4cd9d3-f07a-46fc-ab7a-60220c53ba17",
+      "name": "HVAC",
+      "description": {
+        "content": "Read and control connected HVAC units.",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "id": "d8ba73dd-1241-4c1c-b0b8-91585243930f",
+          "name": "List HVAC units.",
+          "request": {
+            "name": "List HVAC units.",
+            "description": {},
+            "url": {
+              "path": [
+                "hvacs"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "key": "after",
+                  "value": "<string>",
+                  "description": "Cursor for pagination, returned as the previous page's pageInfo.after."
+                },
+                {
+                  "disabled": false,
+                  "key": "pageSize",
+                  "value": "50",
+                  "description": "Number of results to return per page."
+                }
+              ],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "3070f6f2-2736-4f67-bd33-5e30baffe00e",
+              "name": "A paginated list of HVAC units.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "hvacs"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "after",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "pageSize",
+                      "value": "50"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "e629553a-0ab3-4ba7-925a-756974d6aa8f",
+          "name": "Get an HVAC unit.",
+          "request": {
+            "name": "Get an HVAC unit.",
+            "description": {},
+            "url": {
+              "path": [
+                "hvacs",
+                ":hvacId"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "hvacId",
+                  "description": "(Required) "
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "b685e6d0-1486-4593-ac71-03fc5ef76b2b",
+              "name": "An HVAC unit.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "hvacs",
+                    ":hvacId"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "hvacId",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "event": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "type": "string",
+      "value": "https://enode-api.production.enode.io",
+      "key": "baseUrl"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{bearerToken}}"
+      }
+    ]
+  },
+  "info": {
+    "_postman_id": "f1c043e3-3817-4a49-ad1f-17db3ff5f91c",
+    "name": "Enode Batteries HVAC API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "Enode connects and controls electric vehicles, EV chargers, HVAC systems, home batteries, solar inverters, and smart meters through a single API. End users authorize access to their devices via the Enode Link OAuth flow; applications then read normalized device telemetry, issue control actions (charging, climate, battery mode), configure smart charging, and subscribe to webhooks. Access tokens are obtained via the OAuth 2.0 client_credentials grant and presented as a Bearer token.\n\nContact Support:\n Name: Enode Support",
+      "type": "text/plain"
+    }
+  }
+}

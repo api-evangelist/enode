@@ -1,0 +1,433 @@
+{
+  "item": [
+    {
+      "id": "d86109b2-4e50-406d-a622-6c0afb05795b",
+      "name": "Users",
+      "description": {
+        "content": "Manage end users and Link sessions.",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "id": "acf523d7-cdbd-47dc-ae72-7d2eb34009ee",
+          "name": "Create a Link session for a user.",
+          "request": {
+            "name": "Create a Link session for a user.",
+            "description": {
+              "content": "Returns a hosted Link URL the end user opens to authorize one or more vendors. Creates the user if it does not already exist.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "users",
+                ":userId",
+                "link"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "userId",
+                  "description": "(Required) Your unique identifier for the end user."
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": null,
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vendor\": \"<string>\",\n  \"vendorType\": \"<string>\",\n  \"language\": \"<string>\",\n  \"scopes\": [\n    \"<string>\",\n    \"<string>\"\n  ],\n  \"redirectUri\": \"<uri>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "4f0e8230-9fbb-4137-b1b4-9445d715772f",
+              "name": "Link session created.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "users",
+                    ":userId",
+                    "link"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "userId",
+                      "description": "(Required) Your unique identifier for the end user."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"vendor\": \"<string>\",\n  \"vendorType\": \"<string>\",\n  \"language\": \"<string>\",\n  \"scopes\": [\n    \"<string>\",\n    \"<string>\"\n  ],\n  \"redirectUri\": \"<uri>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"linkUrl\": \"http://VdtZBJT.kbfo6srK1DcYsczcB.bzrpef0Lyex4YD\",\n  \"linkToken\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "5adbc473-45be-4263-a557-5d8d79dc0d00",
+          "name": "Get a user.",
+          "request": {
+            "name": "Get a user.",
+            "description": {},
+            "url": {
+              "path": [
+                "users",
+                ":userId"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "userId",
+                  "description": "(Required) Your unique identifier for the end user."
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "c22b5022-b295-4f80-8a6a-066522a0ad3b",
+              "name": "A user.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "users",
+                    ":userId"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "userId",
+                      "description": "(Required) Your unique identifier for the end user."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"string\",\n  \"vehicles\": [\n    \"string\",\n    \"string\"\n  ],\n  \"chargers\": [\n    \"string\",\n    \"string\"\n  ],\n  \"linkedVendors\": [\n    {\n      \"vendor\": \"string\",\n      \"vendorType\": \"string\",\n      \"isValid\": true\n    },\n    {\n      \"vendor\": \"string\",\n      \"vendorType\": \"string\",\n      \"isValid\": true\n    }\n  ]\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "302db02c-d8f0-45ec-ba11-662da5383cd5",
+          "name": "Deauthorize and delete a user.",
+          "request": {
+            "name": "Deauthorize and delete a user.",
+            "description": {},
+            "url": {
+              "path": [
+                "users",
+                ":userId"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "userId",
+                  "description": "(Required) Your unique identifier for the end user."
+                }
+              ]
+            },
+            "method": "DELETE",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "a8fd0488-f6ed-4ce2-ab1d-82653ce51847",
+              "name": "User deleted.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "users",
+                    ":userId"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "userId",
+                      "description": "(Required) Your unique identifier for the end user."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "No Content",
+              "code": 204,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "text/plain"
+                }
+              ],
+              "body": "",
+              "cookie": [],
+              "_postman_previewlanguage": "text"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "173332cd-adfe-4d2f-9220-3928532585b8",
+          "name": "List users.",
+          "request": {
+            "name": "List users.",
+            "description": {},
+            "url": {
+              "path": [
+                "users"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "key": "after",
+                  "value": "<string>",
+                  "description": "Cursor for pagination, returned as the previous page's pageInfo.after."
+                },
+                {
+                  "disabled": false,
+                  "key": "pageSize",
+                  "value": "50",
+                  "description": "Number of results to return per page."
+                }
+              ],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "92d8653f-613c-4914-82ad-3b0e846ba5db",
+              "name": "A paginated list of users.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "users"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "after",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "pageSize",
+                      "value": "50"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": \"string\",\n      \"vehicles\": [\n        \"string\",\n        \"string\"\n      ],\n      \"chargers\": [\n        \"string\",\n        \"string\"\n      ],\n      \"linkedVendors\": [\n        {\n          \"vendor\": \"string\",\n          \"vendorType\": \"string\",\n          \"isValid\": false\n        },\n        {\n          \"vendor\": \"string\",\n          \"vendorType\": \"string\",\n          \"isValid\": true\n        }\n      ]\n    },\n    {\n      \"id\": \"string\",\n      \"vehicles\": [\n        \"string\",\n        \"string\"\n      ],\n      \"chargers\": [\n        \"string\",\n        \"string\"\n      ],\n      \"linkedVendors\": [\n        {\n          \"vendor\": \"string\",\n          \"vendorType\": \"string\",\n          \"isValid\": true\n        },\n        {\n          \"vendor\": \"string\",\n          \"vendorType\": \"string\",\n          \"isValid\": false\n        }\n      ]\n    }\n  ],\n  \"pageInfo\": {\n    \"after\": \"string\",\n    \"before\": \"string\"\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "event": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "type": "string",
+      "value": "https://enode-api.production.enode.io",
+      "key": "baseUrl"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{bearerToken}}"
+      }
+    ]
+  },
+  "info": {
+    "_postman_id": "ef383bba-c074-4e22-aacf-5badcd2df587",
+    "name": "Enode Batteries Users API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "Enode connects and controls electric vehicles, EV chargers, HVAC systems, home batteries, solar inverters, and smart meters through a single API. End users authorize access to their devices via the Enode Link OAuth flow; applications then read normalized device telemetry, issue control actions (charging, climate, battery mode), configure smart charging, and subscribe to webhooks. Access tokens are obtained via the OAuth 2.0 client_credentials grant and presented as a Bearer token.\n\nContact Support:\n Name: Enode Support",
+      "type": "text/plain"
+    }
+  }
+}

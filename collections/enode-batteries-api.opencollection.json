@@ -1,0 +1,89 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Enode Batteries API",
+    "version": "2024-10-01"
+  },
+  "request": {
+    "auth": {
+      "type": "bearer",
+      "token": "{{bearerToken}}"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Batteries",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List batteries.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://enode-api.production.enode.io/batteries",
+            "params": [
+              {
+                "name": "after",
+                "value": "",
+                "type": "query",
+                "description": "Cursor for pagination, returned as the previous page's pageInfo.after."
+              },
+              {
+                "name": "pageSize",
+                "value": "",
+                "type": "query",
+                "description": "Number of results to return per page."
+              }
+            ]
+          },
+          "docs": "List batteries."
+        },
+        {
+          "info": {
+            "name": "Get a battery.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://enode-api.production.enode.io/batteries/:batteryId",
+            "params": [
+              {
+                "name": "batteryId",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Get a battery."
+        },
+        {
+          "info": {
+            "name": "Set battery operation mode.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://enode-api.production.enode.io/batteries/:batteryId/operation-mode",
+            "params": [
+              {
+                "name": "batteryId",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Set battery operation mode."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

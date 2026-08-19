@@ -1,0 +1,67 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Enode Batteries Inverters API",
+    "version": "2024-10-01"
+  },
+  "request": {
+    "auth": {
+      "type": "bearer",
+      "token": "{{bearerToken}}"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Inverters",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List solar inverters.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://enode-api.production.enode.io/inverters",
+            "params": [
+              {
+                "name": "after",
+                "value": "",
+                "type": "query",
+                "description": "Cursor for pagination, returned as the previous page's pageInfo.after."
+              },
+              {
+                "name": "pageSize",
+                "value": "",
+                "type": "query",
+                "description": "Number of results to return per page."
+              }
+            ]
+          },
+          "docs": "List solar inverters."
+        },
+        {
+          "info": {
+            "name": "Get a solar inverter.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://enode-api.production.enode.io/inverters/:inverterId",
+            "params": [
+              {
+                "name": "inverterId",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Get a solar inverter."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

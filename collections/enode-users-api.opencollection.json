@@ -1,0 +1,110 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Enode Batteries Users API",
+    "version": "2024-10-01"
+  },
+  "request": {
+    "auth": {
+      "type": "bearer",
+      "token": "{{bearerToken}}"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Users",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Create a Link session for a user.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://enode-api.production.enode.io/users/:userId/link",
+            "params": [
+              {
+                "name": "userId",
+                "value": "",
+                "type": "path",
+                "description": "Your unique identifier for the end user."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Returns a hosted Link URL the end user opens to authorize one or more vendors. Creates the user if it does not already exist."
+        },
+        {
+          "info": {
+            "name": "Get a user.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://enode-api.production.enode.io/users/:userId",
+            "params": [
+              {
+                "name": "userId",
+                "value": "",
+                "type": "path",
+                "description": "Your unique identifier for the end user."
+              }
+            ]
+          },
+          "docs": "Get a user."
+        },
+        {
+          "info": {
+            "name": "Deauthorize and delete a user.",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://enode-api.production.enode.io/users/:userId",
+            "params": [
+              {
+                "name": "userId",
+                "value": "",
+                "type": "path",
+                "description": "Your unique identifier for the end user."
+              }
+            ]
+          },
+          "docs": "Deauthorize and delete a user."
+        },
+        {
+          "info": {
+            "name": "List users.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://enode-api.production.enode.io/users",
+            "params": [
+              {
+                "name": "after",
+                "value": "",
+                "type": "query",
+                "description": "Cursor for pagination, returned as the previous page's pageInfo.after."
+              },
+              {
+                "name": "pageSize",
+                "value": "",
+                "type": "query",
+                "description": "Number of results to return per page."
+              }
+            ]
+          },
+          "docs": "List users."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

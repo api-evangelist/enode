@@ -1,0 +1,347 @@
+{
+  "item": [
+    {
+      "id": "7a25595f-b05d-4d08-9e20-1aa0ec71c52d",
+      "name": "Chargers",
+      "description": {
+        "content": "Read and control connected EV chargers.",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "id": "ee495406-7eb9-48da-a78b-f55a1890b191",
+          "name": "List chargers.",
+          "request": {
+            "name": "List chargers.",
+            "description": {},
+            "url": {
+              "path": [
+                "chargers"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "key": "after",
+                  "value": "<string>",
+                  "description": "Cursor for pagination, returned as the previous page's pageInfo.after."
+                },
+                {
+                  "disabled": false,
+                  "key": "pageSize",
+                  "value": "50",
+                  "description": "Number of results to return per page."
+                }
+              ],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "8a205b51-0ac4-4502-9649-9b41861f579c",
+              "name": "A paginated list of chargers.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "chargers"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "after",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "pageSize",
+                      "value": "50"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": \"string\",\n      \"userId\": \"string\",\n      \"vendor\": \"string\",\n      \"isReachable\": true,\n      \"lastSeen\": \"1999-04-22T01:41:46.579Z\",\n      \"information\": {\n        \"brand\": \"string\",\n        \"model\": \"string\"\n      },\n      \"chargeState\": {\n        \"isPluggedIn\": false,\n        \"isCharging\": true,\n        \"chargeRate\": 8516.109552379412,\n        \"maxCurrent\": 2773,\n        \"powerDeliveryState\": \"string\"\n      }\n    },\n    {\n      \"id\": \"string\",\n      \"userId\": \"string\",\n      \"vendor\": \"string\",\n      \"isReachable\": true,\n      \"lastSeen\": \"2006-05-11T13:58:03.655Z\",\n      \"information\": {\n        \"brand\": \"string\",\n        \"model\": \"string\"\n      },\n      \"chargeState\": {\n        \"isPluggedIn\": false,\n        \"isCharging\": false,\n        \"chargeRate\": 7258.635042264001,\n        \"maxCurrent\": 2151,\n        \"powerDeliveryState\": \"string\"\n      }\n    }\n  ],\n  \"pageInfo\": {\n    \"after\": \"string\",\n    \"before\": \"string\"\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "8756d6af-22a2-46d5-99c8-c59cd962213d",
+          "name": "Get a charger.",
+          "request": {
+            "name": "Get a charger.",
+            "description": {},
+            "url": {
+              "path": [
+                "chargers",
+                ":chargerId"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "chargerId",
+                  "description": "(Required) "
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "16843980-0bc7-4698-8349-a8b38369ba4c",
+              "name": "A charger.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "chargers",
+                    ":chargerId"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "chargerId",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"string\",\n  \"userId\": \"string\",\n  \"vendor\": \"string\",\n  \"isReachable\": true,\n  \"lastSeen\": \"1988-09-17T13:45:09.490Z\",\n  \"information\": {\n    \"brand\": \"string\",\n    \"model\": \"string\"\n  },\n  \"chargeState\": {\n    \"isPluggedIn\": false,\n    \"isCharging\": true,\n    \"chargeRate\": 6136.478603480246,\n    \"maxCurrent\": 3291,\n    \"powerDeliveryState\": \"string\"\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "f957cb31-63ac-48c0-8d14-3260d3a56649",
+          "name": "Start or stop charger charging.",
+          "request": {
+            "name": "Start or stop charger charging.",
+            "description": {},
+            "url": {
+              "path": [
+                "chargers",
+                ":chargerId",
+                "charging"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "chargerId",
+                  "description": "(Required) "
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": null,
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "99e885c6-fdc4-46de-9753-65ac0dd5449b",
+              "name": "Charge action accepted.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "chargers",
+                    ":chargerId",
+                    "charging"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "chargerId",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"action\": \"<string>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"string\",\n  \"userId\": \"string\",\n  \"targetId\": \"string\",\n  \"targetType\": \"string\",\n  \"state\": \"CONFIRMED\",\n  \"kind\": \"string\",\n  \"createdAt\": \"2016-05-07T07:35:10.231Z\",\n  \"completedAt\": \"2019-11-27T19:05:44.197Z\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "event": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "type": "string",
+      "value": "https://enode-api.production.enode.io",
+      "key": "baseUrl"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{bearerToken}}"
+      }
+    ]
+  },
+  "info": {
+    "_postman_id": "60a7dcfe-74b0-45e2-ba2d-ab0018e01770",
+    "name": "Enode Batteries Chargers API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "Enode connects and controls electric vehicles, EV chargers, HVAC systems, home batteries, solar inverters, and smart meters through a single API. End users authorize access to their devices via the Enode Link OAuth flow; applications then read normalized device telemetry, issue control actions (charging, climate, battery mode), configure smart charging, and subscribe to webhooks. Access tokens are obtained via the OAuth 2.0 client_credentials grant and presented as a Bearer token.\n\nContact Support:\n Name: Enode Support",
+      "type": "text/plain"
+    }
+  }
+}

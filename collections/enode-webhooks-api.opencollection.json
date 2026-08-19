@@ -1,0 +1,104 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Enode Batteries Webhooks API",
+    "version": "2024-10-01"
+  },
+  "request": {
+    "auth": {
+      "type": "bearer",
+      "token": "{{bearerToken}}"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Webhooks",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List webhooks.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://enode-api.production.enode.io/webhooks"
+          },
+          "docs": "List webhooks."
+        },
+        {
+          "info": {
+            "name": "Create a webhook.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://enode-api.production.enode.io/webhooks",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Create a webhook."
+        },
+        {
+          "info": {
+            "name": "Get a webhook.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://enode-api.production.enode.io/webhooks/:webhookId",
+            "params": [
+              {
+                "name": "webhookId",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Get a webhook."
+        },
+        {
+          "info": {
+            "name": "Delete a webhook.",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://enode-api.production.enode.io/webhooks/:webhookId",
+            "params": [
+              {
+                "name": "webhookId",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Delete a webhook."
+        },
+        {
+          "info": {
+            "name": "Send a test event to a webhook.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://enode-api.production.enode.io/webhooks/:webhookId/test",
+            "params": [
+              {
+                "name": "webhookId",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Send a test event to a webhook."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

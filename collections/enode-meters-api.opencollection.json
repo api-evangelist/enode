@@ -1,0 +1,67 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Enode Batteries Meters API",
+    "version": "2024-10-01"
+  },
+  "request": {
+    "auth": {
+      "type": "bearer",
+      "token": "{{bearerToken}}"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Meters",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List smart meters.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://enode-api.production.enode.io/meters",
+            "params": [
+              {
+                "name": "after",
+                "value": "",
+                "type": "query",
+                "description": "Cursor for pagination, returned as the previous page's pageInfo.after."
+              },
+              {
+                "name": "pageSize",
+                "value": "",
+                "type": "query",
+                "description": "Number of results to return per page."
+              }
+            ]
+          },
+          "docs": "List smart meters."
+        },
+        {
+          "info": {
+            "name": "Get a smart meter.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://enode-api.production.enode.io/meters/:meterId",
+            "params": [
+              {
+                "name": "meterId",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Get a smart meter."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

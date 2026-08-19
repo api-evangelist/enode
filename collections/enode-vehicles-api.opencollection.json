@@ -1,0 +1,89 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Enode Batteries Vehicles API",
+    "version": "2024-10-01"
+  },
+  "request": {
+    "auth": {
+      "type": "bearer",
+      "token": "{{bearerToken}}"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Vehicles",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List vehicles.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://enode-api.production.enode.io/vehicles",
+            "params": [
+              {
+                "name": "after",
+                "value": "",
+                "type": "query",
+                "description": "Cursor for pagination, returned as the previous page's pageInfo.after."
+              },
+              {
+                "name": "pageSize",
+                "value": "",
+                "type": "query",
+                "description": "Number of results to return per page."
+              }
+            ]
+          },
+          "docs": "List vehicles."
+        },
+        {
+          "info": {
+            "name": "Get a vehicle.",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://enode-api.production.enode.io/vehicles/:vehicleId",
+            "params": [
+              {
+                "name": "vehicleId",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Get a vehicle."
+        },
+        {
+          "info": {
+            "name": "Start or stop vehicle charging.",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://enode-api.production.enode.io/vehicles/:vehicleId/charging",
+            "params": [
+              {
+                "name": "vehicleId",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Start or stop vehicle charging."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

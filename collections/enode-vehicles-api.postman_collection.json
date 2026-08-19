@@ -1,0 +1,347 @@
+{
+  "item": [
+    {
+      "id": "79952a81-4849-4e83-988c-3559472297b9",
+      "name": "Vehicles",
+      "description": {
+        "content": "Read and control connected electric vehicles.",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "id": "e16461fe-2b5b-43da-9831-2991e6c6130d",
+          "name": "List vehicles.",
+          "request": {
+            "name": "List vehicles.",
+            "description": {},
+            "url": {
+              "path": [
+                "vehicles"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "disabled": false,
+                  "key": "after",
+                  "value": "<string>",
+                  "description": "Cursor for pagination, returned as the previous page's pageInfo.after."
+                },
+                {
+                  "disabled": false,
+                  "key": "pageSize",
+                  "value": "50",
+                  "description": "Number of results to return per page."
+                }
+              ],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "519282e8-b763-4bf5-b23f-b8f6d17c8753",
+              "name": "A paginated list of vehicles.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "vehicles"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "after",
+                      "value": "<string>"
+                    },
+                    {
+                      "key": "pageSize",
+                      "value": "50"
+                    }
+                  ],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": \"string\",\n      \"userId\": \"string\",\n      \"vendor\": \"string\",\n      \"isReachable\": false,\n      \"lastSeen\": \"2004-12-26T19:38:23.514Z\",\n      \"information\": {\n        \"brand\": \"string\",\n        \"model\": \"string\",\n        \"year\": 606,\n        \"vin\": \"string\"\n      },\n      \"chargeState\": {\n        \"batteryLevel\": 8009,\n        \"isCharging\": true,\n        \"isPluggedIn\": true,\n        \"range\": 9726.637809389249,\n        \"chargeLimit\": 5174,\n        \"powerDeliveryState\": \"string\"\n      },\n      \"location\": {\n        \"latitude\": 388.60157163097983,\n        \"longitude\": 6691.455296271543\n      },\n      \"odometer\": {\n        \"distance\": 2536.1009741245366\n      }\n    },\n    {\n      \"id\": \"string\",\n      \"userId\": \"string\",\n      \"vendor\": \"string\",\n      \"isReachable\": true,\n      \"lastSeen\": \"2008-02-05T13:42:33.352Z\",\n      \"information\": {\n        \"brand\": \"string\",\n        \"model\": \"string\",\n        \"year\": 8259,\n        \"vin\": \"string\"\n      },\n      \"chargeState\": {\n        \"batteryLevel\": 9926,\n        \"isCharging\": true,\n        \"isPluggedIn\": true,\n        \"range\": 6059.768419488285,\n        \"chargeLimit\": 7606,\n        \"powerDeliveryState\": \"string\"\n      },\n      \"location\": {\n        \"latitude\": 9617.508206466731,\n        \"longitude\": 2219.986018489598\n      },\n      \"odometer\": {\n        \"distance\": 4167.255193552642\n      }\n    }\n  ],\n  \"pageInfo\": {\n    \"after\": \"string\",\n    \"before\": \"string\"\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "d5580488-0926-4ce3-a84e-5371a52d0c90",
+          "name": "Get a vehicle.",
+          "request": {
+            "name": "Get a vehicle.",
+            "description": {},
+            "url": {
+              "path": [
+                "vehicles",
+                ":vehicleId"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "vehicleId",
+                  "description": "(Required) "
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "22a11b1b-380d-4e53-bb4f-4c13d28f7634",
+              "name": "A vehicle.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "vehicles",
+                    ":vehicleId"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "vehicleId",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"string\",\n  \"userId\": \"string\",\n  \"vendor\": \"string\",\n  \"isReachable\": false,\n  \"lastSeen\": \"2000-12-05T21:35:41.362Z\",\n  \"information\": {\n    \"brand\": \"string\",\n    \"model\": \"string\",\n    \"year\": 7400,\n    \"vin\": \"string\"\n  },\n  \"chargeState\": {\n    \"batteryLevel\": 4402,\n    \"isCharging\": true,\n    \"isPluggedIn\": true,\n    \"range\": 9371.47243077896,\n    \"chargeLimit\": 7610,\n    \"powerDeliveryState\": \"string\"\n  },\n  \"location\": {\n    \"latitude\": 5208.532310643811,\n    \"longitude\": 7876.365978865614\n  },\n  \"odometer\": {\n    \"distance\": 5747.081927948676\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "7bf32ad7-883c-4035-ae81-63b98b181169",
+          "name": "Start or stop vehicle charging.",
+          "request": {
+            "name": "Start or stop vehicle charging.",
+            "description": {},
+            "url": {
+              "path": [
+                "vehicles",
+                ":vehicleId",
+                "charging"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "vehicleId",
+                  "description": "(Required) "
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": null,
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"<string>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "644633f5-aaf2-4023-95db-bf9f768689ca",
+              "name": "Charge action accepted.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "vehicles",
+                    ":vehicleId",
+                    "charging"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "vehicleId",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: bearer",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "Bearer <token>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"action\": \"<string>\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"string\",\n  \"userId\": \"string\",\n  \"targetId\": \"string\",\n  \"targetType\": \"string\",\n  \"state\": \"PENDING\",\n  \"kind\": \"string\",\n  \"createdAt\": \"2011-08-29T16:58:07.385Z\",\n  \"completedAt\": \"1992-05-30T00:59:08.411Z\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "event": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "type": "string",
+      "value": "https://enode-api.production.enode.io",
+      "key": "baseUrl"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{bearerToken}}"
+      }
+    ]
+  },
+  "info": {
+    "_postman_id": "d5186bcf-d0ed-4f92-a8aa-a4a2badfdbe8",
+    "name": "Enode Batteries Vehicles API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "Enode connects and controls electric vehicles, EV chargers, HVAC systems, home batteries, solar inverters, and smart meters through a single API. End users authorize access to their devices via the Enode Link OAuth flow; applications then read normalized device telemetry, issue control actions (charging, climate, battery mode), configure smart charging, and subscribe to webhooks. Access tokens are obtained via the OAuth 2.0 client_credentials grant and presented as a Bearer token.\n\nContact Support:\n Name: Enode Support",
+      "type": "text/plain"
+    }
+  }
+}
