@@ -289,6 +289,8 @@ apis:
   humanURL: https://developers.enode.com/api/reference#users
   baseURL: https://enode-api.production.enode.io
   tags:
+  - User
+  tags_raw:
   - Users
   properties:
   - type: OpenAPI
@@ -373,6 +375,8 @@ apis:
   humanURL: https://developers.enode.com/api/reference#users
   baseURL: https://enode-api.production.enode.io
   tags:
+  - Webhook
+  tags_raw:
   - Webhooks
   properties:
   - type: OpenAPI
