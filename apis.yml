@@ -7,6 +7,18 @@ description: Enode provides a single API to connect and control electric vehicle
   than a thousand hardware brands. The energy-transition API links end-user devices
   via OAuth, normalizes telemetry, and exposes smart-charging and device-control
   endpoints for energy apps, VPPs, and home energy management.
+deliveryModel:
+  model: saas
+  open_source: false
+  commercial: true
+  callable_host: true
+  label: Hosted service · you call their endpoint
+  confidence: high
+  source:
+  - openapi
+  - pricing
+  generated: '2026-08-28'
+  method: derived
 accessModel:
   pricing: enterprise
   onboarding: self-serve
