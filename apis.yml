@@ -426,6 +426,9 @@ apis:
   - type: APIReference
     url: https://developers.enode.com/api/reference#webhooks
 common:
+- type: CapabilityMap
+  url: capabilities/enode-capability-edges.yml
+  name: Enode Business Capability Map
 - type: AgenticAccess
   url: agentic-access/enode-agentic-access.yml
 - type: VulnerabilityDisclosure
