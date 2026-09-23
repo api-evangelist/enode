@@ -1,6 +1,6 @@
-openapi: 3.0.1
+openapi: 3.2.0
 info:
-  title: Enode Batteries Chargers API
+  title: Enode Chargers API
   description: Enode connects and controls electric vehicles, EV chargers, HVAC systems, home batteries, solar inverters, and smart meters through a single API. End users authorize access to their devices via the Enode Link OAuth flow; applications then read normalized device telemetry, issue control actions (charging, climate, battery mode), configure smart charging, and subscribe to webhooks. Access tokens are obtained via the OAuth 2.0 client_credentials grant and presented as a Bearer token.
   termsOfService: https://enode.com/legal/terms-of-service
   contact:
@@ -23,7 +23,7 @@ paths:
       operationId: listChargers
       tags:
       - Chargers
-      summary: List chargers.
+      summary: List chargers
       parameters:
       - $ref: '#/components/parameters/pageAfter'
       - $ref: '#/components/parameters/pageSize'
@@ -39,7 +39,7 @@ paths:
       operationId: getCharger
       tags:
       - Chargers
-      summary: Get a charger.
+      summary: Get a charger
       parameters:
       - $ref: '#/components/parameters/chargerId'
       responses:
@@ -54,7 +54,7 @@ paths:
       operationId: controlChargerCharging
       tags:
       - Chargers
-      summary: Start or stop charger charging.
+      summary: Start or stop charger charging
       parameters:
       - $ref: '#/components/parameters/chargerId'
       requestBody:
@@ -72,61 +72,6 @@ paths:
                 $ref: '#/components/schemas/Action'
 components:
   schemas:
-    PageInfo:
-      type: object
-      properties:
-        after:
-          type: string
-          nullable: true
-        before:
-          type: string
-          nullable: true
-    Action:
-      type: object
-      properties:
-        id:
-          type: string
-        userId:
-          type: string
-        targetId:
-          type: string
-        targetType:
-          type: string
-        state:
-          type: string
-          enum:
-          - PENDING
-          - CONFIRMED
-          - FAILED
-          - CANCELLED
-        kind:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-        completedAt:
-          type: string
-          format: date-time
-          nullable: true
-    ChargerList:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Charger'
-        pageInfo:
-          $ref: '#/components/schemas/PageInfo'
-    ChargeActionRequest:
-      type: object
-      required:
-      - action
-      properties:
-        action:
-          type: string
-          enum:
-          - START
-          - STOP
     Charger:
       type: object
       properties:
@@ -161,13 +106,65 @@ components:
               type: integer
             powerDeliveryState:
               type: string
+    ChargeActionRequest:
+      type: object
+      required:
+      - action
+      properties:
+        action:
+          type: string
+          enum:
+          - START
+          - STOP
+    Action:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        targetId:
+          type: string
+        targetType:
+          type: string
+        state:
+          type: string
+          enum:
+          - PENDING
+          - CONFIRMED
+          - FAILED
+          - CANCELLED
+        kind:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    ChargerList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Charger'
+        pageInfo:
+          $ref: '#/components/schemas/PageInfo'
+    PageInfo:
+      type: object
+      properties:
+        after:
+          type:
+          - string
+          - 'null'
+        before:
+          type:
+          - string
+          - 'null'
   parameters:
-    chargerId:
-      name: chargerId
-      in: path
-      required: true
-      schema:
-        type: string
     pageSize:
       name: pageSize
       in: query
@@ -181,6 +178,12 @@ components:
       in: query
       required: false
       description: Cursor for pagination, returned as the previous page's pageInfo.after.
+      schema:
+        type: string
+    chargerId:
+      name: chargerId
+      in: path
+      required: true
       schema:
         type: string
   securitySchemes:

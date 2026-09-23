@@ -1,6 +1,6 @@
-openapi: 3.0.1
+openapi: 3.2.0
 info:
-  title: Enode Batteries Vehicles API
+  title: Enode Vehicles API
   description: Enode connects and controls electric vehicles, EV chargers, HVAC systems, home batteries, solar inverters, and smart meters through a single API. End users authorize access to their devices via the Enode Link OAuth flow; applications then read normalized device telemetry, issue control actions (charging, climate, battery mode), configure smart charging, and subscribe to webhooks. Access tokens are obtained via the OAuth 2.0 client_credentials grant and presented as a Bearer token.
   termsOfService: https://enode.com/legal/terms-of-service
   contact:
@@ -23,7 +23,7 @@ paths:
       operationId: listVehicles
       tags:
       - Vehicles
-      summary: List vehicles.
+      summary: List vehicles
       parameters:
       - $ref: '#/components/parameters/pageAfter'
       - $ref: '#/components/parameters/pageSize'
@@ -39,7 +39,7 @@ paths:
       operationId: getVehicle
       tags:
       - Vehicles
-      summary: Get a vehicle.
+      summary: Get a vehicle
       parameters:
       - $ref: '#/components/parameters/vehicleId'
       responses:
@@ -54,7 +54,7 @@ paths:
       operationId: controlVehicleCharging
       tags:
       - Vehicles
-      summary: Start or stop vehicle charging.
+      summary: Start or stop vehicle charging
       parameters:
       - $ref: '#/components/parameters/vehicleId'
       requestBody:
@@ -72,15 +72,15 @@ paths:
                 $ref: '#/components/schemas/Action'
 components:
   schemas:
-    PageInfo:
+    VehicleList:
       type: object
       properties:
-        after:
-          type: string
-          nullable: true
-        before:
-          type: string
-          nullable: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Vehicle'
+        pageInfo:
+          $ref: '#/components/schemas/PageInfo'
     Vehicle:
       type: object
       properties:
@@ -134,15 +134,16 @@ components:
           properties:
             distance:
               type: number
-    VehicleList:
+    ChargeActionRequest:
       type: object
+      required:
+      - action
       properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Vehicle'
-        pageInfo:
-          $ref: '#/components/schemas/PageInfo'
+        action:
+          type: string
+          enum:
+          - START
+          - STOP
     Action:
       type: object
       properties:
@@ -167,19 +168,21 @@ components:
           type: string
           format: date-time
         completedAt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
-    ChargeActionRequest:
+    PageInfo:
       type: object
-      required:
-      - action
       properties:
-        action:
-          type: string
-          enum:
-          - START
-          - STOP
+        after:
+          type:
+          - string
+          - 'null'
+        before:
+          type:
+          - string
+          - 'null'
   parameters:
     pageSize:
       name: pageSize

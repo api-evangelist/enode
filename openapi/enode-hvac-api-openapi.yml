@@ -1,6 +1,6 @@
-openapi: 3.0.1
+openapi: 3.2.0
 info:
-  title: Enode Batteries HVAC API
+  title: Enode HVAC API
   description: Enode connects and controls electric vehicles, EV chargers, HVAC systems, home batteries, solar inverters, and smart meters through a single API. End users authorize access to their devices via the Enode Link OAuth flow; applications then read normalized device telemetry, issue control actions (charging, climate, battery mode), configure smart charging, and subscribe to webhooks. Access tokens are obtained via the OAuth 2.0 client_credentials grant and presented as a Bearer token.
   termsOfService: https://enode.com/legal/terms-of-service
   contact:
@@ -23,7 +23,7 @@ paths:
       operationId: listHvacs
       tags:
       - HVAC
-      summary: List HVAC units.
+      summary: List HVAC units
       parameters:
       - $ref: '#/components/parameters/pageAfter'
       - $ref: '#/components/parameters/pageSize'
@@ -39,7 +39,7 @@ paths:
       operationId: getHvac
       tags:
       - HVAC
-      summary: Get an HVAC unit.
+      summary: Get an HVAC unit
       parameters:
       - $ref: '#/components/parameters/hvacId'
       responses:
@@ -57,13 +57,6 @@ components:
       required: true
       schema:
         type: string
-    pageAfter:
-      name: after
-      in: query
-      required: false
-      description: Cursor for pagination, returned as the previous page's pageInfo.after.
-      schema:
-        type: string
     pageSize:
       name: pageSize
       in: query
@@ -72,6 +65,13 @@ components:
       schema:
         type: integer
         default: 50
+    pageAfter:
+      name: after
+      in: query
+      required: false
+      description: Cursor for pagination, returned as the previous page's pageInfo.after.
+      schema:
+        type: string
   securitySchemes:
     bearerAuth:
       type: http

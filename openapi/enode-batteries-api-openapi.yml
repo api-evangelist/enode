@@ -1,4 +1,4 @@
-openapi: 3.0.1
+openapi: 3.2.0
 info:
   title: Enode Batteries API
   description: Enode connects and controls electric vehicles, EV chargers, HVAC systems, home batteries, solar inverters, and smart meters through a single API. End users authorize access to their devices via the Enode Link OAuth flow; applications then read normalized device telemetry, issue control actions (charging, climate, battery mode), configure smart charging, and subscribe to webhooks. Access tokens are obtained via the OAuth 2.0 client_credentials grant and presented as a Bearer token.
@@ -23,7 +23,7 @@ paths:
       operationId: listBatteries
       tags:
       - Batteries
-      summary: List batteries.
+      summary: List batteries
       parameters:
       - $ref: '#/components/parameters/pageAfter'
       - $ref: '#/components/parameters/pageSize'
@@ -39,7 +39,7 @@ paths:
       operationId: getBattery
       tags:
       - Batteries
-      summary: Get a battery.
+      summary: Get a battery
       parameters:
       - $ref: '#/components/parameters/batteryId'
       responses:
@@ -54,7 +54,7 @@ paths:
       operationId: setBatteryOperationMode
       tags:
       - Batteries
-      summary: Set battery operation mode.
+      summary: Set battery operation mode
       parameters:
       - $ref: '#/components/parameters/batteryId'
       requestBody:
@@ -121,9 +121,10 @@ components:
           type: string
           format: date-time
         completedAt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
   securitySchemes:
     bearerAuth:
       type: http

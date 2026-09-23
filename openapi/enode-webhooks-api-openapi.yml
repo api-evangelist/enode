@@ -1,6 +1,6 @@
-openapi: 3.0.1
+openapi: 3.2.0
 info:
-  title: Enode Batteries Webhooks API
+  title: Enode Webhooks API
   description: Enode connects and controls electric vehicles, EV chargers, HVAC systems, home batteries, solar inverters, and smart meters through a single API. End users authorize access to their devices via the Enode Link OAuth flow; applications then read normalized device telemetry, issue control actions (charging, climate, battery mode), configure smart charging, and subscribe to webhooks. Access tokens are obtained via the OAuth 2.0 client_credentials grant and presented as a Bearer token.
   termsOfService: https://enode.com/legal/terms-of-service
   contact:
@@ -23,7 +23,7 @@ paths:
       operationId: listWebhooks
       tags:
       - Webhooks
-      summary: List webhooks.
+      summary: List webhooks
       responses:
         '200':
           description: A list of webhooks.
@@ -37,7 +37,7 @@ paths:
       operationId: createWebhook
       tags:
       - Webhooks
-      summary: Create a webhook.
+      summary: Create a webhook
       requestBody:
         required: true
         content:
@@ -56,7 +56,7 @@ paths:
       operationId: getWebhook
       tags:
       - Webhooks
-      summary: Get a webhook.
+      summary: Get a webhook
       parameters:
       - $ref: '#/components/parameters/webhookId'
       responses:
@@ -70,7 +70,7 @@ paths:
       operationId: deleteWebhook
       tags:
       - Webhooks
-      summary: Delete a webhook.
+      summary: Delete a webhook
       parameters:
       - $ref: '#/components/parameters/webhookId'
       responses:
@@ -81,14 +81,38 @@ paths:
       operationId: testWebhook
       tags:
       - Webhooks
-      summary: Send a test event to a webhook.
+      summary: Send a test event to a webhook
       parameters:
       - $ref: '#/components/parameters/webhookId'
       responses:
         '204':
           description: Test event dispatched.
 components:
+  parameters:
+    webhookId:
+      name: webhookId
+      in: path
+      required: true
+      schema:
+        type: string
   schemas:
+    Webhook:
+      type: object
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+          format: uri
+        events:
+          type: array
+          items:
+            type: string
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
     WebhookRequest:
       type: object
       required:
@@ -112,30 +136,6 @@ components:
               type: string
             headerValue:
               type: string
-    Webhook:
-      type: object
-      properties:
-        id:
-          type: string
-        url:
-          type: string
-          format: uri
-        events:
-          type: array
-          items:
-            type: string
-        isActive:
-          type: boolean
-        createdAt:
-          type: string
-          format: date-time
-  parameters:
-    webhookId:
-      name: webhookId
-      in: path
-      required: true
-      schema:
-        type: string
   securitySchemes:
     bearerAuth:
       type: http

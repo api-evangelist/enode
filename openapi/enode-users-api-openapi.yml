@@ -1,6 +1,6 @@
-openapi: 3.0.1
+openapi: 3.2.0
 info:
-  title: Enode Batteries Users API
+  title: Enode Users API
   description: Enode connects and controls electric vehicles, EV chargers, HVAC systems, home batteries, solar inverters, and smart meters through a single API. End users authorize access to their devices via the Enode Link OAuth flow; applications then read normalized device telemetry, issue control actions (charging, climate, battery mode), configure smart charging, and subscribe to webhooks. Access tokens are obtained via the OAuth 2.0 client_credentials grant and presented as a Bearer token.
   termsOfService: https://enode.com/legal/terms-of-service
   contact:
@@ -23,7 +23,7 @@ paths:
       operationId: linkUser
       tags:
       - Users
-      summary: Create a Link session for a user.
+      summary: Create a Link session for a user
       description: Returns a hosted Link URL the end user opens to authorize one or more vendors. Creates the user if it does not already exist.
       parameters:
       - $ref: '#/components/parameters/userId'
@@ -45,7 +45,7 @@ paths:
       operationId: getUser
       tags:
       - Users
-      summary: Get a user.
+      summary: Get a user
       parameters:
       - $ref: '#/components/parameters/userId'
       responses:
@@ -59,7 +59,7 @@ paths:
       operationId: deleteUser
       tags:
       - Users
-      summary: Deauthorize and delete a user.
+      summary: Deauthorize and delete a user
       parameters:
       - $ref: '#/components/parameters/userId'
       responses:
@@ -70,7 +70,7 @@ paths:
       operationId: listUsers
       tags:
       - Users
-      summary: List users.
+      summary: List users
       parameters:
       - $ref: '#/components/parameters/pageAfter'
       - $ref: '#/components/parameters/pageSize'
@@ -83,32 +83,6 @@ paths:
                 $ref: '#/components/schemas/UserList'
 components:
   schemas:
-    PageInfo:
-      type: object
-      properties:
-        after:
-          type: string
-          nullable: true
-        before:
-          type: string
-          nullable: true
-    UserList:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/User'
-        pageInfo:
-          $ref: '#/components/schemas/PageInfo'
-    LinkSession:
-      type: object
-      properties:
-        linkUrl:
-          type: string
-          format: uri
-        linkToken:
-          type: string
     LinkUserRequest:
       type: object
       properties:
@@ -157,6 +131,34 @@ components:
                 type: string
               isValid:
                 type: boolean
+    PageInfo:
+      type: object
+      properties:
+        after:
+          type:
+          - string
+          - 'null'
+        before:
+          type:
+          - string
+          - 'null'
+    UserList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        pageInfo:
+          $ref: '#/components/schemas/PageInfo'
+    LinkSession:
+      type: object
+      properties:
+        linkUrl:
+          type: string
+          format: uri
+        linkToken:
+          type: string
   parameters:
     pageSize:
       name: pageSize
