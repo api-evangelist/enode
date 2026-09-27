@@ -57,6 +57,13 @@ components:
       required: true
       schema:
         type: string
+    pageAfter:
+      name: after
+      in: query
+      required: false
+      description: Cursor for pagination, returned as the previous page's pageInfo.after.
+      schema:
+        type: string
     pageSize:
       name: pageSize
       in: query
@@ -65,13 +72,6 @@ components:
       schema:
         type: integer
         default: 50
-    pageAfter:
-      name: after
-      in: query
-      required: false
-      description: Cursor for pagination, returned as the previous page's pageInfo.after.
-      schema:
-        type: string
   securitySchemes:
     bearerAuth:
       type: http

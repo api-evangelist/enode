@@ -106,16 +106,17 @@ components:
               type: integer
             powerDeliveryState:
               type: string
-    ChargeActionRequest:
+    PageInfo:
       type: object
-      required:
-      - action
       properties:
-        action:
-          type: string
-          enum:
-          - START
-          - STOP
+        after:
+          type:
+          - string
+          - 'null'
+        before:
+          type:
+          - string
+          - 'null'
     Action:
       type: object
       properties:
@@ -153,18 +154,30 @@ components:
             $ref: '#/components/schemas/Charger'
         pageInfo:
           $ref: '#/components/schemas/PageInfo'
-    PageInfo:
+    ChargeActionRequest:
       type: object
+      required:
+      - action
       properties:
-        after:
-          type:
-          - string
-          - 'null'
-        before:
-          type:
-          - string
-          - 'null'
+        action:
+          type: string
+          enum:
+          - START
+          - STOP
   parameters:
+    chargerId:
+      name: chargerId
+      in: path
+      required: true
+      schema:
+        type: string
+    pageAfter:
+      name: after
+      in: query
+      required: false
+      description: Cursor for pagination, returned as the previous page's pageInfo.after.
+      schema:
+        type: string
     pageSize:
       name: pageSize
       in: query
@@ -173,19 +186,6 @@ components:
       schema:
         type: integer
         default: 50
-    pageAfter:
-      name: after
-      in: query
-      required: false
-      description: Cursor for pagination, returned as the previous page's pageInfo.after.
-      schema:
-        type: string
-    chargerId:
-      name: chargerId
-      in: path
-      required: true
-      schema:
-        type: string
   securitySchemes:
     bearerAuth:
       type: http

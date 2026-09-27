@@ -71,16 +71,40 @@ paths:
               schema:
                 $ref: '#/components/schemas/Action'
 components:
+  parameters:
+    pageAfter:
+      name: after
+      in: query
+      required: false
+      description: Cursor for pagination, returned as the previous page's pageInfo.after.
+      schema:
+        type: string
+    pageSize:
+      name: pageSize
+      in: query
+      required: false
+      description: Number of results to return per page.
+      schema:
+        type: integer
+        default: 50
+    vehicleId:
+      name: vehicleId
+      in: path
+      required: true
+      schema:
+        type: string
   schemas:
-    VehicleList:
+    PageInfo:
       type: object
       properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Vehicle'
-        pageInfo:
-          $ref: '#/components/schemas/PageInfo'
+        after:
+          type:
+          - string
+          - 'null'
+        before:
+          type:
+          - string
+          - 'null'
     Vehicle:
       type: object
       properties:
@@ -134,16 +158,6 @@ components:
           properties:
             distance:
               type: number
-    ChargeActionRequest:
-      type: object
-      required:
-      - action
-      properties:
-        action:
-          type: string
-          enum:
-          - START
-          - STOP
     Action:
       type: object
       properties:
@@ -172,39 +186,25 @@ components:
           - string
           - 'null'
           format: date-time
-    PageInfo:
+    VehicleList:
       type: object
       properties:
-        after:
-          type:
-          - string
-          - 'null'
-        before:
-          type:
-          - string
-          - 'null'
-  parameters:
-    pageSize:
-      name: pageSize
-      in: query
-      required: false
-      description: Number of results to return per page.
-      schema:
-        type: integer
-        default: 50
-    vehicleId:
-      name: vehicleId
-      in: path
-      required: true
-      schema:
-        type: string
-    pageAfter:
-      name: after
-      in: query
-      required: false
-      description: Cursor for pagination, returned as the previous page's pageInfo.after.
-      schema:
-        type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Vehicle'
+        pageInfo:
+          $ref: '#/components/schemas/PageInfo'
+    ChargeActionRequest:
+      type: object
+      required:
+      - action
+      properties:
+        action:
+          type: string
+          enum:
+          - START
+          - STOP
   securitySchemes:
     bearerAuth:
       type: http

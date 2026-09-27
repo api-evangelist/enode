@@ -83,30 +83,14 @@ paths:
                 $ref: '#/components/schemas/UserList'
 components:
   schemas:
-    LinkUserRequest:
+    LinkSession:
       type: object
       properties:
-        vendor:
-          type: string
-          description: Specific vendor to link, or omit to show vendor selection.
-        vendorType:
-          type: string
-          enum:
-          - vehicle
-          - charger
-          - hvac
-          - battery
-          - inverter
-          - meter
-        language:
-          type: string
-        scopes:
-          type: array
-          items:
-            type: string
-        redirectUri:
+        linkUrl:
           type: string
           format: uri
+        linkToken:
+          type: string
     User:
       type: object
       properties:
@@ -151,15 +135,38 @@ components:
             $ref: '#/components/schemas/User'
         pageInfo:
           $ref: '#/components/schemas/PageInfo'
-    LinkSession:
+    LinkUserRequest:
       type: object
       properties:
-        linkUrl:
+        vendor:
+          type: string
+          description: Specific vendor to link, or omit to show vendor selection.
+        vendorType:
+          type: string
+          enum:
+          - vehicle
+          - charger
+          - hvac
+          - battery
+          - inverter
+          - meter
+        language:
+          type: string
+        scopes:
+          type: array
+          items:
+            type: string
+        redirectUri:
           type: string
           format: uri
-        linkToken:
-          type: string
   parameters:
+    pageAfter:
+      name: after
+      in: query
+      required: false
+      description: Cursor for pagination, returned as the previous page's pageInfo.after.
+      schema:
+        type: string
     pageSize:
       name: pageSize
       in: query
@@ -173,13 +180,6 @@ components:
       in: path
       required: true
       description: Your unique identifier for the end user.
-      schema:
-        type: string
-    pageAfter:
-      name: after
-      in: query
-      required: false
-      description: Cursor for pagination, returned as the previous page's pageInfo.after.
       schema:
         type: string
   securitySchemes:

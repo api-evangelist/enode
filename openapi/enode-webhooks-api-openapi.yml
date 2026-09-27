@@ -88,13 +88,6 @@ paths:
         '204':
           description: Test event dispatched.
 components:
-  parameters:
-    webhookId:
-      name: webhookId
-      in: path
-      required: true
-      schema:
-        type: string
   schemas:
     Webhook:
       type: object
@@ -136,6 +129,13 @@ components:
               type: string
             headerValue:
               type: string
+  parameters:
+    webhookId:
+      name: webhookId
+      in: path
+      required: true
+      schema:
+        type: string
   securitySchemes:
     bearerAuth:
       type: http
