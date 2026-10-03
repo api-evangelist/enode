@@ -82,15 +82,30 @@ paths:
               schema:
                 $ref: '#/components/schemas/UserList'
 components:
+  parameters:
+    pageSize:
+      name: pageSize
+      in: query
+      required: false
+      description: Number of results to return per page.
+      schema:
+        type: integer
+        default: 50
+    pageAfter:
+      name: after
+      in: query
+      required: false
+      description: Cursor for pagination, returned as the previous page's pageInfo.after.
+      schema:
+        type: string
+    userId:
+      name: userId
+      in: path
+      required: true
+      description: Your unique identifier for the end user.
+      schema:
+        type: string
   schemas:
-    LinkSession:
-      type: object
-      properties:
-        linkUrl:
-          type: string
-          format: uri
-        linkToken:
-          type: string
     User:
       type: object
       properties:
@@ -126,15 +141,14 @@ components:
           type:
           - string
           - 'null'
-    UserList:
+    LinkSession:
       type: object
       properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/User'
-        pageInfo:
-          $ref: '#/components/schemas/PageInfo'
+        linkUrl:
+          type: string
+          format: uri
+        linkToken:
+          type: string
     LinkUserRequest:
       type: object
       properties:
@@ -159,29 +173,15 @@ components:
         redirectUri:
           type: string
           format: uri
-  parameters:
-    pageAfter:
-      name: after
-      in: query
-      required: false
-      description: Cursor for pagination, returned as the previous page's pageInfo.after.
-      schema:
-        type: string
-    pageSize:
-      name: pageSize
-      in: query
-      required: false
-      description: Number of results to return per page.
-      schema:
-        type: integer
-        default: 50
-    userId:
-      name: userId
-      in: path
-      required: true
-      description: Your unique identifier for the end user.
-      schema:
-        type: string
+    UserList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        pageInfo:
+          $ref: '#/components/schemas/PageInfo'
   securitySchemes:
     bearerAuth:
       type: http

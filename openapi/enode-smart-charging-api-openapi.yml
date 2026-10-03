@@ -69,13 +69,6 @@ paths:
               schema:
                 type: object
 components:
-  parameters:
-    vehicleId:
-      name: vehicleId
-      in: path
-      required: true
-      schema:
-        type: string
   schemas:
     SmartChargingPolicy:
       type: object
@@ -87,6 +80,13 @@ components:
           type: boolean
         minimumChargeLimit:
           type: integer
+  parameters:
+    vehicleId:
+      name: vehicleId
+      in: path
+      required: true
+      schema:
+        type: string
   securitySchemes:
     bearerAuth:
       type: http

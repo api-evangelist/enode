@@ -71,7 +71,68 @@ paths:
               schema:
                 $ref: '#/components/schemas/Action'
 components:
+  parameters:
+    pageSize:
+      name: pageSize
+      in: query
+      required: false
+      description: Number of results to return per page.
+      schema:
+        type: integer
+        default: 50
+    pageAfter:
+      name: after
+      in: query
+      required: false
+      description: Cursor for pagination, returned as the previous page's pageInfo.after.
+      schema:
+        type: string
+    chargerId:
+      name: chargerId
+      in: path
+      required: true
+      schema:
+        type: string
   schemas:
+    Action:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        targetId:
+          type: string
+        targetType:
+          type: string
+        state:
+          type: string
+          enum:
+          - PENDING
+          - CONFIRMED
+          - FAILED
+          - CANCELLED
+        kind:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    PageInfo:
+      type: object
+      properties:
+        after:
+          type:
+          - string
+          - 'null'
+        before:
+          type:
+          - string
+          - 'null'
     Charger:
       type: object
       properties:
@@ -106,54 +167,6 @@ components:
               type: integer
             powerDeliveryState:
               type: string
-    PageInfo:
-      type: object
-      properties:
-        after:
-          type:
-          - string
-          - 'null'
-        before:
-          type:
-          - string
-          - 'null'
-    Action:
-      type: object
-      properties:
-        id:
-          type: string
-        userId:
-          type: string
-        targetId:
-          type: string
-        targetType:
-          type: string
-        state:
-          type: string
-          enum:
-          - PENDING
-          - CONFIRMED
-          - FAILED
-          - CANCELLED
-        kind:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-        completedAt:
-          type:
-          - string
-          - 'null'
-          format: date-time
-    ChargerList:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Charger'
-        pageInfo:
-          $ref: '#/components/schemas/PageInfo'
     ChargeActionRequest:
       type: object
       required:
@@ -164,28 +177,15 @@ components:
           enum:
           - START
           - STOP
-  parameters:
-    chargerId:
-      name: chargerId
-      in: path
-      required: true
-      schema:
-        type: string
-    pageAfter:
-      name: after
-      in: query
-      required: false
-      description: Cursor for pagination, returned as the previous page's pageInfo.after.
-      schema:
-        type: string
-    pageSize:
-      name: pageSize
-      in: query
-      required: false
-      description: Number of results to return per page.
-      schema:
-        type: integer
-        default: 50
+    ChargerList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Charger'
+        pageInfo:
+          $ref: '#/components/schemas/PageInfo'
   securitySchemes:
     bearerAuth:
       type: http

@@ -75,6 +75,14 @@ paths:
                 $ref: '#/components/schemas/Action'
 components:
   parameters:
+    pageSize:
+      name: pageSize
+      in: query
+      required: false
+      description: Number of results to return per page.
+      schema:
+        type: integer
+        default: 50
     batteryId:
       name: batteryId
       in: path
@@ -88,14 +96,6 @@ components:
       description: Cursor for pagination, returned as the previous page's pageInfo.after.
       schema:
         type: string
-    pageSize:
-      name: pageSize
-      in: query
-      required: false
-      description: Number of results to return per page.
-      schema:
-        type: integer
-        default: 50
   schemas:
     Action:
       type: object
