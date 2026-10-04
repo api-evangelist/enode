@@ -72,6 +72,19 @@ paths:
                 $ref: '#/components/schemas/Action'
 components:
   parameters:
+    vehicleId:
+      name: vehicleId
+      in: path
+      required: true
+      schema:
+        type: string
+    pageAfter:
+      name: after
+      in: query
+      required: false
+      description: Cursor for pagination, returned as the previous page's pageInfo.after.
+      schema:
+        type: string
     pageSize:
       name: pageSize
       in: query
@@ -80,20 +93,26 @@ components:
       schema:
         type: integer
         default: 50
-    pageAfter:
-      name: after
-      in: query
-      required: false
-      description: Cursor for pagination, returned as the previous page's pageInfo.after.
-      schema:
-        type: string
-    vehicleId:
-      name: vehicleId
-      in: path
-      required: true
-      schema:
-        type: string
   schemas:
+    ChargeActionRequest:
+      type: object
+      required:
+      - action
+      properties:
+        action:
+          type: string
+          enum:
+          - START
+          - STOP
+    VehicleList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Vehicle'
+        pageInfo:
+          $ref: '#/components/schemas/PageInfo'
     Action:
       type: object
       properties:
@@ -122,6 +141,17 @@ components:
           - string
           - 'null'
           format: date-time
+    PageInfo:
+      type: object
+      properties:
+        after:
+          type:
+          - string
+          - 'null'
+        before:
+          type:
+          - string
+          - 'null'
     Vehicle:
       type: object
       properties:
@@ -175,36 +205,6 @@ components:
           properties:
             distance:
               type: number
-    PageInfo:
-      type: object
-      properties:
-        after:
-          type:
-          - string
-          - 'null'
-        before:
-          type:
-          - string
-          - 'null'
-    VehicleList:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Vehicle'
-        pageInfo:
-          $ref: '#/components/schemas/PageInfo'
-    ChargeActionRequest:
-      type: object
-      required:
-      - action
-      properties:
-        action:
-          type: string
-          enum:
-          - START
-          - STOP
   securitySchemes:
     bearerAuth:
       type: http

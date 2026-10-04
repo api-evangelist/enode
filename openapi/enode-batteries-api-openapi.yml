@@ -74,28 +74,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/Action'
 components:
-  parameters:
-    pageSize:
-      name: pageSize
-      in: query
-      required: false
-      description: Number of results to return per page.
-      schema:
-        type: integer
-        default: 50
-    batteryId:
-      name: batteryId
-      in: path
-      required: true
-      schema:
-        type: string
-    pageAfter:
-      name: after
-      in: query
-      required: false
-      description: Cursor for pagination, returned as the previous page's pageInfo.after.
-      schema:
-        type: string
   schemas:
     Action:
       type: object
@@ -125,6 +103,28 @@ components:
           - string
           - 'null'
           format: date-time
+  parameters:
+    batteryId:
+      name: batteryId
+      in: path
+      required: true
+      schema:
+        type: string
+    pageSize:
+      name: pageSize
+      in: query
+      required: false
+      description: Number of results to return per page.
+      schema:
+        type: integer
+        default: 50
+    pageAfter:
+      name: after
+      in: query
+      required: false
+      description: Cursor for pagination, returned as the previous page's pageInfo.after.
+      schema:
+        type: string
   securitySchemes:
     bearerAuth:
       type: http

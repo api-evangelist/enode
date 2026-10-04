@@ -71,29 +71,26 @@ paths:
               schema:
                 $ref: '#/components/schemas/Action'
 components:
-  parameters:
-    pageSize:
-      name: pageSize
-      in: query
-      required: false
-      description: Number of results to return per page.
-      schema:
-        type: integer
-        default: 50
-    pageAfter:
-      name: after
-      in: query
-      required: false
-      description: Cursor for pagination, returned as the previous page's pageInfo.after.
-      schema:
-        type: string
-    chargerId:
-      name: chargerId
-      in: path
-      required: true
-      schema:
-        type: string
   schemas:
+    ChargerList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Charger'
+        pageInfo:
+          $ref: '#/components/schemas/PageInfo'
+    ChargeActionRequest:
+      type: object
+      required:
+      - action
+      properties:
+        action:
+          type: string
+          enum:
+          - START
+          - STOP
     Action:
       type: object
       properties:
@@ -167,25 +164,28 @@ components:
               type: integer
             powerDeliveryState:
               type: string
-    ChargeActionRequest:
-      type: object
-      required:
-      - action
-      properties:
-        action:
-          type: string
-          enum:
-          - START
-          - STOP
-    ChargerList:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Charger'
-        pageInfo:
-          $ref: '#/components/schemas/PageInfo'
+  parameters:
+    pageAfter:
+      name: after
+      in: query
+      required: false
+      description: Cursor for pagination, returned as the previous page's pageInfo.after.
+      schema:
+        type: string
+    chargerId:
+      name: chargerId
+      in: path
+      required: true
+      schema:
+        type: string
+    pageSize:
+      name: pageSize
+      in: query
+      required: false
+      description: Number of results to return per page.
+      schema:
+        type: integer
+        default: 50
   securitySchemes:
     bearerAuth:
       type: http

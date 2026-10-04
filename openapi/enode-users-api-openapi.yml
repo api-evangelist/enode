@@ -82,65 +82,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/UserList'
 components:
-  parameters:
-    pageSize:
-      name: pageSize
-      in: query
-      required: false
-      description: Number of results to return per page.
-      schema:
-        type: integer
-        default: 50
-    pageAfter:
-      name: after
-      in: query
-      required: false
-      description: Cursor for pagination, returned as the previous page's pageInfo.after.
-      schema:
-        type: string
-    userId:
-      name: userId
-      in: path
-      required: true
-      description: Your unique identifier for the end user.
-      schema:
-        type: string
   schemas:
-    User:
-      type: object
-      properties:
-        id:
-          type: string
-        vehicles:
-          type: array
-          items:
-            type: string
-        chargers:
-          type: array
-          items:
-            type: string
-        linkedVendors:
-          type: array
-          items:
-            type: object
-            properties:
-              vendor:
-                type: string
-              vendorType:
-                type: string
-              isValid:
-                type: boolean
-    PageInfo:
-      type: object
-      properties:
-        after:
-          type:
-          - string
-          - 'null'
-        before:
-          type:
-          - string
-          - 'null'
     LinkSession:
       type: object
       properties:
@@ -173,6 +115,17 @@ components:
         redirectUri:
           type: string
           format: uri
+    PageInfo:
+      type: object
+      properties:
+        after:
+          type:
+          - string
+          - 'null'
+        before:
+          type:
+          - string
+          - 'null'
     UserList:
       type: object
       properties:
@@ -182,6 +135,53 @@ components:
             $ref: '#/components/schemas/User'
         pageInfo:
           $ref: '#/components/schemas/PageInfo'
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        vehicles:
+          type: array
+          items:
+            type: string
+        chargers:
+          type: array
+          items:
+            type: string
+        linkedVendors:
+          type: array
+          items:
+            type: object
+            properties:
+              vendor:
+                type: string
+              vendorType:
+                type: string
+              isValid:
+                type: boolean
+  parameters:
+    pageAfter:
+      name: after
+      in: query
+      required: false
+      description: Cursor for pagination, returned as the previous page's pageInfo.after.
+      schema:
+        type: string
+    pageSize:
+      name: pageSize
+      in: query
+      required: false
+      description: Number of results to return per page.
+      schema:
+        type: integer
+        default: 50
+    userId:
+      name: userId
+      in: path
+      required: true
+      description: Your unique identifier for the end user.
+      schema:
+        type: string
   securitySchemes:
     bearerAuth:
       type: http
