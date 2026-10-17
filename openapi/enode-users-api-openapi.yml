@@ -91,6 +91,39 @@ components:
           format: uri
         linkToken:
           type: string
+    UserList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        pageInfo:
+          $ref: '#/components/schemas/PageInfo'
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        vehicles:
+          type: array
+          items:
+            type: string
+        chargers:
+          type: array
+          items:
+            type: string
+        linkedVendors:
+          type: array
+          items:
+            type: object
+            properties:
+              vendor:
+                type: string
+              vendorType:
+                type: string
+              isValid:
+                type: boolean
     LinkUserRequest:
       type: object
       properties:
@@ -126,45 +159,19 @@ components:
           type:
           - string
           - 'null'
-    UserList:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/User'
-        pageInfo:
-          $ref: '#/components/schemas/PageInfo'
-    User:
-      type: object
-      properties:
-        id:
-          type: string
-        vehicles:
-          type: array
-          items:
-            type: string
-        chargers:
-          type: array
-          items:
-            type: string
-        linkedVendors:
-          type: array
-          items:
-            type: object
-            properties:
-              vendor:
-                type: string
-              vendorType:
-                type: string
-              isValid:
-                type: boolean
   parameters:
     pageAfter:
       name: after
       in: query
       required: false
       description: Cursor for pagination, returned as the previous page's pageInfo.after.
+      schema:
+        type: string
+    userId:
+      name: userId
+      in: path
+      required: true
+      description: Your unique identifier for the end user.
       schema:
         type: string
     pageSize:
@@ -175,13 +182,6 @@ components:
       schema:
         type: integer
         default: 50
-    userId:
-      name: userId
-      in: path
-      required: true
-      description: Your unique identifier for the end user.
-      schema:
-        type: string
   securitySchemes:
     bearerAuth:
       type: http

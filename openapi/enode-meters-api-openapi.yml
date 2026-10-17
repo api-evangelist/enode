@@ -59,17 +59,17 @@ components:
       schema:
         type: integer
         default: 50
-    meterId:
-      name: meterId
-      in: path
-      required: true
-      schema:
-        type: string
     pageAfter:
       name: after
       in: query
       required: false
       description: Cursor for pagination, returned as the previous page's pageInfo.after.
+      schema:
+        type: string
+    meterId:
+      name: meterId
+      in: path
+      required: true
       schema:
         type: string
   securitySchemes:

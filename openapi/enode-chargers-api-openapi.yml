@@ -72,25 +72,6 @@ paths:
                 $ref: '#/components/schemas/Action'
 components:
   schemas:
-    ChargerList:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Charger'
-        pageInfo:
-          $ref: '#/components/schemas/PageInfo'
-    ChargeActionRequest:
-      type: object
-      required:
-      - action
-      properties:
-        action:
-          type: string
-          enum:
-          - START
-          - STOP
     Action:
       type: object
       properties:
@@ -119,17 +100,16 @@ components:
           - string
           - 'null'
           format: date-time
-    PageInfo:
+    ChargeActionRequest:
       type: object
+      required:
+      - action
       properties:
-        after:
-          type:
-          - string
-          - 'null'
-        before:
-          type:
-          - string
-          - 'null'
+        action:
+          type: string
+          enum:
+          - START
+          - STOP
     Charger:
       type: object
       properties:
@@ -164,6 +144,26 @@ components:
               type: integer
             powerDeliveryState:
               type: string
+    ChargerList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Charger'
+        pageInfo:
+          $ref: '#/components/schemas/PageInfo'
+    PageInfo:
+      type: object
+      properties:
+        after:
+          type:
+          - string
+          - 'null'
+        before:
+          type:
+          - string
+          - 'null'
   parameters:
     pageAfter:
       name: after

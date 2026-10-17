@@ -104,12 +104,6 @@ components:
           - 'null'
           format: date-time
   parameters:
-    batteryId:
-      name: batteryId
-      in: path
-      required: true
-      schema:
-        type: string
     pageSize:
       name: pageSize
       in: query
@@ -118,6 +112,12 @@ components:
       schema:
         type: integer
         default: 50
+    batteryId:
+      name: batteryId
+      in: path
+      required: true
+      schema:
+        type: string
     pageAfter:
       name: after
       in: query
