@@ -1,0 +1,335 @@
+openapi: 3.2.0
+info:
+  title: Enode Early Adopter API
+  version: '2023-08-01'
+  description: One integration, 1000+ energy devices.
+  license:
+    name: Enode Commercial License
+    url: https://enode.com
+servers:
+- url: https://enode-api.production.enode.io
+tags:
+- name: Early Adopter
+  description: This feature or endpoint is available to early adopters for initial feedback. The implementation is still evolving and may change or be removed. See Versioning Labels.
+paths:
+  /vehicles/{vehicleId}/max-current:
+    post:
+      summary: Set Max Current
+      operationId: postVehiclesVehicleidMaxCurrent
+      deprecated: true
+      description: 'Deprecated: Use Set Charge Rate Limit instead, which accepts a target in kW.
+
+
+        Set the max current the vehicle is allowed to consume during charging. Currently only supported for Tesla vehicles and behind a feature flag. Reach out to Customer Success to get access.
+
+
+        This request creates an Action that will retry until the vehicle''s `maxCurrent` matches the expected value. The Action must complete before any further commands are sent to the vehicle. Only one Action can be active for a specific vehicle at a time. If a new Action is created, the previous Action will be automatically cancelled and transitioned to the `CANCELLED` state. Transitions can be tracked via the `user:vendor-action:updated` webhook event or Get Vehicle Action.'
+      tags:
+      - Early Adopter
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/VehiclePathId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TargetMaxCurrent'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              example:
+                id: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+                userId: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+                createdAt: '2023-08-01T01:00:00Z'
+                updatedAt: '2023-08-01T01:00:00Z'
+                completedAt: null
+                state: PENDING
+                failureReason: null
+                targetId: f723fed5-73aa-4004-b7f0-89e5173ee15e
+                targetType: vehicle
+                targetState:
+                  maxCurrent: 10
+              schema:
+                $ref: '#/components/schemas/MaxCurrentAction'
+        '400':
+          description: A precondition check failed that is unlikely to change within the action's timeout window. This occurs if the vehicle cannot perform the action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /vehicles/{vehicleId}/charge-rate-limit:
+    post:
+      summary: Set Charge Rate Limit
+      operationId: postVehiclesVehicleidChargeRateLimit
+      description: 'Sets the charge rate limit for a vehicle in kW. The vehicle must be plugged into a charger that supports this capability. Creates an Action that retries until the vehicle''s `chargeRateLimit` matches the target value. Setting chargeRateLimit also changes maxCurrent.
+
+
+        Only one Action can be active for a specific vehicle at a time. If a new Action is created, the previous Action will be automatically cancelled and transitioned to the `CANCELLED` state. Track transitions via the `user:vendor-action:updated` webhook event or Get Vehicle Action.
+
+
+        If you are interested in joining the Early Adopter program, please reach out to Enode with a short description of your use case.'
+      tags:
+      - Early Adopter
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/VehiclePathId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChargeRateLimitPayload'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              example:
+                id: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+                userId: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+                createdAt: '2023-08-01T01:00:00Z'
+                updatedAt: '2023-08-01T01:00:00Z'
+                completedAt: null
+                state: PENDING
+                failureReason: null
+                targetId: f723fed5-73aa-4004-b7f0-89e5173ee15e
+                targetType: vehicle
+                targetState:
+                  chargeRateLimit: 5.2
+              schema:
+                $ref: '#/components/schemas/VehicleChargeRateLimitAction'
+        '400':
+          description: A precondition check failed. This occurs if the vehicle is not capable, not plugged in, or the charge rate limit is outside the allowed range.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+components:
+  schemas:
+    ChargeableVendorType:
+      type: string
+      enum:
+      - vehicle
+      - charger
+    TargetMaxCurrent:
+      type: object
+      properties:
+        maxCurrent:
+          type: number
+          description: Desired max current in ampere
+          example: 10
+          exclusiveMinimum: 0
+      required:
+      - maxCurrent
+      additionalProperties: false
+      description: Target maximum current for entity
+    VehicleChargeRateLimitAction:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+          x-format:
+            guid: true
+          description: The ID of the action.
+        userId:
+          type: string
+          description: The ID of the user that owns the target of this action.
+          example: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+        createdAt:
+          type: string
+          format: date-time
+          description: Time when this action was created
+          example: '2020-04-07T17:04:26Z'
+        updatedAt:
+          type: string
+          format: date-time
+          description: Time when this action was last updated
+          example: '2020-04-07T17:04:26Z'
+        completedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Time when the action transitioned to a non-pending state.
+          example: '2020-04-07T17:04:26Z'
+        state:
+          $ref: '#/components/schemas/ActionState'
+        targetId:
+          type: string
+          description: ID of the entity which this action is controlling.
+        targetState:
+          $ref: '#/components/schemas/ChargeRateLimitPayload'
+        failureReason:
+          allOf:
+          - $ref: '#/components/schemas/ActionFailureReason'
+        targetType:
+          type: string
+          enum:
+          - vehicle
+      required:
+      - id
+      - userId
+      - createdAt
+      - updatedAt
+      - completedAt
+      - state
+      - targetId
+      - targetState
+      - failureReason
+      - targetType
+      additionalProperties: false
+      title: Vehicle Charge Rate Limit Action
+    ChargeRateLimitPayload:
+      type: object
+      properties:
+        chargeRateLimit:
+          type: number
+          description: Desired charge rate limit in kilowatts (kW)
+          example: 5.2
+          exclusiveMinimum: 0
+      required:
+      - chargeRateLimit
+      additionalProperties: false
+      description: Target charge rate limit for charger
+    ActionState:
+      type: string
+      enum:
+      - PENDING
+      - CONFIRMED
+      - FAILED
+      - CANCELLED
+      description: "The real-time status of an action executed on a target. \n\n * `PENDING`: The initial state. Enode is actively sending commands and monitoring the target for changes. \n * `CONFIRMED`: Successful transition of the target to the desired state. \n * `FAILED`: The target did not respond to the action before timing out. Enode has ceased sending additional commands. \n * `CANCELLED`: A required precondition was not met during the action's timeout window or another action has been sent to the target, overriding this one."
+    ActionFailureReason:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - NO_RESPONSE
+          - FAILED_PRECONDITION
+          - CONFLICT
+          - NOT_FOUND
+          - UNNECESSARY
+          - REQUESTED_CANCELLATION
+          description: "A machine-readable high level error category.\n\n * `NO_RESPONSE`: The device did not react to our commands within the action's timeout window.  \n * `FAILED_PRECONDITION`: The device did not meet all required preconditions for this action to be executed during the action's timeout window. \n * `UNNECESSARY`: The action was not carried out given that the device was already in the desired state. \n * `CONFLICT`: A newer action for this device, or for a device paired with it, has replaced this action. This action is now abandoned.  \n * `REQUESTED_CANCELLATION`: This action was cancelled by request of the controlling owner. The controlling owner may refer to another Enode entity which initiated the command, such as a schedule or smart override. \n * `NOT_FOUND`: The device was deleted while the action was `PENDING`.\n"
+        detail:
+          type: string
+          description: A human-readable explanation of why the action was unsuccessful.
+          example: The device remained unreachable.
+      required:
+      - type
+      - detail
+      description: Information about why was this action not executed successfully.
+    Problem:
+      type: object
+      properties:
+        type:
+          type: string
+          description: A URI reference that identifies the problem type.
+        title:
+          type: string
+          description: A short, human-readable summary of the problem type.
+        detail:
+          type: string
+          description: A human-readable explanation specific to this occurrence of the problem.
+        issues:
+          type: array
+          items:
+            type: object
+            properties: {}
+          description: A list of validation issues which occurred while validating some component of the network payload.
+      required:
+      - type
+      - title
+      - detail
+      description: Standard Problem Error
+      example:
+        type: https://docs.enode.io/api/problems/not-found
+        title: Not Found
+        detail: The requested asset wasn't found.
+    VehiclePathId:
+      type: string
+      description: ID of the Vehicle.
+      example: ad84e742-0f46-4cf4-b0db-7d890f8f23f5
+    MaxCurrentAction:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+          x-format:
+            guid: true
+          description: The ID of the action.
+        userId:
+          type: string
+          description: The ID of the user that owns the target of this action.
+          example: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+        createdAt:
+          type: string
+          format: date-time
+          description: Time when this action was created
+          example: '2020-04-07T17:04:26Z'
+        updatedAt:
+          type: string
+          format: date-time
+          description: Time when this action was last updated
+          example: '2020-04-07T17:04:26Z'
+        completedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Time when the action transitioned to a non-pending state.
+          example: '2020-04-07T17:04:26Z'
+        state:
+          $ref: '#/components/schemas/ActionState'
+        targetId:
+          type: string
+          description: ID of the entity which this action is controlling.
+        targetType:
+          $ref: '#/components/schemas/ChargeableVendorType'
+        targetState:
+          $ref: '#/components/schemas/TargetMaxCurrent'
+        failureReason:
+          allOf:
+          - $ref: '#/components/schemas/ActionFailureReason'
+      required:
+      - id
+      - userId
+      - createdAt
+      - updatedAt
+      - completedAt
+      - state
+      - targetId
+      - targetType
+      - targetState
+      - failureReason
+      additionalProperties: false
+      deprecated: true
+      title: Max Current Action
+      description: 'Deprecated: Use ChargeRateLimitAction instead.'
+  parameters:
+    VehiclePathId:
+      schema:
+        $ref: '#/components/schemas/VehiclePathId'
+      required: true
+      description: ID of the Vehicle.
+      name: vehicleId
+      in: path
+  securitySchemes:
+    ClientAccessToken:
+      type: oauth2
+      description: 'A `ClientAccessToken` is obtained via the [OAuth 2.0 Client Credentials grant](https://www.oauth.com/oauth2-servers/access-tokens/client-credentials/) and carries authorization to access all functionalities and data in your Enode account.
+
+        Full details at [The ClientAccessToken](/api#getting-an-access-token)
+
+        '
+      flows:
+        clientCredentials:
+          tokenUrl: https://oauth.production.enode.io/oauth2/token
+          scopes: {}

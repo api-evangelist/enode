@@ -1,144 +1,592 @@
 openapi: 3.2.0
 info:
   title: Enode Webhooks API
-  description: Enode connects and controls electric vehicles, EV chargers, HVAC systems, home batteries, solar inverters, and smart meters through a single API. End users authorize access to their devices via the Enode Link OAuth flow; applications then read normalized device telemetry, issue control actions (charging, climate, battery mode), configure smart charging, and subscribe to webhooks. Access tokens are obtained via the OAuth 2.0 client_credentials grant and presented as a Bearer token.
-  termsOfService: https://enode.com/legal/terms-of-service
-  contact:
-    name: Enode Support
-    url: https://developers.enode.com
-  version: '2024-10-01'
+  version: '2023-08-01'
+  description: One integration, 1000+ energy devices.
+  license:
+    name: Enode Commercial License
+    url: https://enode.com
 servers:
 - url: https://enode-api.production.enode.io
-  description: Production
-- url: https://enode-api.sandbox.enode.io
-  description: Sandbox
-security:
-- bearerAuth: []
 tags:
 - name: Webhooks
-  description: Manage event webhooks.
+  description: 'Webhooks are a mechanism that allows your server to receive notifications of events from the Enode system.
+
+
+    See the related guide for more information about timeouts, failures, and retry logic: Using Webhooks'
 paths:
   /webhooks:
-    get:
-      operationId: listWebhooks
-      tags:
-      - Webhooks
-      summary: List webhooks
-      responses:
-        '200':
-          description: A list of webhooks.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Webhook'
     post:
+      summary: Create Webhook
       operationId: createWebhook
+      description: Create a webhook.
       tags:
       - Webhooks
-      summary: Create a webhook
+      security:
+      - ClientAccessToken: []
       requestBody:
-        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/WebhookRequest'
-      responses:
-        '201':
-          description: Webhook created.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Webhook'
-  /webhooks/{webhookId}:
-    get:
-      operationId: getWebhook
-      tags:
-      - Webhooks
-      summary: Get a webhook
-      parameters:
-      - $ref: '#/components/parameters/webhookId'
+              $ref: '#/components/schemas/WebhookCreatePayload'
       responses:
         '200':
-          description: A webhook.
+          description: Successful
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Webhook'
-    delete:
-      operationId: deleteWebhook
+                $ref: '#/components/schemas/WebhookResponse'
+        '400':
+          description: Webhook already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookNotValidProblem'
+    get:
+      summary: List Webhooks
+      operationId: listWebhooks
+      description: Returns a paginated list of webhooks.
       tags:
       - Webhooks
-      summary: Delete a webhook
+      security:
+      - ClientAccessToken: []
       parameters:
-      - $ref: '#/components/parameters/webhookId'
+      - $ref: '#/components/parameters/PaginationQueryAfter'
+      - $ref: '#/components/parameters/PaginationQueryBefore'
+      - $ref: '#/components/parameters/PaginationQueryPageSize'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedWebhookList'
+  /webhooks/{webhookId}:
+    patch:
+      summary: Update Webhook
+      operationId: updateWebhook
+      description: Update a webhook.
+      tags:
+      - Webhooks
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/WebhookPathId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookUpdatePayload'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookResponse'
+        '404':
+          description: Webhook not found or already deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookNotFoundProblem'
+    get:
+      summary: Get Webhook
+      operationId: getWebhook
+      description: Returns webhook with the given ID, if it exists.
+      tags:
+      - Webhooks
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/WebhookPathId'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookResponse'
+        '404':
+          description: Webhook not found or already deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookNotFoundProblem'
+    delete:
+      summary: Delete Webhook
+      operationId: deleteWebhook
+      description: Deletes webhook with the given ID, if it exists.
+      tags:
+      - Webhooks
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/WebhookPathId'
       responses:
         '204':
-          description: Webhook deleted.
+          description: Successfully deleted
+          content: {}
+        '404':
+          description: Webhook not found or already deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookNotFoundProblem'
   /webhooks/{webhookId}/test:
     post:
+      summary: Test Webhook
       operationId: testWebhook
+      description: Send a `enode:webhook:test` payload to the webhook. If the webhook is inactive, it'll be reactivated on success.
       tags:
       - Webhooks
-      summary: Send a test event to a webhook
+      security:
+      - ClientAccessToken: []
       parameters:
-      - $ref: '#/components/parameters/webhookId'
+      - $ref: '#/components/parameters/WebhookPathId'
       responses:
-        '204':
-          description: Test event dispatched.
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestWebhook'
+        '404':
+          description: Webhook not found or already deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookNotFoundProblem'
 components:
   schemas:
-    WebhookRequest:
+    PaginationQueryAfter:
+      type: string
+      description: Opaque cursor used to fetch next page. Cannot be set together with `before`. Refer to [Pagination](/api#pagination) for more information.
+      example: MjAyMy0wNy0xOFQxMDowODowMi4zNzNa
+    PaginationQueryBefore:
+      type: string
+      description: Opaque cursor used to fetch previous page. Cannot be used together with `after`. Refer to [Pagination](/api#pagination) for more information.
+      example: MjAyMy0wNy0xOFQxMDowODowMi4zNzNa
+    PaginatedWebhookList:
       type: object
-      required:
-      - url
-      - events
       properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/WebhookResponse'
+          description: Paginated list of webhooks.
+        pagination:
+          $ref: '#/components/schemas/PaginationCursors'
+      required:
+      - data
+      - pagination
+      additionalProperties: false
+      description: Paginated response of webhooks.
+    PaginationQueryPageSize:
+      type: integer
+      description: Number of records to return per page. Default page size is 50.
+      example: 50
+      exclusiveMinimum: 0
+    TestWebhook:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - SUCCESS
+          - FAILURE
+          description: Indicates if the test webhook event was delivered successfully to your configured webhook endpoint.
+        description:
+          type: string
+          description: Human readable description of the test outcome.
+        response:
+          type:
+          - object
+          - 'null'
+          properties:
+            code:
+              type: number
+              example: 200
+              description: Status code returned by your configured webhook endpoint
+            body:
+              type: string
+              example: '{}'
+              description: Body returned by your configured webhook endpoint
+            headers:
+              type:
+              - array
+              - 'null'
+              items:
+                type: string
+              description: Headers returned by your configured webhook endpoint
+              example:
+              - 'content-type: application/json; } charset=utf-8'
+          required:
+          - code
+          - body
+          - headers
+          additionalProperties: false
+          description: Null if status is `FAILURE` and no HTTP response was received (e.g. DNS resolution failure or connection error).
+      required:
+      - status
+      - description
+      - response
+      additionalProperties: false
+    WebhookResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the webhook.
+          example: 1de1as-dsa12wed-15sa
         url:
           type: string
-          format: uri
-        secret:
-          type: string
+          minLength: 8
+          maxLength: 200
+          description: The HTTPS URL that webhook payloads should be sent to. Must resolve to a public IP address and return a 2xx response directly without redirecting.
+          example: https://example.com/enode-webhooks
+          x-format:
+            uri: true
         events:
           type: array
           items:
             type: string
-            example: user:vehicle:updated
+          default:
+          - '*'
+          description: The events which will trigger the webhook.
+          example:
+          - user:vehicle:discovered
+          - user:vehicle:updated
+          - user:vehicle:deleted
+        lastSuccess:
+          type: string
+          format: date-time
+          description: Time when a delivery to this webhook was last successful.
+          example: '2023-08-14T13:01:00.000'
+        isActive:
+          type: boolean
+          description: Indicates whether the webhook is active or not.
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          description: Time when the webhook was created.
+          example: '2023-08-14T13:01:00.000'
+        apiVersion:
+          type:
+          - string
+          - 'null'
+          description: API version of the payload. If null, the default API version of the client will be used when generating webhook payloads.
+          example: '2024-10-01'
+        authentication:
+          type:
+          - object
+          - 'null'
+          properties:
+            headerName:
+              type: string
+          required:
+          - headerName
+          additionalProperties: false
+      required:
+      - id
+      - url
+      - lastSuccess
+      - isActive
+      - createdAt
+      - apiVersion
+      - authentication
+      additionalProperties: false
+      description: Webhook entity.
+    WebhookPathId:
+      type: string
+      example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+      x-format:
+        guid: true
+      description: ID of the Webhook.
+    WebhookUpdatePayload:
+      type: object
+      properties:
+        url:
+          type: string
+          minLength: 8
+          maxLength: 200
+          description: The HTTPS URL that webhook payloads should be sent to. Must resolve to a public IP address and return a 2xx response directly without redirecting.
+          example: https://example.com/enode-webhooks
+          x-format:
+            uri: true
+        secret:
+          type: string
+          minLength: 6
+          maxLength: 256
+          description: A cryptographically secure secret, generated and provided by your client. Refer to [Generating a secret](/docs/webhooks#payload-integrity) for details on how to do this.
+          example: 0Kvs1tAUQ69FOMBiWlt5XJSrruXMhWDiVbyrWaNm
+        events:
+          type: array
+          items:
+            type: string
+            enum:
+            - '*'
+            - user:vehicle:discovered
+            - user:vehicle:updated
+            - user:vehicle:deleted
+            - user:vehicle:smart-charging-status-updated
+            - user:charge-action:updated
+            - user:vendor-action:updated
+            - user:schedule:execution-updated
+            - user:charger:discovered
+            - user:charger:updated
+            - user:charger:deleted
+            - user:hvac:discovered
+            - user:hvac:updated
+            - user:hvac:deleted
+            - user:inverter:discovered
+            - user:inverter:updated
+            - user:inverter:deleted
+            - user:credentials:invalidated
+            - user:battery:discovered
+            - user:battery:updated
+            - user:battery:deleted
+            - enode:webhook:test
+            - user:meter:discovered
+            - user:meter:updated
+            - user:meter:deleted
+            - flex:session:updated
+          description: 'The events which will trigger the webhook. Available events: `*`, `user:vehicle:discovered`, `user:vehicle:updated`, `user:vehicle:deleted`, `user:vehicle:smart-charging-status-updated`, `user:charge-action:updated`, `user:vendor-action:updated`, `user:schedule:execution-updated`, `user:charger:discovered`, `user:charger:updated`, `user:charger:deleted`, `user:hvac:discovered`, `user:hvac:updated`, `user:hvac:deleted`, `user:inverter:discovered`, `user:inverter:updated`, `user:inverter:deleted`, `user:credentials:invalidated`, `user:battery:discovered`, `user:battery:updated`, `user:battery:deleted`, `enode:webhook:test`, `user:meter:discovered`, `user:meter:updated`, `user:meter:deleted`, `flex:session:updated`'
+          example:
+          - user:vehicle:discovered
+          - user:vehicle:updated
+          - user:vehicle:deleted
+        apiVersion:
+          type:
+          - string
+          - 'null'
+          description: 'If provided, webhook payloads will be generated for this version. If not provided or `null`, the default API version of the client will be used when generating webhook payloads. Valid versions: `2024-10-01`'
+          example: '2024-10-01'
+        authentication:
+          type:
+          - object
+          - 'null'
+          properties:
+            headerName:
+              type: string
+              minLength: 1
+              maxLength: 128
+              pattern: ^[a-z0-9-_]+$
+              description: Authentication header name.
+              example: x-api-key
+            headerValue:
+              type: string
+              minLength: 1
+              maxLength: 256
+              pattern: ^[a-zA-Z0-9_:;.,/\\"'?!(){}[\]@<>=\-+*#$&`|~^% ]+$
+              description: Authentication header value.
+              example: AOIxcVLKxR2VpzlN5HIk14oPu80
+          required:
+          - headerName
+          - headerValue
+          additionalProperties: false
+          description: If provided, the authentication header will be sent with each webhook request.
+      additionalProperties: false
+      description: Fields to update the webhook with.
+    WebhookNotFoundProblem:
+      type: object
+      properties:
+        type:
+          type: string
+          description: A URI reference that identifies the problem type.
+        title:
+          type: string
+          description: A short, human-readable summary of the problem type.
+        detail:
+          type: string
+          description: A human-readable explanation specific to this occurrence of the problem.
+        issues:
+          type: array
+          items:
+            type: object
+            properties: {}
+          description: A list of validation issues which occurred while validating some component of the network payload.
+      required:
+      - type
+      - title
+      - detail
+      description: Webhook not found problem error
+      example:
+        type: https://docs.enode.io/api/problems/not-found
+        title: Webhook not found
+        detail: Could not find webhook 0ec3d927-0100-44ff-bb53-edfe3ce64a57
+    WebhookCreatePayload:
+      type: object
+      properties:
+        url:
+          type: string
+          minLength: 8
+          maxLength: 200
+          description: The HTTPS URL that webhook payloads should be sent to. Must resolve to a public IP address and return a 2xx response directly without redirecting.
+          example: https://example.com/enode-webhooks
+          x-format:
+            uri: true
+        secret:
+          type: string
+          minLength: 6
+          maxLength: 256
+          description: A cryptographically secure secret, generated and provided by your client. Refer to [Generating a secret](/docs/webhooks#payload-integrity) for details on how to do this.
+          example: 0Kvs1tAUQ69FOMBiWlt5XJSrruXMhWDiVbyrWaNm
+        events:
+          type: array
+          items:
+            type: string
+            enum:
+            - '*'
+            - user:vehicle:discovered
+            - user:vehicle:updated
+            - user:vehicle:deleted
+            - user:vehicle:smart-charging-status-updated
+            - user:charge-action:updated
+            - user:vendor-action:updated
+            - user:schedule:execution-updated
+            - user:charger:discovered
+            - user:charger:updated
+            - user:charger:deleted
+            - user:hvac:discovered
+            - user:hvac:updated
+            - user:hvac:deleted
+            - user:inverter:discovered
+            - user:inverter:updated
+            - user:inverter:deleted
+            - user:credentials:invalidated
+            - user:battery:discovered
+            - user:battery:updated
+            - user:battery:deleted
+            - enode:webhook:test
+            - user:meter:discovered
+            - user:meter:updated
+            - user:meter:deleted
+            - flex:session:updated
+          default:
+          - '*'
+          description: 'The events which will trigger the webhook. Available events: `*`, `user:vehicle:discovered`, `user:vehicle:updated`, `user:vehicle:deleted`, `user:vehicle:smart-charging-status-updated`, `user:charge-action:updated`, `user:vendor-action:updated`, `user:schedule:execution-updated`, `user:charger:discovered`, `user:charger:updated`, `user:charger:deleted`, `user:hvac:discovered`, `user:hvac:updated`, `user:hvac:deleted`, `user:inverter:discovered`, `user:inverter:updated`, `user:inverter:deleted`, `user:credentials:invalidated`, `user:battery:discovered`, `user:battery:updated`, `user:battery:deleted`, `enode:webhook:test`, `user:meter:discovered`, `user:meter:updated`, `user:meter:deleted`, `flex:session:updated`'
+          example:
+          - user:vehicle:discovered
+          - user:vehicle:updated
+          - user:vehicle:deleted
+        apiVersion:
+          type:
+          - string
+          - 'null'
+          description: 'If provided, webhook payloads will be generated for this version. If not provided or `null`, the default API version of the client will be used when generating webhook payloads. Valid versions: `2024-10-01`'
+          example: '2024-10-01'
         authentication:
           type: object
           properties:
             headerName:
               type: string
+              minLength: 1
+              maxLength: 128
+              pattern: ^[a-z0-9-_]+$
+              description: Authentication header name.
+              example: x-api-key
             headerValue:
               type: string
-    Webhook:
+              minLength: 1
+              maxLength: 256
+              pattern: ^[a-zA-Z0-9_:;.,/\\"'?!(){}[\]@<>=\-+*#$&`|~^% ]+$
+              description: Authentication header value.
+              example: AOIxcVLKxR2VpzlN5HIk14oPu80
+          required:
+          - headerName
+          - headerValue
+          additionalProperties: false
+          description: If provided, the authentication header will be sent with each webhook request.
+      required:
+      - url
+      - secret
+      additionalProperties: false
+      description: Fields to update the webhook with.
+    WebhookNotValidProblem:
       type: object
       properties:
-        id:
+        type:
           type: string
-        url:
+          description: A URI reference that identifies the problem type.
+        title:
           type: string
-          format: uri
-        events:
+          description: A short, human-readable summary of the problem type.
+        detail:
+          type: string
+          description: A human-readable explanation specific to this occurrence of the problem.
+        issues:
           type: array
           items:
-            type: string
-        isActive:
-          type: boolean
-        createdAt:
-          type: string
-          format: date-time
+            type: object
+            properties: {}
+          description: A list of validation issues which occurred while validating some component of the network payload.
+      required:
+      - type
+      - title
+      - detail
+      description: Webhook input is not valid.
+      example:
+        type: https://docs.enode.io/api/problems/bad-request
+        title: Webhook input is not valid.
+        detail: The webhook input is not valid.
+    PaginationCursors:
+      type: object
+      properties:
+        after:
+          type:
+          - string
+          - 'null'
+          example: MjAyMy0wNy0xOFQxMDowODowMi4zNzNa
+        before:
+          type:
+          - string
+          - 'null'
+          example: MjAyMy0wNi0xNlQwOTowMzowMS4yNjJa
+      required:
+      - after
+      - before
+      additionalProperties: false
+      description: Cursors to the pages before and after current page. See the [Pagination](/api#pagination) section for reference.
   parameters:
-    webhookId:
+    PaginationQueryPageSize:
+      schema:
+        $ref: '#/components/schemas/PaginationQueryPageSize'
+      required: false
+      description: Number of records to return per page. Default page size is 50.
+      name: pageSize
+      in: query
+    WebhookPathId:
+      schema:
+        $ref: '#/components/schemas/WebhookPathId'
+      required: true
+      description: ID of the Webhook.
       name: webhookId
       in: path
-      required: true
+    PaginationQueryBefore:
       schema:
-        type: string
+        $ref: '#/components/schemas/PaginationQueryBefore'
+      required: false
+      description: Opaque cursor used to fetch previous page. Cannot be used together with `after`. Refer to [Pagination](/api#pagination) for more information.
+      name: before
+      in: query
+    PaginationQueryAfter:
+      schema:
+        $ref: '#/components/schemas/PaginationQueryAfter'
+      required: false
+      description: Opaque cursor used to fetch next page. Cannot be set together with `before`. Refer to [Pagination](/api#pagination) for more information.
+      name: after
+      in: query
   securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-      description: OAuth 2.0 access token obtained via the client_credentials grant from the Enode OAuth token endpoint (https://oauth.production.enode.io/oauth2/token for production, https://oauth.sandbox.enode.io/oauth2/token for sandbox), presented as a Bearer token.
+    ClientAccessToken:
+      type: oauth2
+      description: 'A `ClientAccessToken` is obtained via the [OAuth 2.0 Client Credentials grant](https://www.oauth.com/oauth2-servers/access-tokens/client-credentials/) and carries authorization to access all functionalities and data in your Enode account.
+
+        Full details at [The ClientAccessToken](/api#getting-an-access-token)
+
+        '
+      flows:
+        clientCredentials:
+          tokenUrl: https://oauth.production.enode.io/oauth2/token
+          scopes: {}

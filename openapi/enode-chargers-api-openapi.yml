@@ -1,194 +1,1117 @@
 openapi: 3.2.0
 info:
   title: Enode Chargers API
-  description: Enode connects and controls electric vehicles, EV chargers, HVAC systems, home batteries, solar inverters, and smart meters through a single API. End users authorize access to their devices via the Enode Link OAuth flow; applications then read normalized device telemetry, issue control actions (charging, climate, battery mode), configure smart charging, and subscribe to webhooks. Access tokens are obtained via the OAuth 2.0 client_credentials grant and presented as a Bearer token.
-  termsOfService: https://enode.com/legal/terms-of-service
-  contact:
-    name: Enode Support
-    url: https://developers.enode.com
-  version: '2024-10-01'
+  version: '2023-08-01'
+  description: One integration, 1000+ energy devices.
+  license:
+    name: Enode Commercial License
+    url: https://enode.com
 servers:
 - url: https://enode-api.production.enode.io
-  description: Production
-- url: https://enode-api.sandbox.enode.io
-  description: Sandbox
-security:
-- bearerAuth: []
 tags:
 - name: Chargers
-  description: Read and control connected EV chargers.
+  description: EV Chargers provide charging data and can be controlled via Control Charging and Schedules
 paths:
   /chargers:
     get:
+      summary: List Chargers
       operationId: listChargers
+      description: Returns a paginated list of all Chargers.
       tags:
       - Chargers
-      summary: List chargers
+      security:
+      - ClientAccessToken: []
       parameters:
-      - $ref: '#/components/parameters/pageAfter'
-      - $ref: '#/components/parameters/pageSize'
+      - $ref: '#/components/parameters/PaginationQueryAfter'
+      - $ref: '#/components/parameters/PaginationQueryBefore'
+      - $ref: '#/components/parameters/PaginationQueryPageSize'
       responses:
         '200':
-          description: A paginated list of chargers.
+          description: Successful
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ChargerList'
+                $ref: '#/components/schemas/PaginatedChargerList'
+  /users/{userId}/chargers:
+    get:
+      summary: List User Chargers
+      description: Returns a paginated list of chargers for the given userId.
+      operationId: listUserChargers
+      tags:
+      - Chargers
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/UserPathId'
+      - $ref: '#/components/parameters/PaginationQueryAfter'
+      - $ref: '#/components/parameters/PaginationQueryBefore'
+      - $ref: '#/components/parameters/PaginationQueryPageSize'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedChargerList'
   /chargers/{chargerId}:
     get:
+      summary: Get Charger
       operationId: getCharger
       tags:
       - Chargers
-      summary: Get a charger
+      security:
+      - ClientAccessToken: []
       parameters:
-      - $ref: '#/components/parameters/chargerId'
+      - $ref: '#/components/parameters/ChargerPathId'
       responses:
         '200':
-          description: A charger.
+          description: Successful
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Charger'
-  /chargers/{chargerId}/charging:
-    post:
-      operationId: controlChargerCharging
+    put:
+      summary: Set location for a charger
+      operationId: updateCharger
+      description: Update the `locationId` field on a Charger.
       tags:
       - Chargers
-      summary: Start or stop charger charging
+      security:
+      - ClientAccessToken: []
       parameters:
-      - $ref: '#/components/parameters/chargerId'
+      - $ref: '#/components/parameters/ChargerPathId'
       requestBody:
-        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ChargeActionRequest'
+              $ref: '#/components/schemas/ChargerUpdatePayload'
       responses:
         '200':
-          description: Charge action accepted.
+          description: Successful
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Action'
+                $ref: '#/components/schemas/Charger'
+  /chargers/{chargerId}/max-current:
+    post:
+      summary: Set Max Current
+      operationId: postSetChargerMaxCurrent
+      deprecated: true
+      description: 'Deprecated: Use Set Charge Rate Limit instead, which accepts a target in kW.
+
+
+        Register for a change of the `maxCurrent` field on a charger. This request creates an Action that will retry until the charger''s `maxCurrent` matches the expected value. Start/stop Actions and limit Actions (max current and charge rate limit) are handled separately. A new start or stop cancels a pending start or stop and moves it to `CANCELLED`; a new limit cancels a pending limit in the same way. Repeating an identical request returns the Action that is still pending. A pending Action of the other group on this charger is not affected. Transitions can be tracked via the `user:vendor-action:updated` webhook event or Get Charger Action.'
+      tags:
+      - Chargers
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/ChargerPathId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TargetMaxCurrent'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              example:
+                id: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+                userId: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+                createdAt: '2023-08-01T01:00:00Z'
+                updatedAt: '2023-08-01T01:00:00Z'
+                completedAt: null
+                state: PENDING
+                failureReason: null
+                targetId: f723fed5-73aa-4004-b7f0-89e5173ee15e
+                targetType: charger
+                targetState:
+                  maxCurrent: 10
+              schema:
+                $ref: '#/components/schemas/MaxCurrentAction'
+        '400':
+          description: A precondition check failed that is unlikely to change within the action's timeout window. This occurs if the charger cannot perform the action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /chargers/{chargerId}/charge-rate-limit:
+    post:
+      summary: Set Charge Rate Limit
+      operationId: postSetChargerChargeRateLimit
+      description: 'Sets the charge rate limit for a charger in kW. Creates an Action that retries until the charger''s `chargeRateLimit` matches the target value. Setting chargeRateLimit also changes maxCurrent.
+
+
+        Start/stop Actions and limit Actions (max current and charge rate limit) are handled separately. A new start or stop cancels a pending start or stop and moves it to `CANCELLED`; a new limit cancels a pending limit in the same way. Repeating an identical request returns the Action that is still pending. A pending Action of the other group on this charger is not affected. Track transitions via the user:vendor-action:updated webhook or Get Charger Action.
+
+
+        We recommend updating this setting no more than once every 15 minutes. Frequent changes to the charge rate limit may cause the vehicle to interrupt the charging session.'
+      tags:
+      - Chargers
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/ChargerPathId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChargeRateLimitPayload'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              example:
+                id: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+                userId: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+                createdAt: '2023-08-01T01:00:00Z'
+                updatedAt: '2023-08-01T01:00:00Z'
+                completedAt: null
+                state: PENDING
+                failureReason: null
+                targetId: f723fed5-73aa-4004-b7f0-89e5173ee15e
+                targetType: charger
+                targetState:
+                  chargeRateLimit: 5.2
+              schema:
+                $ref: '#/components/schemas/ChargeRateLimitAction'
+        '400':
+          description: A precondition check failed that is unlikely to change within the action's timeout window. This occurs if the charger cannot perform the action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /chargers/actions/{actionId}:
+    get:
+      summary: Get Charger Action
+      description: Returns the current state of the requested Action.
+      operationId: getChargersAction
+      tags:
+      - Chargers
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/ActionPathId'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              example:
+                id: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+                userId: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+                createdAt: '2023-08-01T01:00:00Z'
+                updatedAt: '2023-08-01T01:00:12Z'
+                completedAt: '2023-08-01T01:00:12Z'
+                state: CONFIRMED
+                failureReason: null
+                targetId: f723fed5-73aa-4004-b7f0-89e5173ee15e
+                targetType: charger
+                kind: START
+              schema:
+                $ref: '#/components/schemas/ChargerAction'
+        '404':
+          description: Action not found.
+  /chargers/actions/{actionId}/cancel:
+    post:
+      summary: Cancel Charger Action
+      description: 'Cancels a pending Action, halting any further attempts by Enode to execute it.
+
+
+        Note: This only updates the Action''s status to `CANCELLED` within Enode and does not reflect a change in the vendor''s cloud. Thus any pending Action in the vendor''s cloud might still be executed.'
+      operationId: cancelChargerAction
+      tags:
+      - Chargers
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/ActionPathId'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              example:
+                id: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+                userId: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+                createdAt: '2023-08-01T01:00:00Z'
+                updatedAt: '2023-08-01T01:00:12Z'
+                completedAt: '2023-08-01T01:00:12Z'
+                state: CANCELLED
+                failureReason:
+                  type: REQUESTED_CANCELLATION
+                  detail: The action was cancelled following an external request.
+                targetId: f723fed5-73aa-4004-b7f0-89e5173ee15e
+                targetType: charger
+                kind: START
+              schema:
+                $ref: '#/components/schemas/ChargerAction'
+        '404':
+          description: Action not found.
+        '409':
+          description: Action already in a resolved state.
+          content:
+            application/json:
+              example:
+                id: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+                userId: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+                createdAt: '2023-08-01T01:00:00Z'
+                updatedAt: '2023-08-01T01:00:12Z'
+                completedAt: '2023-08-01T01:00:12Z'
+                state: CONFIRMED
+                failureReason: null
+                targetId: f723fed5-73aa-4004-b7f0-89e5173ee15e
+                targetType: charger
+                kind: START
+              schema:
+                $ref: '#/components/schemas/ChargerAction'
+  /chargers/{chargerId}/refresh-hint:
+    post:
+      summary: Refresh Charger Data
+      description: 'Use this endpoint to initiate an expedited data refresh for the specified charger.
+
+
+        Note: The Enode platform keeps data automatically up-to-date and detects changes in the OEM APIs within seconds to a few minutes. We change the refresh interval dynamically based on a number of heuristics. This ensures we find the best trade-off between the stability of the connection to the OEM and freshness of the data.
+
+        This method overrides most of our heuristics and should therefore be used with caution. You may use it when you have a strong reason to believe the data might be stale.'
+      operationId: chargersRefreshHint
+      tags:
+      - Chargers
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/ChargerPathId'
+      responses:
+        '204':
+          description: Refresh hint registered successfully.
+          content: {}
+        '404':
+          description: The specified charger was not found.
+        '429':
+          description: Rate limited. Retry after the number of seconds given in the Retry-After header.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                pattern: ^\d+$
+                description: Seconds until the current UTC hour resets and another refresh hint can be submitted.
+                example: '1800'
+              required: true
+              description: Seconds until the current UTC hour resets and another refresh hint can be submitted.
+          content:
+            application/problem+json:
+              example:
+                type: https://docs.enode.io/api/problems/rate-limited
+                title: Rate limited
+                detail: You have reached the maximum number of 9 refresh-hints per hour for this device.
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /chargers/{chargerId}/charging:
+    post:
+      summary: Control Charging
+      operationId: controlChargerCharging
+      description: 'Request for a charger to start or stop charging. This request creates an Action that will retry until the charger''s `powerDeliveryState` matches the expected value. Start/stop Actions and limit Actions (max current and charge rate limit) are handled separately. A new start or stop cancels a pending start or stop and moves it to `CANCELLED`; a new limit cancels a pending limit in the same way. Repeating an identical request returns the Action that is still pending. A pending Action of the other group on this charger is not affected. Transitions can be tracked via the `user:vendor-action:updated` webhook event or Get Charger Action.
+
+
+        This endpoint returns an error with status code 422 if the charger is controlled by a schedule. To restore user control, either disable the schedule or use Create Smart Override to temporarily enable charging.'
+      tags:
+      - Chargers
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/ChargerPathId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                action:
+                  allOf:
+                  - $ref: '#/components/schemas/ChargingAction'
+                  description: Charging action to perform
+              required:
+              - action
+              additionalProperties: false
+      responses:
+        '200':
+          description: Resulting charge action
+          content:
+            application/json:
+              example:
+                id: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+                userId: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+                createdAt: '2023-08-01T01:00:00Z'
+                updatedAt: '2023-08-01T01:00:00Z'
+                completedAt: null
+                state: PENDING
+                failureReason: null
+                targetId: f723fed5-73aa-4004-b7f0-89e5173ee15e
+                targetType: charger
+                kind: START
+              schema:
+                $ref: '#/components/schemas/ChargeAction'
+        '400':
+          description: A precondition check failed that is unlikely to change within the action's timeout window. This occurs if the charger cannot perform the action, is fully charged, or is already in the desired state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Charger controlled by a Schedule
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
 components:
   schemas:
-    Action:
+    ChargerAction:
+      anyOf:
+      - $ref: '#/components/schemas/ChargeAction'
+      - $ref: '#/components/schemas/MaxCurrentAction'
+      - $ref: '#/components/schemas/ChargeRateLimitAction'
+    ActionState:
+      type: string
+      enum:
+      - PENDING
+      - CONFIRMED
+      - FAILED
+      - CANCELLED
+      description: "The real-time status of an action executed on a target. \n\n * `PENDING`: The initial state. Enode is actively sending commands and monitoring the target for changes. \n * `CONFIRMED`: Successful transition of the target to the desired state. \n * `FAILED`: The target did not respond to the action before timing out. Enode has ceased sending additional commands. \n * `CANCELLED`: A required precondition was not met during the action's timeout window or another action has been sent to the target, overriding this one."
+    Brand:
+      type: string
+      description: A formatted and properly cased OEM brand name, suitable for reading by humans. May contain special characters.
+      example: Tesla
+    ChargerPathId:
+      type: string
+      description: ID of the Charger.
+      example: ad84e742-0f46-4cf4-b0db-7d890f8f23f5
+    ChargerVendor:
+      type: string
+      enum:
+      - ZAPTEC
+      - EASEE
+      - WALLBOX
+      - CHARGEAMPS
+      - GOE
+      - CHARGEPOINT
+      - ENELX
+      - TESLA
+      - OHME
+      - GARO
+      - SCHNEIDER
+      - PODPOINT
+      - KEBA
+      - MYENERGI
+      - HEIDELBERG
+      - ELLI
+      - INDRA
+      - PEBLAR
+      description: Machine-friendly name of the vendor. Use this in API requests.
+      example: ZAPTEC
+    Capability:
       type: object
       properties:
-        id:
-          type: string
-        userId:
-          type: string
-        targetId:
-          type: string
-        targetType:
-          type: string
-        state:
-          type: string
-          enum:
-          - PENDING
-          - CONFIRMED
-          - FAILED
-          - CANCELLED
-        kind:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-        completedAt:
-          type:
-          - string
-          - 'null'
-          format: date-time
-    ChargeActionRequest:
-      type: object
-      required:
-      - action
-      properties:
-        action:
-          type: string
-          enum:
-          - START
-          - STOP
-    Charger:
-      type: object
-      properties:
-        id:
-          type: string
-        userId:
-          type: string
-        vendor:
-          type: string
-        isReachable:
+        isCapable:
           type: boolean
-        lastSeen:
-          type: string
-          format: date-time
-        information:
-          type: object
-          properties:
-            brand:
-              type: string
-            model:
-              type: string
-        chargeState:
-          type: object
-          properties:
-            isPluggedIn:
-              type: boolean
-            isCharging:
-              type: boolean
-            chargeRate:
-              type: number
-            maxCurrent:
-              type: integer
-            powerDeliveryState:
-              type: string
-    ChargerList:
+          description: The entity is fully capable of providing this data or functionality. If false, support is partial or missing. A capable entity (`true`) may still list recommended interventions in `interventionIds`.
+          example: false
+        interventionIds:
+          type: array
+          items:
+            type: string
+            example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+            x-format:
+              guid: true
+          description: 'IDs of interventions the user can make to alter the availability of this capability.
+
+            Interventions may be present even when `isCapable` is `true` (recommended, non-blocking actions). See [the interventions guide](/docs/interventions#accessing-interventions-via-our-api).'
+      required:
+      - isCapable
+      - interventionIds
+      additionalProperties: false
+    PaginationQueryAfter:
+      type: string
+      description: Opaque cursor used to fetch next page. Cannot be set together with `before`. Refer to [Pagination](/api#pagination) for more information.
+      example: MjAyMy0wNy0xOFQxMDowODowMi4zNzNa
+    PaginationQueryBefore:
+      type: string
+      description: Opaque cursor used to fetch previous page. Cannot be used together with `after`. Refer to [Pagination](/api#pagination) for more information.
+      example: MjAyMy0wNy0xOFQxMDowODowMi4zNzNa
+    ChargeableVendorType:
+      type: string
+      enum:
+      - vehicle
+      - charger
+    PaginatedChargerList:
       type: object
       properties:
         data:
           type: array
           items:
             $ref: '#/components/schemas/Charger'
-        pageInfo:
-          $ref: '#/components/schemas/PageInfo'
-    PageInfo:
+          description: Paginated list of chargers
+        pagination:
+          $ref: '#/components/schemas/PaginationCursors'
+      required:
+      - data
+      - pagination
+      additionalProperties: false
+      description: Paginated response of chargers
+    Charger:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Charger ID
+        userId:
+          type: string
+          description: The ID of the user that linked this charger.
+          example: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+        vendor:
+          $ref: '#/components/schemas/ChargerVendor'
+        lastSeen:
+          type: string
+          format: date-time
+          description: The last time Enode communicated with the charger.
+          example: '2020-04-07T17:04:26Z'
+        isReachable:
+          type: boolean
+          description: Indicates whether Enode can currently access live data from the charger. If the charger is not reachable, data updates will be delayed.
+        chargeState:
+          $ref: '#/components/schemas/ChargerChargeState'
+        capabilities:
+          type: object
+          properties:
+            information:
+              allOf:
+              - $ref: '#/components/schemas/Capability'
+              description: Full availability of information data.
+            chargeState:
+              allOf:
+              - $ref: '#/components/schemas/Capability'
+              description: Full availability of chargeState data.
+            startCharging:
+              allOf:
+              - $ref: '#/components/schemas/Capability'
+              description: Supports START charging command.
+            stopCharging:
+              allOf:
+              - $ref: '#/components/schemas/Capability'
+              description: Supports STOP charging command.
+            setMaxCurrent:
+              allOf:
+              - $ref: '#/components/schemas/Capability'
+              deprecated: true
+              description: 'Deprecated: Use `setChargeRateLimit` instead.
+
+
+                Ability to set the max charge rate.'
+            setChargeRateLimit:
+              allOf:
+              - $ref: '#/components/schemas/ChargeRateLimitCapability'
+              description: 'Ability to set the charge rate limit in kW.
+
+
+                Beta: This property is available in beta as part of [Set Charge Rate Limit](/api#postSetChargerChargeRateLimit)'
+          required:
+          - information
+          - chargeState
+          - startCharging
+          - stopCharging
+          - setMaxCurrent
+          additionalProperties: false
+          description: A collection of descriptors that describe the capabilities of this specific charger
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Scopes that the user has granted for this charger.
+          example:
+          - charger:control:charging
+          - charger:read:data
+        information:
+          $ref: '#/components/schemas/ChargerInformation'
+        locationId:
+          type:
+          - string
+          - 'null'
+          example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+          x-format:
+            guid: true
+          description: ID of the location the charger is currently positioned at (if any).
+      required:
+      - id
+      - userId
+      - vendor
+      - lastSeen
+      - isReachable
+      - chargeState
+      - capabilities
+      - scopes
+      - information
+      - locationId
+      additionalProperties: false
+      example:
+        information:
+          brand: Zaptec
+          displayName: Garage left
+          model: Pro
+          serialNumber: '1234567890'
+          year: null
+          imageUrl: https://cdn.images.enode.com/assets/019c90f6-1450-72f5-9074-65d7834914e5.webp
+        locationId: 2211e263-d6d4-d6d4-d6d4-dbdd77ec82b6
+        id: 2211e263-0362-4235-83f4-887bdf3ee414
+        userId: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+        vendor: ZAPTEC
+        lastSeen: '2023-03-21T21:08:27.596Z'
+        isReachable: true
+        chargeState:
+          isPluggedIn: true
+          isCharging: true
+          chargeRate: 6.939
+          lastUpdated: '2023-03-21T16:39:20.000Z'
+          maxCurrent: 16
+          powerDeliveryState: PLUGGED_IN:CHARGING
+          pluggedInVehicleId: bf077f15-a7aa-4bc4-b917-8f1c89676198
+          chargeRateLimit: 7.1
+        capabilities:
+          information:
+            isCapable: true
+            interventionIds: []
+          chargeState:
+            isCapable: true
+            interventionIds: []
+          startCharging:
+            isCapable: true
+            interventionIds: []
+          stopCharging:
+            isCapable: true
+            interventionIds: []
+          setMaxCurrent:
+            isCapable: false
+            interventionIds:
+            - 4eaeb363-296d-4ccc-a973-7805e6f400bd
+          setChargeRateLimit:
+            isCapable: true
+            interventionIds: []
+            allowedRange:
+              kW:
+                min: 1.5
+                max: 7.4
+        scopes:
+        - charger:control:charging
+        - charger:read:data
+    ChargeAction:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+          x-format:
+            guid: true
+          description: The ID of the action.
+        userId:
+          type: string
+          description: The ID of the user that owns the target of this action.
+          example: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+        createdAt:
+          type: string
+          format: date-time
+          description: Time when this action was created
+          example: '2020-04-07T17:04:26Z'
+        updatedAt:
+          type: string
+          format: date-time
+          description: Time when this action was last updated
+          example: '2020-04-07T17:04:26Z'
+        completedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Time when the action transitioned to a non-pending state.
+          example: '2020-04-07T17:04:26Z'
+        state:
+          $ref: '#/components/schemas/ActionState'
+        targetId:
+          type: string
+          description: ID of the target which this action is controlling.
+          example: bfbccded-8a1c-45a8-bbda-dcaeef29977a
+        targetType:
+          $ref: '#/components/schemas/ChargeableVendorType'
+        kind:
+          allOf:
+          - $ref: '#/components/schemas/ChargingAction'
+          description: The charging action to perform
+        failureReason:
+          allOf:
+          - $ref: '#/components/schemas/ActionFailureReason'
+      required:
+      - id
+      - userId
+      - createdAt
+      - updatedAt
+      - completedAt
+      - state
+      - targetId
+      - targetType
+      - kind
+      - failureReason
+      additionalProperties: false
+      title: Charge Action
+    ChargeRateLimitAction:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+          x-format:
+            guid: true
+          description: The ID of the action.
+        userId:
+          type: string
+          description: The ID of the user that owns the target of this action.
+          example: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+        createdAt:
+          type: string
+          format: date-time
+          description: Time when this action was created
+          example: '2020-04-07T17:04:26Z'
+        updatedAt:
+          type: string
+          format: date-time
+          description: Time when this action was last updated
+          example: '2020-04-07T17:04:26Z'
+        completedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Time when the action transitioned to a non-pending state.
+          example: '2020-04-07T17:04:26Z'
+        state:
+          $ref: '#/components/schemas/ActionState'
+        targetId:
+          type: string
+          description: ID of the entity which this action is controlling.
+        targetType:
+          $ref: '#/components/schemas/ChargeableVendorType'
+        targetState:
+          $ref: '#/components/schemas/ChargeRateLimitPayload'
+        failureReason:
+          allOf:
+          - $ref: '#/components/schemas/ActionFailureReason'
+      required:
+      - id
+      - userId
+      - createdAt
+      - updatedAt
+      - completedAt
+      - state
+      - targetId
+      - targetType
+      - targetState
+      - failureReason
+      additionalProperties: false
+      title: Charge Rate Limit Action
+    ChargerPowerDeliveryState:
+      type: string
+      enum:
+      - UNKNOWN
+      - UNPLUGGED
+      - PLUGGED_IN:INITIALIZING
+      - PLUGGED_IN:CHARGING
+      - PLUGGED_IN:STOPPED
+      - PLUGGED_IN:NO_POWER
+      - PLUGGED_IN:FAULT
+      - PLUGGED_IN:DISCHARGING
+      example: PLUGGED_IN:CHARGING
+      description: "The current state of power delivery between the vehicle and charger.\n\n * `UNKNOWN`: The state of power delivery is currently unknown. \n * `UNPLUGGED`: The vehicle is not connected to the charger. \n * `PLUGGED_IN:INITIALIZING`: The charging station is preparing to deliver power to the vehicle. It is expected for this state to shortly transition into PLUGGED_IN:CHARGING. \n * `PLUGGED_IN:CHARGING`: The charger is actively delivering power to the vehicle, causing the battery level to increase. \n * `PLUGGED_IN:STOPPED`: The vehicle is plugged in, but the charger has been stopped. It is possible to transition into a charging state by sending a start command.\n * `PLUGGED_IN:NO_POWER`: The charger attempted to initialize charging, however no external power was accepted by the vehicle. It is not possible to transition into a charging state with a remote command until there is some user intervention to resolve the issue. \n * `PLUGGED_IN:FAULT`: A malfunction in the charging process is preventing power from being delivered. Possible causes include a charging cable not being properly locked, extreme temperatures, or malfunctions in either the charging station or the vehicle's internal system. It is not possible to transition into a charging state with a remote command until there is some user intervention to resolve the issue.\n * `PLUGGED_IN:DISCHARGING`: The charger is actively discharging by giving power to the home/grid, causing the battery level to decrease."
+    UserPathId:
+      type: string
+      description: ID of the User.
+    ChargeRateLimitCapability:
+      type: object
+      properties:
+        isCapable:
+          type: boolean
+          description: The entity is fully capable of providing this data or functionality. If false, support is partial or missing. A capable entity (`true`) may still list recommended interventions in `interventionIds`.
+          example: false
+        interventionIds:
+          type: array
+          items:
+            type: string
+            example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+            x-format:
+              guid: true
+          description: 'IDs of interventions the user can make to alter the availability of this capability.
+
+            Interventions may be present even when `isCapable` is `true` (recommended, non-blocking actions). See [the interventions guide](/docs/interventions#accessing-interventions-via-our-api).'
+        allowedRange:
+          allOf:
+          - $ref: '#/components/schemas/ChargeRateLimitRange'
+          description: Allowed charge rate limits for the charger.
+      required:
+      - isCapable
+      - interventionIds
+      - allowedRange
+      additionalProperties: false
+    PaginationQueryPageSize:
+      type: integer
+      description: Number of records to return per page. Default page size is 50.
+      example: 50
+      exclusiveMinimum: 0
+    ChargerInformation:
+      type: object
+      properties:
+        brand:
+          $ref: '#/components/schemas/Brand'
+        model:
+          type: string
+          description: Charger model
+          example: Home
+        displayName:
+          type:
+          - string
+          - 'null'
+          description: Charger nickname set by the user in the vendor app. `null` when the vendor does not provide one.
+          example: Garage left
+        year:
+          type:
+          - number
+          - 'null'
+          deprecated: true
+          example: null
+          description: 'Deprecated: Not populated and always returns `null`.
+
+
+            Charger production year'
+        serialNumber:
+          type: string
+          description: Charger serial number. Most chargers have this, but some do not expose it. When missing we default to a vendor provided ID, which may be visible to the end user in their app.
+        imageUrl:
+          type:
+          - string
+          - 'null'
+          description: URL to an image of the charger model. `null` when not available.
+          example: https://cdn.images.enode.com/assets/019c90f6-1450-72f5-9074-65d7834914e5.webp
+      required:
+      - brand
+      - model
+      - displayName
+      - year
+      - serialNumber
+      - imageUrl
+      description: Descriptive information about the Charger
+    ChargeRateLimitPayload:
+      type: object
+      properties:
+        chargeRateLimit:
+          type: number
+          description: Desired charge rate limit in kilowatts (kW)
+          example: 5.2
+          exclusiveMinimum: 0
+      required:
+      - chargeRateLimit
+      additionalProperties: false
+      description: Target charge rate limit for charger
+    ActionPathId:
+      type: string
+      example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+      x-format:
+        guid: true
+      description: ID of the Action.
+    Problem:
+      type: object
+      properties:
+        type:
+          type: string
+          description: A URI reference that identifies the problem type.
+        title:
+          type: string
+          description: A short, human-readable summary of the problem type.
+        detail:
+          type: string
+          description: A human-readable explanation specific to this occurrence of the problem.
+        issues:
+          type: array
+          items:
+            type: object
+            properties: {}
+          description: A list of validation issues which occurred while validating some component of the network payload.
+      required:
+      - type
+      - title
+      - detail
+      description: Standard Problem Error
+      example:
+        type: https://docs.enode.io/api/problems/not-found
+        title: Not Found
+        detail: The requested asset wasn't found.
+    MaxCurrentAction:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+          x-format:
+            guid: true
+          description: The ID of the action.
+        userId:
+          type: string
+          description: The ID of the user that owns the target of this action.
+          example: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+        createdAt:
+          type: string
+          format: date-time
+          description: Time when this action was created
+          example: '2020-04-07T17:04:26Z'
+        updatedAt:
+          type: string
+          format: date-time
+          description: Time when this action was last updated
+          example: '2020-04-07T17:04:26Z'
+        completedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Time when the action transitioned to a non-pending state.
+          example: '2020-04-07T17:04:26Z'
+        state:
+          $ref: '#/components/schemas/ActionState'
+        targetId:
+          type: string
+          description: ID of the entity which this action is controlling.
+        targetType:
+          $ref: '#/components/schemas/ChargeableVendorType'
+        targetState:
+          $ref: '#/components/schemas/TargetMaxCurrent'
+        failureReason:
+          allOf:
+          - $ref: '#/components/schemas/ActionFailureReason'
+      required:
+      - id
+      - userId
+      - createdAt
+      - updatedAt
+      - completedAt
+      - state
+      - targetId
+      - targetType
+      - targetState
+      - failureReason
+      additionalProperties: false
+      deprecated: true
+      title: Max Current Action
+      description: 'Deprecated: Use ChargeRateLimitAction instead.'
+    ChargeRateLimitRange:
+      type: object
+      properties:
+        kW:
+          type: object
+          properties:
+            min:
+              type:
+              - number
+              - 'null'
+              description: The minimum charge rate limit in kW. Returns null when unavailable from the vendor.
+            max:
+              type:
+              - number
+              - 'null'
+              description: The maximum charge rate limit in kW. Returns null when unavailable from the vendor.
+          required:
+          - min
+          - max
+          additionalProperties: false
+          description: Allowed charge rate limit range in kW.
+      required:
+      - kW
+      additionalProperties: false
+    ChargerUpdatePayload:
+      type: object
+      properties:
+        locationId:
+          type:
+          - string
+          - 'null'
+          example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+          x-format:
+            guid: true
+      required:
+      - locationId
+      additionalProperties: false
+    TargetMaxCurrent:
+      type: object
+      properties:
+        maxCurrent:
+          type: number
+          description: Desired max current in ampere
+          example: 10
+          exclusiveMinimum: 0
+      required:
+      - maxCurrent
+      additionalProperties: false
+      description: Target maximum current for entity
+    ActionFailureReason:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - NO_RESPONSE
+          - FAILED_PRECONDITION
+          - CONFLICT
+          - NOT_FOUND
+          - UNNECESSARY
+          - REQUESTED_CANCELLATION
+          description: "A machine-readable high level error category.\n\n * `NO_RESPONSE`: The device did not react to our commands within the action's timeout window.  \n * `FAILED_PRECONDITION`: The device did not meet all required preconditions for this action to be executed during the action's timeout window. \n * `UNNECESSARY`: The action was not carried out given that the device was already in the desired state. \n * `CONFLICT`: A newer action for this device, or for a device paired with it, has replaced this action. This action is now abandoned.  \n * `REQUESTED_CANCELLATION`: This action was cancelled by request of the controlling owner. The controlling owner may refer to another Enode entity which initiated the command, such as a schedule or smart override. \n * `NOT_FOUND`: The device was deleted while the action was `PENDING`.\n"
+        detail:
+          type: string
+          description: A human-readable explanation of why the action was unsuccessful.
+          example: The device remained unreachable.
+      required:
+      - type
+      - detail
+      description: Information about why was this action not executed successfully.
+    ChargerChargeState:
+      type: object
+      properties:
+        isPluggedIn:
+          type:
+          - boolean
+          - 'null'
+          description: Indicates whether the charger has a vehicle plugged into it (regardless of whether that vehicle is actually charging)
+        isCharging:
+          type:
+          - boolean
+          - 'null'
+          description: Indicates whether the charger is currently delivering power to the vehicle and actively charging its battery.
+        chargeRate:
+          type:
+          - number
+          - 'null'
+          description: 'The current charge rate in kW.
+
+
+            This property is only available when the charger is actively charging a vehicle, and is `null` any other time.'
+        lastUpdated:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Time of latest charge state update
+          example: '2020-04-07T17:04:26Z'
+        maxCurrent:
+          type:
+          - number
+          - 'null'
+          deprecated: true
+          description: 'Deprecated: Use `chargeRateLimit` instead.
+
+
+            Desired max current in amperes, if set'
+        powerDeliveryState:
+          $ref: '#/components/schemas/ChargerPowerDeliveryState'
+        pluggedInVehicleId:
+          type:
+          - string
+          - 'null'
+          description: "ID of the vehicle currently plugged into the charger. By default, this attribute will be `null` and will only be populated if:\n * The charger and the vehicle are linked to the same Enode `userId`.\n * AND Enode has determined that the vehicle and charger are **currently** plugged into each other."
+          example: bf077f15-a7aa-4bc4-b917-8f1c89676198
+        chargeRateLimit:
+          type:
+          - number
+          - 'null'
+          description: "The current charge rate limit in kW. Returns null when unavailable from the vendor. \n\nBeta: This property is available in beta as part of [Set Charge Rate Limit](/api#postSetChargerChargeRateLimit)."
+      required:
+      - isPluggedIn
+      - isCharging
+      - chargeRate
+      - lastUpdated
+      - maxCurrent
+      - powerDeliveryState
+      description: Latest information about the charger. `null` values indicate we are unable to determine a value for the field based on the information coming from the vendor.
+    ChargingAction:
+      type: string
+      enum:
+      - START
+      - STOP
+    PaginationCursors:
       type: object
       properties:
         after:
           type:
           - string
           - 'null'
+          example: MjAyMy0wNy0xOFQxMDowODowMi4zNzNa
         before:
           type:
           - string
           - 'null'
+          example: MjAyMy0wNi0xNlQwOTowMzowMS4yNjJa
+      required:
+      - after
+      - before
+      additionalProperties: false
+      description: Cursors to the pages before and after current page. See the [Pagination](/api#pagination) section for reference.
   parameters:
-    pageAfter:
-      name: after
-      in: query
-      required: false
-      description: Cursor for pagination, returned as the previous page's pageInfo.after.
+    ChargerPathId:
       schema:
-        type: string
-    chargerId:
+        $ref: '#/components/schemas/ChargerPathId'
+      required: true
+      description: ID of the Charger.
       name: chargerId
       in: path
-      required: true
+    UserPathId:
       schema:
-        type: string
-    pageSize:
+        $ref: '#/components/schemas/UserPathId'
+      required: true
+      description: ID of the User.
+      name: userId
+      in: path
+    PaginationQueryBefore:
+      schema:
+        $ref: '#/components/schemas/PaginationQueryBefore'
+      required: false
+      description: Opaque cursor used to fetch previous page. Cannot be used together with `after`. Refer to [Pagination](/api#pagination) for more information.
+      name: before
+      in: query
+    ActionPathId:
+      schema:
+        $ref: '#/components/schemas/ActionPathId'
+      required: true
+      description: ID of the Action.
+      name: actionId
+      in: path
+    PaginationQueryPageSize:
+      schema:
+        $ref: '#/components/schemas/PaginationQueryPageSize'
+      required: false
+      description: Number of records to return per page. Default page size is 50.
       name: pageSize
       in: query
-      required: false
-      description: Number of results to return per page.
+    PaginationQueryAfter:
       schema:
-        type: integer
-        default: 50
+        $ref: '#/components/schemas/PaginationQueryAfter'
+      required: false
+      description: Opaque cursor used to fetch next page. Cannot be set together with `before`. Refer to [Pagination](/api#pagination) for more information.
+      name: after
+      in: query
   securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-      description: OAuth 2.0 access token obtained via the client_credentials grant from the Enode OAuth token endpoint (https://oauth.production.enode.io/oauth2/token for production, https://oauth.sandbox.enode.io/oauth2/token for sandbox), presented as a Bearer token.
+    ClientAccessToken:
+      type: oauth2
+      description: 'A `ClientAccessToken` is obtained via the [OAuth 2.0 Client Credentials grant](https://www.oauth.com/oauth2-servers/access-tokens/client-credentials/) and carries authorization to access all functionalities and data in your Enode account.
+
+        Full details at [The ClientAccessToken](/api#getting-an-access-token)
+
+        '
+      flows:
+        clientCredentials:
+          tokenUrl: https://oauth.production.enode.io/oauth2/token
+          scopes: {}

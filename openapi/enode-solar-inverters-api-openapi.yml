@@ -1,0 +1,464 @@
+openapi: 3.2.0
+info:
+  title: Enode Solar inverters API
+  version: '2023-08-01'
+  description: One integration, 1000+ energy devices.
+  license:
+    name: Enode Commercial License
+    url: https://enode.com
+servers:
+- url: https://enode-api.production.enode.io
+tags:
+- name: Solar inverters
+  description: Solar inverters can be queried for current production state
+paths:
+  /inverters:
+    get:
+      summary: List Solar Inverters
+      operationId: listInverters
+      description: Returns a paginated list of all available Solar Inverters
+      tags:
+      - Solar inverters
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/PaginationQueryAfter'
+      - $ref: '#/components/parameters/PaginationQueryBefore'
+      - $ref: '#/components/parameters/PaginationQueryPageSize'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedInverterList'
+  /users/{userId}/inverters:
+    get:
+      summary: List User Solar Inverters
+      operationId: listUserInverters
+      tags:
+      - Solar inverters
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/UserPathId'
+      - $ref: '#/components/parameters/PaginationQueryAfter'
+      - $ref: '#/components/parameters/PaginationQueryBefore'
+      - $ref: '#/components/parameters/PaginationQueryPageSize'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedInverterList'
+  /inverters/{inverterId}:
+    get:
+      summary: Get Solar Inverter
+      operationId: getInverter
+      tags:
+      - Solar inverters
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/PathInverterId'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Inverter'
+  /inverters/{inverterId}/refresh-hint:
+    post:
+      summary: Refresh Inverter data
+      description: 'Use this endpoint to initiate an expedited data refresh for the specified inverter.
+
+
+        Note: The Enode platform keeps data automatically up-to-date and detects changes in the OEM APIs within seconds to a few minutes. We change the refresh interval dynamically based on a number of heuristics. This ensures we find the best trade-off between the stability of the connection to the OEM and freshness of the data.
+
+        This method overrides most of our heuristics and should therefore be used with caution. You may use it when you have a strong reason to believe the data might be stale.'
+      operationId: invertersRefreshHint
+      tags:
+      - Solar inverters
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/PathInverterId'
+      responses:
+        '204':
+          description: Refresh hint registered successfully.
+          content: {}
+        '404':
+          description: The specified inverter was not found.
+        '429':
+          description: Rate limited. Retry after the number of seconds given in the Retry-After header.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                pattern: ^\d+$
+                description: Seconds until the current UTC hour resets and another refresh hint can be submitted.
+                example: '1800'
+              required: true
+              description: Seconds until the current UTC hour resets and another refresh hint can be submitted.
+          content:
+            application/problem+json:
+              example:
+                type: https://docs.enode.io/api/problems/rate-limited
+                title: Rate limited
+                detail: You have reached the maximum number of 9 refresh-hints per hour for this device.
+              schema:
+                $ref: '#/components/schemas/Problem'
+components:
+  schemas:
+    InverterLocation:
+      type: object
+      properties:
+        longitude:
+          type:
+          - number
+          - 'null'
+          description: Longitude in degrees
+          example: 10.7197486
+        latitude:
+          type:
+          - number
+          - 'null'
+          description: Latitude in degrees
+          example: 59.9173985
+      required:
+      - longitude
+      - latitude
+      additionalProperties: false
+      description: Solar inverter's GPS coordinates
+    InverterProductionState:
+      type: object
+      properties:
+        productionRate:
+          type:
+          - number
+          - 'null'
+          description: The current production rate in kW.
+        isProducing:
+          type:
+          - boolean
+          - 'null'
+          description: Whether the solar inverter is actively producing energy or not.
+        totalLifetimeProduction:
+          type:
+          - number
+          - 'null'
+          description: The total lifetime production in kWh.
+          example: 100152.56
+        lastUpdated:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Time of last received production state update
+          example: '2020-04-07T17:04:26Z'
+      required:
+      - productionRate
+      - isProducing
+      - totalLifetimeProduction
+      - lastUpdated
+      additionalProperties: false
+      description: Latest information about solar production. `null` values indicate we are unable to determine a value for the field based on the information coming from the vendor.
+    Inverter:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Solar Inverter ID
+          example: 195d8649-ad12-4755-a9cc-44e2d40ce4d9
+        userId:
+          type: string
+          description: The ID of the user that linked this inverter.
+          example: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+        vendor:
+          $ref: '#/components/schemas/InverterVendor'
+        lastSeen:
+          type: string
+          format: date-time
+          description: The last time Enode received live data or when the solar inverter was initially linked.
+          example: '2020-04-07T17:04:26Z'
+        isReachable:
+          type: boolean
+          description: Indicates whether Enode can currently access live data from the inverter. If the inverter is not reachable, data updates will be delayed.
+        productionState:
+          $ref: '#/components/schemas/InverterProductionState'
+        timezone:
+          type:
+          - string
+          - 'null'
+          example: Europe/Oslo
+          description: IANA TZ database timezone name representing the location of this inverter.
+        capabilities:
+          $ref: '#/components/schemas/InverterCapabilities'
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Scopes that the user has granted for this inverter.
+          example:
+          - inverter:read:data
+          - inverter:read:location
+        information:
+          $ref: '#/components/schemas/InverterInformation'
+        chargingLocationId:
+          type:
+          - string
+          - 'null'
+          example: 8d90101b-3f2f-462a-bbb4-1ed320d33bbe
+          x-format:
+            guid: true
+          description: ID of the location the solar inverter is currently positioned at (if any).
+        location:
+          $ref: '#/components/schemas/InverterLocation'
+      required:
+      - id
+      - userId
+      - vendor
+      - lastSeen
+      - isReachable
+      - productionState
+      - timezone
+      - capabilities
+      - scopes
+      - information
+      - chargingLocationId
+      - location
+      additionalProperties: false
+      description: Solar inverter object
+    Brand:
+      type: string
+      description: A formatted and properly cased OEM brand name, suitable for reading by humans. May contain special characters.
+      example: Tesla
+    Capability:
+      type: object
+      properties:
+        isCapable:
+          type: boolean
+          description: The entity is fully capable of providing this data or functionality. If false, support is partial or missing. A capable entity (`true`) may still list recommended interventions in `interventionIds`.
+          example: false
+        interventionIds:
+          type: array
+          items:
+            type: string
+            example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+            x-format:
+              guid: true
+          description: 'IDs of interventions the user can make to alter the availability of this capability.
+
+            Interventions may be present even when `isCapable` is `true` (recommended, non-blocking actions). See [the interventions guide](/docs/interventions#accessing-interventions-via-our-api).'
+      required:
+      - isCapable
+      - interventionIds
+      additionalProperties: false
+    PaginationQueryAfter:
+      type: string
+      description: Opaque cursor used to fetch next page. Cannot be set together with `before`. Refer to [Pagination](/api#pagination) for more information.
+      example: MjAyMy0wNy0xOFQxMDowODowMi4zNzNa
+    PaginationQueryBefore:
+      type: string
+      description: Opaque cursor used to fetch previous page. Cannot be used together with `after`. Refer to [Pagination](/api#pagination) for more information.
+      example: MjAyMy0wNy0xOFQxMDowODowMi4zNzNa
+    PaginatedInverterList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Inverter'
+          description: Paginated list of solar inverters
+        pagination:
+          $ref: '#/components/schemas/PaginationCursors'
+      required:
+      - data
+      - pagination
+      additionalProperties: false
+      description: Paginated response of solar inverters
+    UserPathId:
+      type: string
+      description: ID of the User.
+    PaginationQueryPageSize:
+      type: integer
+      description: Number of records to return per page. Default page size is 50.
+      example: 50
+      exclusiveMinimum: 0
+    Problem:
+      type: object
+      properties:
+        type:
+          type: string
+          description: A URI reference that identifies the problem type.
+        title:
+          type: string
+          description: A short, human-readable summary of the problem type.
+        detail:
+          type: string
+          description: A human-readable explanation specific to this occurrence of the problem.
+        issues:
+          type: array
+          items:
+            type: object
+            properties: {}
+          description: A list of validation issues which occurred while validating some component of the network payload.
+      required:
+      - type
+      - title
+      - detail
+      description: Standard Problem Error
+      example:
+        type: https://docs.enode.io/api/problems/not-found
+        title: Not Found
+        detail: The requested asset wasn't found.
+    InverterCapabilities:
+      type: object
+      properties:
+        productionState:
+          allOf:
+          - $ref: '#/components/schemas/Capability'
+          description: Full availability of productionState data.
+        productionStatistics:
+          allOf:
+          - $ref: '#/components/schemas/Capability'
+          description: Availability of production statistics directly from the vendor.
+      required:
+      - productionState
+      - productionStatistics
+      additionalProperties: false
+      description: 'A collection of descriptors that describe the capabilities of this specific inverter.
+
+
+        Note: [Sample-based statistics](/api/2023-08-01#getProductionStatistics) collected by Enode rely on the `productionState` capability and are not affected by this capability.'
+    PathInverterId:
+      type: string
+      description: ID of the solar inverter
+      example: 54d827e1-8355-4fed-97b5-55940d1d09ba
+    InverterVendor:
+      type: string
+      enum:
+      - AFORE
+      - APSYSTEMS
+      - CSISolar
+      - Deye
+      - ENPHASE
+      - FOXESS
+      - FRONIUS
+      - GIVENERGY
+      - GOODWE
+      - GROWATT
+      - Hoymiles
+      - HUAWEI
+      - INVT
+      - SMA
+      - SOFAR
+      - SOLAREDGE
+      - SOLARK
+      - SOLAX
+      - SOLIS
+      - SOLPLANET
+      - SUNGROW
+      - SUNSYNK
+      - TESLA
+      - TSUN
+      description: Machine-friendly name of the vendor. Use this in API requests.
+      example: ENPHASE
+    InverterInformation:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Solar inverter vendor ID
+          example: 7a18eb4e-ee65-4d5b-bb7c-d8e530006b18
+        brand:
+          $ref: '#/components/schemas/Brand'
+        model:
+          type: string
+          description: Solar inverter model
+          example: Sunny Boy
+        siteName:
+          type: string
+          description: Name of the site, as set by the user on the device/vendor. If no user-specified name is available, we construct a fallback name using the vendor/device/model names.
+          example: Sunny Plant
+        installationDate:
+          type: string
+          format: date-time
+          description: Solar inverter installation date
+          example: '2020-04-07T17:04:26Z'
+      required:
+      - id
+      - brand
+      - model
+      - siteName
+      - installationDate
+      additionalProperties: false
+      description: Descriptive information about the solar inverter
+    PaginationCursors:
+      type: object
+      properties:
+        after:
+          type:
+          - string
+          - 'null'
+          example: MjAyMy0wNy0xOFQxMDowODowMi4zNzNa
+        before:
+          type:
+          - string
+          - 'null'
+          example: MjAyMy0wNi0xNlQwOTowMzowMS4yNjJa
+      required:
+      - after
+      - before
+      additionalProperties: false
+      description: Cursors to the pages before and after current page. See the [Pagination](/api#pagination) section for reference.
+  parameters:
+    UserPathId:
+      schema:
+        $ref: '#/components/schemas/UserPathId'
+      required: true
+      description: ID of the User.
+      name: userId
+      in: path
+    PaginationQueryBefore:
+      schema:
+        $ref: '#/components/schemas/PaginationQueryBefore'
+      required: false
+      description: Opaque cursor used to fetch previous page. Cannot be used together with `after`. Refer to [Pagination](/api#pagination) for more information.
+      name: before
+      in: query
+    PaginationQueryPageSize:
+      schema:
+        $ref: '#/components/schemas/PaginationQueryPageSize'
+      required: false
+      description: Number of records to return per page. Default page size is 50.
+      name: pageSize
+      in: query
+    PaginationQueryAfter:
+      schema:
+        $ref: '#/components/schemas/PaginationQueryAfter'
+      required: false
+      description: Opaque cursor used to fetch next page. Cannot be set together with `before`. Refer to [Pagination](/api#pagination) for more information.
+      name: after
+      in: query
+    PathInverterId:
+      schema:
+        $ref: '#/components/schemas/PathInverterId'
+      required: true
+      description: ID of the solar inverter
+      name: inverterId
+      in: path
+  securitySchemes:
+    ClientAccessToken:
+      type: oauth2
+      description: 'A `ClientAccessToken` is obtained via the [OAuth 2.0 Client Credentials grant](https://www.oauth.com/oauth2-servers/access-tokens/client-credentials/) and carries authorization to access all functionalities and data in your Enode account.
+
+        Full details at [The ClientAccessToken](/api#getting-an-access-token)
+
+        '
+      flows:
+        clientCredentials:
+          tokenUrl: https://oauth.production.enode.io/oauth2/token
+          scopes: {}

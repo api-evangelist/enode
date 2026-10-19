@@ -1,0 +1,916 @@
+openapi: 3.2.0
+info:
+  title: Enode Statistics API
+  version: '2023-08-01'
+  description: One integration, 1000+ energy devices.
+  license:
+    name: Enode Commercial License
+    url: https://enode.com
+servers:
+- url: https://enode-api.production.enode.io
+tags:
+- name: Statistics
+  description: Endpoints returning timeseries data collected from linked devices.
+paths:
+  /users/{userId}/statistics/charging/sessions:
+    get:
+      summary: Get User Statistics on Charging Sessions
+      operationId: getChargingSessionsStatistics
+      description: 'Returns statistics about power consumption and price, binned by sessions for a single user and device, at a location. A session is defined by consecutive readings from the device showing consumption. It can typically take up to 15 minutes between a session ending in reality, and being reflected by this endpoint.
+
+
+        Only include sessions intersecting with `[startDate, endDate]`.'
+      tags:
+      - Statistics
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - schema:
+          type: string
+          description: The ID of the user
+        required: true
+        description: The ID of the user
+        name: userId
+        in: path
+      - schema:
+          type: string
+          format: date-time
+          description: 'Only include sessions active after this date. The API accepts dates more than four years in the past, but older sessions are not available. Example: `2021-03-21T00:15:00.000Z`'
+          example: '2020-04-07T17:04:26Z'
+        required: true
+        description: 'Only include sessions active after this date. The API accepts dates more than four years in the past, but older sessions are not available. Example: `2021-03-21T00:15:00.000Z`'
+        name: startDate
+        in: query
+      - schema:
+          type: string
+          format: date-time
+          description: 'Only include sessions active before this date. Example: `2021-03-21T00:30:00.000Z`'
+          example: '2020-04-07T17:04:26Z'
+        required: false
+        description: 'Only include sessions active before this date. Example: `2021-03-21T00:30:00.000Z`'
+        name: endDate
+        in: query
+      - schema:
+          type: string
+          example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+          x-format:
+            guid: true
+          description: The ID of the location for which to fetch statistics
+        required: false
+        description: The ID of the location for which to fetch statistics
+        name: locationId
+        in: query
+      - schema:
+          type: string
+          description: The ID of the device for which to fetch statistics. The type of the device must match the `type` parameter.
+        required: false
+        description: The ID of the device for which to fetch statistics. The type of the device must match the `type` parameter.
+        name: id
+        in: query
+      - schema:
+          type: string
+          enum:
+          - charger
+          - vehicle
+          - hvac
+          description: The device type for which statistics will be fetched.
+        required: true
+        description: The device type for which statistics will be fetched.
+        name: type
+        in: query
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sessionsStatisticsTimeseries'
+        '404':
+          description: Asset not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Rate limited. The per-minute request limit or the charging session statistics processing limit was reached for this user or across your organization's users. Retry after the number of seconds given in the Retry-After header. An individually oversized processing request requires a shorter date range.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                description: Seconds to wait before retrying the request.
+                example: '30'
+              required: true
+              description: Seconds to wait before retrying the request.
+          content:
+            application/problem+json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    description: A URI reference that identifies the problem type.
+                  title:
+                    type: string
+                    description: A short, human-readable summary of the problem type.
+                  detail:
+                    type: string
+                    description: A human-readable explanation specific to this occurrence of the problem.
+                  issues:
+                    type: array
+                    items:
+                      type: object
+                      properties: {}
+                    description: A list of validation issues which occurred while validating some component of the network payload.
+                required:
+                - type
+                - title
+                - detail
+                description: Rate limited
+                example:
+                  type: https://docs.enode.io/api/problems/rate-limited
+                  title: Rate limited
+                  detail: The charging session statistics processing limit has been reached for this user. Retry after the number of seconds specified in the Retry-After header.
+  /users/{userId}/statistics/charging:
+    get:
+      summary: Get User Consumption Statistics
+      operationId: getChargingStatistics
+      description: 'Get statistics about power consumption and price in the form of a time series for a single device.
+
+
+        If Smart Charging has shifted the consumption, the `nonSmartPrice` fields will show what the consumption would have cost if it had happened at the default time. If Smart Charging has resulted in savings, the value is reported in the `estimatedSavings` field.'
+      tags:
+      - Statistics
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - schema:
+          type: string
+          description: The ID of the User
+        required: true
+        description: The ID of the User
+        name: userId
+        in: path
+      - schema:
+          type: string
+          format: date-time
+          description: 'Earliest date to include in the response. The API accepts dates more than four years in the past, but older data is not available. Example: `2021-03-21T00:15:00.000Z`'
+          example: '2020-04-07T17:04:26Z'
+        required: true
+        description: 'Earliest date to include in the response. The API accepts dates more than four years in the past, but older data is not available. Example: `2021-03-21T00:15:00.000Z`'
+        name: startDate
+        in: query
+      - schema:
+          type: string
+          format: date-time
+          description: 'Latest date to include in the response. Example: `2021-03-21T00:30:00.000Z`'
+          example: '2020-04-07T17:04:26Z'
+        required: false
+        description: 'Latest date to include in the response. Example: `2021-03-21T00:30:00.000Z`'
+        name: endDate
+        in: query
+      - schema:
+          type: string
+          example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+          x-format:
+            guid: true
+          description: The ID of the location for which to fetch statistics
+        required: false
+        description: The ID of the location for which to fetch statistics
+        name: locationId
+        in: query
+      - schema:
+          type: string
+          description: The ID of the device for which to fetch statistics. The type of the device must match the `type` parameter.
+        required: false
+        description: The ID of the device for which to fetch statistics. The type of the device must match the `type` parameter.
+        name: id
+        in: query
+      - schema:
+          type: string
+          enum:
+          - charger
+          - vehicle
+          - hvac
+          description: The device type for which statistics will be fetched.
+        required: true
+        description: The device type for which statistics will be fetched.
+        name: type
+        in: query
+      - schema:
+          type: string
+          format: float
+          pattern: ^[+-]?(?:(?:1[0-3]|[0-9])(?:\.\d+)?|14(?:\.0+)?)$
+          description: "Fixed offset from UTC, in hours, used when assigning statistics samples to buckets. Values from `-14` through `+14`, inclusive, including fractional values, are accepted and normalized to the nearest whole minute. If omitted, the offset is `0`. \n\nFor `DAY`, `WEEK`, `MONTH`, and `YEAR`, buckets follow the calendar in that fixed offset. Returned timestamps encode the local wall-clock bucket start with a `Z` suffix; for example, local midnight is returned as `00:00:00Z` for every offset. Treat these timestamps as bucket labels, not the UTC instants when the local periods began. \n\nFor `QUARTER_HOUR`, `HALF_HOUR`, and `HOUR`, samples are shifted by the offset before assignment to the UTC-aligned response grid, and returned timestamps are not shifted back. A non-zero offset can therefore move values between response buckets. \n\nDeprecated: this is a fixed offset, not a time zone, and does not account for daylight-saving changes. Omit it to use UTC bucketing."
+          example: '-8'
+          x-unit: hours
+          deprecated: true
+        required: false
+        description: "Fixed offset from UTC, in hours, used when assigning statistics samples to buckets. Values from `-14` through `+14`, inclusive, including fractional values, are accepted and normalized to the nearest whole minute. If omitted, the offset is `0`. \n\nFor `DAY`, `WEEK`, `MONTH`, and `YEAR`, buckets follow the calendar in that fixed offset. Returned timestamps encode the local wall-clock bucket start with a `Z` suffix; for example, local midnight is returned as `00:00:00Z` for every offset. Treat these timestamps as bucket labels, not the UTC instants when the local periods began. \n\nFor `QUARTER_HOUR`, `HALF_HOUR`, and `HOUR`, samples are shifted by the offset before assignment to the UTC-aligned response grid, and returned timestamps are not shifted back. A non-zero offset can therefore move values between response buckets. \n\nDeprecated: this is a fixed offset, not a time zone, and does not account for daylight-saving changes. Omit it to use UTC bucketing."
+        name: utcOffset
+        in: query
+      - schema:
+          type: string
+          enum:
+          - QUARTER_HOUR
+          - HALF_HOUR
+          - HOUR
+          - DAY
+          - WEEK
+          - MONTH
+          - YEAR
+          default: DAY
+          description: The unit of time the data will be bucketed into. Each entry in the response array corresponds to aggregated data of the time range specified.
+        required: false
+        description: The unit of time the data will be bucketed into. Each entry in the response array corresponds to aggregated data of the time range specified.
+        name: resolution
+        in: query
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/chargingStatisticsTimeseries'
+        '400':
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    description: A URI reference that identifies the problem type.
+                  title:
+                    type: string
+                    description: A short, human-readable summary of the problem type.
+                  detail:
+                    type: string
+                    description: A human-readable explanation specific to this occurrence of the problem.
+                  issues:
+                    type: array
+                    items:
+                      type: object
+                      properties: {}
+                    description: A list of validation issues which occurred while validating some component of the network payload.
+                required:
+                - type
+                - title
+                - detail
+                description: Bad Request
+                example:
+                  type: https://docs.enode.io/api/problems/bad-request
+                  title: Requested range too large
+                  detail: The requested date range at QUARTER_HOUR resolution would return 100001 data points, which exceeds the maximum of 100000. Narrow the date range or request a coarser resolution.
+        '404':
+          description: Asset not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Rate limited. Too many statistics requests for this user or across your organization's users this minute. Retry after the number of seconds given in the Retry-After header.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                description: Seconds to wait before retrying the request.
+                example: '30'
+              required: true
+              description: Seconds to wait before retrying the request.
+          content:
+            application/problem+json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    description: A URI reference that identifies the problem type.
+                  title:
+                    type: string
+                    description: A short, human-readable summary of the problem type.
+                  detail:
+                    type: string
+                    description: A human-readable explanation specific to this occurrence of the problem.
+                  issues:
+                    type: array
+                    items:
+                      type: object
+                      properties: {}
+                    description: A list of validation issues which occurred while validating some component of the network payload.
+                required:
+                - type
+                - title
+                - detail
+                description: Rate limited
+                example:
+                  type: https://docs.enode.io/api/problems/rate-limited
+                  title: Rate limited
+                  detail: You have reached the maximum number of charging statistics requests per minute for this user. Please try again shortly.
+  /users/{userId}/vendor-statistics:
+    get:
+      deprecated: true
+      summary: Get Vendor Statistics For Inverters
+      operationId: getInverterVendorStatistics
+      description: 'Returns statistics about power production for the given inverter in the form of a time series, collected from vendor APIs.
+
+
+        This endpoint has been deprecated in favor of the 2024-10-01 Inverter Statistics endpoint.
+
+
+        Please be aware that errors, inaccuracies, and breaking changes may occur without prior notice.
+
+
+        We only support querying for a maximum of 1 month of data at once.
+
+
+        It is not possible to select a timezone for the aggregated daily stats;
+
+        the timezone reported by the inverter is used.
+
+        To aggregate data in other timezones,
+
+        we recommend fetching hourly data.
+
+        Inverters in non-integer timezone offsets have not been tested,
+
+        and may not return correct data.
+
+
+        Please note that currently,
+
+        requests may take a long time to complete.
+
+        Fetching shorter intervals,
+
+        such as a week or a few days at a time,
+
+        is the recommended workaround if you experience timeouts.
+
+
+        Data for the current day/hour (not available for all vendors) is cached for up to 15 minutes.
+
+        Older data is cached indefinitely,
+
+        so retroactive updates to existing data by the vendor are not reflected in the API.
+
+        This could happen,
+
+        for instance,
+
+        if the inverter is actually an array of inverters,
+
+        and an inverter is added or removed.'
+      tags:
+      - Statistics
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - schema:
+          type: string
+          description: The ID of the User
+        required: true
+        description: The ID of the User
+        name: userId
+        in: path
+      - schema:
+          type: string
+          enum:
+          - HOUR
+          - DAY
+          description: The duration of each time bucket the returned time series is divided into. Each entry in the response array corresponds to aggregated data of the specified time range.
+          example: DAY
+        required: true
+        description: The duration of each time bucket the returned time series is divided into. Each entry in the response array corresponds to aggregated data of the specified time range.
+        name: resolution
+        in: query
+      - schema:
+          type: string
+          format: date-time
+          description: 'The earliest date (UTC) to include in the response. Cannot be greater than endDate. Example: `2021-03-21T02:00:00Z`'
+          example: '2021-03-21T02:00:00Z'
+        required: true
+        description: 'The earliest date (UTC) to include in the response. Cannot be greater than endDate. Example: `2021-03-21T02:00:00Z`'
+        name: startDate
+        in: query
+      - schema:
+          type: string
+          format: date-time
+          description: 'The latest date (UTC) to include in the response. Defaults to the current date/time. Example: `2021-03-21T05:00:00Z`'
+          example: '2021-03-21T05:00:00Z'
+        required: false
+        description: 'The latest date (UTC) to include in the response. Defaults to the current date/time. Example: `2021-03-21T05:00:00Z`'
+        name: endDate
+        in: query
+      - schema:
+          type: string
+          example: 99a4a9a6-f015-450c-ab78-39fe8d13edae
+          x-format:
+            guid: true
+          description: ID of the Inverter.
+        required: true
+        description: ID of the Inverter.
+        name: inverterId
+        in: query
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              example:
+                production:
+                  unit: kWh
+                  data:
+                  - date: '2020-01-01T01:23:45.000Z'
+                    value: 1.1
+              schema:
+                $ref: '#/components/schemas/InverterStatistics'
+        '404':
+          description: Asset not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /users/{userId}/statistics/production:
+    get:
+      deprecated: true
+      summary: Get User Production Statistics
+      operationId: getProductionStatistics
+      description: 'Returns statistics about power production and price for a single device and location, in the form of a time series. Data is only available from after the asset was linked.
+
+
+        This endpoint has been deprecated in favor of the 2024-10-01 Inverter Statistics endpoint.'
+      tags:
+      - Statistics
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - schema:
+          type: string
+          description: The ID of the User
+        required: true
+        description: The ID of the User
+        name: userId
+        in: path
+      - schema:
+          type: string
+          format: date-time
+          description: 'Earliest date to include in the response. The API accepts dates more than four years in the past, but older data is not available. Example: `2021-03-21T00:15:00.000Z`'
+          example: '2020-04-07T17:04:26Z'
+        required: true
+        description: 'Earliest date to include in the response. The API accepts dates more than four years in the past, but older data is not available. Example: `2021-03-21T00:15:00.000Z`'
+        name: startDate
+        in: query
+      - schema:
+          type: string
+          format: date-time
+          description: 'Latest date to include in the response. Example: `2021-03-21T00:30:00.000Z`'
+          example: '2020-04-07T17:04:26Z'
+        required: false
+        description: 'Latest date to include in the response. Example: `2021-03-21T00:30:00.000Z`'
+        name: endDate
+        in: query
+      - schema:
+          type: string
+          example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+          x-format:
+            guid: true
+          description: The ID of the location for which to fetch statistics
+        required: false
+        description: The ID of the location for which to fetch statistics
+        name: locationId
+        in: query
+      - schema:
+          type: string
+          description: The ID of the device for which to fetch statistics. The type of the device must match the `type` parameter.
+        required: false
+        description: The ID of the device for which to fetch statistics. The type of the device must match the `type` parameter.
+        name: id
+        in: query
+      - schema:
+          type: string
+          enum:
+          - inverter
+          description: Get statistics for this hardware type.
+        required: true
+        description: Get statistics for this hardware type.
+        name: type
+        in: query
+      - schema:
+          type: string
+          enum:
+          - QUARTER_HOUR
+          - HALF_HOUR
+          - HOUR
+          - DAY
+          - WEEK
+          - MONTH
+          - YEAR
+          default: DAY
+          description: The unit of time the data will be cut into before aggregate statistics are applied. Each entry in the response array corresponds to aggregated data of the time range specified.
+        required: false
+        description: The unit of time the data will be cut into before aggregate statistics are applied. Each entry in the response array corresponds to aggregated data of the time range specified.
+        name: resolution
+        in: query
+      - schema:
+          type: string
+          format: float
+          pattern: ^[+-]?(?:(?:1[0-3]|[0-9])(?:\.\d+)?|14(?:\.0+)?)$
+          description: "Fixed offset from UTC, in hours, used when assigning statistics samples to buckets. Values from `-14` through `+14`, inclusive, including fractional values, are accepted and normalized to the nearest whole minute. If omitted, the offset is `0`. \n\nFor `DAY`, `WEEK`, `MONTH`, and `YEAR`, buckets follow the calendar in that fixed offset. Returned timestamps encode the local wall-clock bucket start with a `Z` suffix; for example, local midnight is returned as `00:00:00Z` for every offset. Treat these timestamps as bucket labels, not the UTC instants when the local periods began. \n\nFor `QUARTER_HOUR`, `HALF_HOUR`, and `HOUR`, samples are shifted by the offset before assignment to the UTC-aligned response grid, and returned timestamps are not shifted back. A non-zero offset can therefore move values between response buckets. \n\nDeprecated: this is a fixed offset, not a time zone, and does not account for daylight-saving changes. Omit it to use UTC bucketing."
+          example: '-8'
+          x-unit: hours
+          deprecated: true
+        required: false
+        description: "Fixed offset from UTC, in hours, used when assigning statistics samples to buckets. Values from `-14` through `+14`, inclusive, including fractional values, are accepted and normalized to the nearest whole minute. If omitted, the offset is `0`. \n\nFor `DAY`, `WEEK`, `MONTH`, and `YEAR`, buckets follow the calendar in that fixed offset. Returned timestamps encode the local wall-clock bucket start with a `Z` suffix; for example, local midnight is returned as `00:00:00Z` for every offset. Treat these timestamps as bucket labels, not the UTC instants when the local periods began. \n\nFor `QUARTER_HOUR`, `HALF_HOUR`, and `HOUR`, samples are shifted by the offset before assignment to the UTC-aligned response grid, and returned timestamps are not shifted back. A non-zero offset can therefore move values between response buckets. \n\nDeprecated: this is a fixed offset, not a time zone, and does not account for daylight-saving changes. Omit it to use UTC bucketing."
+        name: utcOffset
+        in: query
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/productionStatisticsTimeseries'
+        '400':
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    description: A URI reference that identifies the problem type.
+                  title:
+                    type: string
+                    description: A short, human-readable summary of the problem type.
+                  detail:
+                    type: string
+                    description: A human-readable explanation specific to this occurrence of the problem.
+                  issues:
+                    type: array
+                    items:
+                      type: object
+                      properties: {}
+                    description: A list of validation issues which occurred while validating some component of the network payload.
+                required:
+                - type
+                - title
+                - detail
+                description: Bad Request
+                example:
+                  type: https://docs.enode.io/api/problems/bad-request
+                  title: Requested range too large
+                  detail: The requested date range at QUARTER_HOUR resolution would return 100001 data points, which exceeds the maximum of 100000. Narrow the date range or request a coarser resolution.
+        '404':
+          description: Asset not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: Rate limited. Too many statistics requests for this user or across your organization's users this minute. Retry after the number of seconds given in the Retry-After header.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                description: Seconds to wait before retrying the request.
+                example: '30'
+              required: true
+              description: Seconds to wait before retrying the request.
+          content:
+            application/problem+json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    description: A URI reference that identifies the problem type.
+                  title:
+                    type: string
+                    description: A short, human-readable summary of the problem type.
+                  detail:
+                    type: string
+                    description: A human-readable explanation specific to this occurrence of the problem.
+                  issues:
+                    type: array
+                    items:
+                      type: object
+                      properties: {}
+                    description: A list of validation issues which occurred while validating some component of the network payload.
+                required:
+                - type
+                - title
+                - detail
+                description: Rate limited
+                example:
+                  type: https://docs.enode.io/api/problems/rate-limited
+                  title: Rate limited
+                  detail: You have reached the maximum number of production statistics requests per minute for this user. Please try again shortly.
+components:
+  schemas:
+    InverterStatistics:
+      type: object
+      properties:
+        production:
+          allOf:
+          - $ref: '#/components/schemas/InverterStatisticsBuckets'
+          description: Contains information about power production statistics.
+      required:
+      - production
+      additionalProperties: false
+      example:
+        production:
+          unit: kWh
+          data:
+          - date: '2024-01-19T09:00:00.000Z'
+            value: 11.1
+          - date: '2024-01-19T10:00:00.000Z'
+            value: 15.4
+    sessionsStatisticsTimeseries:
+      type: array
+      items:
+        type: object
+        properties:
+          kw:
+            allOf:
+            - $ref: '#/components/schemas/Aggregates'
+            description: Aggregate statistics in kW for the session
+          kwhSum:
+            type: number
+            description: Total power consumption in kWh for the session
+            example: 120
+          price:
+            allOf:
+            - $ref: '#/components/schemas/Aggregates'
+            description: Aggregate per kWh price statistics for the session. Currency is `NOK` for Norway, Sweden, Denmark, Finland, Estonia, Latvia, Lithuania; and `EUR` for Austria, Belgium, Germany, France, Netherlands, Poland, Spain. Unless different price data has been provided via the Tariffs endpoints
+          costSum:
+            type: number
+            description: Total cost for the consumed kWh for this session
+            example: 3.14
+          id:
+            type: string
+            description: ID of the asset for this session.
+          locationId:
+            type:
+            - string
+            - 'null'
+            example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+            x-format:
+              guid: true
+            description: Location ID for this session.
+          from:
+            type: string
+            format: date-time
+            description: Start time of the session.
+            example: '2020-04-07T17:04:26Z'
+          to:
+            type: string
+            format: date-time
+            description: End time of the session.
+            example: '2020-04-07T17:04:26Z'
+          nonSmartPrice:
+            allOf:
+            - $ref: '#/components/schemas/NullableAggregates'
+            description: If Smart Charging has actively stopped the charging session from happening at another time; these fields show the aggregate per kWh price statistics that would have occurred without Smart Charging. This can be used to show the potential price if Smart Charging had not been active. min, max and mean are each null if no part of this session was impacted by Smart Charging. Currency is `NOK` for Norway, Sweden, Denmark, Finland, Estonia, Latvia, Lithuania; and `EUR` for Austria, Belgium, Germany, France, Netherlands, Poland, Spain. Unless different price data has been provided via the Tariffs endpoints
+          estimatedSavings:
+            type:
+            - number
+            - 'null'
+            description: Total estimated savings achieved by Smart Charging for this session. If null, no part of this session was impacted by Smart Charging. This is expressed in NOK unless different price data has been provided via the Tariffs endpoints
+            example: 1.07
+        required:
+        - kw
+        - kwhSum
+        - price
+        - costSum
+        - id
+        - locationId
+        - from
+        - to
+        - nonSmartPrice
+        - estimatedSavings
+        additionalProperties: false
+    chargingStatisticsTimeseries:
+      type: array
+      items:
+        type: object
+        properties:
+          kw:
+            allOf:
+            - $ref: '#/components/schemas/Aggregates'
+            description: Aggregate statistics in kW for the time bucket
+          kwhSum:
+            type: number
+            description: Total power consumption in kWh for the time bucket
+            example: 120
+          price:
+            allOf:
+            - $ref: '#/components/schemas/Aggregates'
+            description: Aggregate per kWh price statistics for the time bucket. Currency is `NOK` for Norway, Sweden, Denmark, Finland, Estonia, Latvia, Lithuania; and `EUR` for Austria, Belgium, Germany, France, Netherlands, Poland, Spain. Unless different price data has been provided via the Tariffs endpoints
+          costSum:
+            type: number
+            description: Total cost for the consumed kWh for the time bucket
+            example: 3.14
+          nonSmartPrice:
+            allOf:
+            - $ref: '#/components/schemas/NullableAggregates'
+            description: Aggregate per kWh price statistics for the time bucket if Smart Charging has actively stopped consumption from occurring during this `resolution`. This can be used to show the potential price if Smart Charging had not been active. `min`, `max` and `mean` are each `null` if no part of this `resolution` was impacted by Smart Charging. Currency is `NOK` for Norway, Sweden, Denmark, Finland, Estonia, Latvia, Lithuania; and `EUR` for Austria, Belgium, Germany, France, Netherlands, Poland, Spain. Unless different price data has been provided via the Tariffs endpoints
+          estimatedSavings:
+            type:
+            - number
+            - 'null'
+            description: Total estimated savings achieved by Smart Charging for this `resolution`. If `null`, no part of this `resolution` was impacted by Smart Charging. Currency is `NOK` for Norway, Sweden, Denmark, Finland, Estonia, Latvia, Lithuania; and `EUR` for Austria, Belgium, Germany, France, Netherlands, Poland, Spain. Unless different price data has been provided via the Tariffs endpoints
+            example: 1.07
+          date:
+            type: string
+            format: date-time
+            description: The start of this `resolution` bucket. For calendar resolutions with `utcOffset`, this is a local wall-clock label encoded with a `Z` suffix.
+            example: '2020-04-07T17:04:26Z'
+        required:
+        - kw
+        - kwhSum
+        - price
+        - costSum
+        - nonSmartPrice
+        - estimatedSavings
+        - date
+        additionalProperties: false
+      example:
+      - kw:
+          min: 0
+          max: 78
+          mean: 61
+        kwhSum: 120
+        price:
+          min: 13.8
+          max: 14.4
+          mean: 14.1
+        nonSmartPrice:
+          min: 12.9
+          max: 16.7
+          mean: 14.8
+        costSum: 3.14
+        estimatedSavings: 1.07
+        date: '2021-01-19T09:37:36.845Z'
+    productionStatisticsTimeseries:
+      type: array
+      items:
+        type: object
+        properties:
+          kw:
+            allOf:
+            - $ref: '#/components/schemas/Aggregates'
+            description: Aggregate statistics for production rate in kW
+          kwhSum:
+            type: number
+            description: Total power production in kWh
+            example: 120
+          price:
+            allOf:
+            - $ref: '#/components/schemas/Aggregates'
+            description: Aggregate per kWh price statistics for the time bucket. Currency is `NOK` for Norway, Sweden, Denmark, Finland, Estonia, Latvia, Lithuania; and `EUR` for Austria, Belgium, Germany, France, Netherlands, Poland, Spain. Unless different price data has been provided via the Tariffs endpoints
+          earningsSum:
+            type: number
+            description: Uses the local day ahead market price to determine the total value of the energy produced during the time bucket. Requires the user to have a [Location](/api#locations) at the same geo coordinates as the inverter itself. This is expressed in NOK unless different price data has been provided via the Tariffs endpoints
+            example: 3.14
+          date:
+            type: string
+            format: date-time
+            description: The start of this sample's bucket. For calendar resolutions with `utcOffset`, this is a local wall-clock label encoded with a `Z` suffix.
+            example: '2020-04-07T17:04:26Z'
+        required:
+        - kw
+        - kwhSum
+        - price
+        - earningsSum
+        - date
+        additionalProperties: false
+      example:
+      - kw:
+          min: 0
+          max: 78
+          mean: 61
+        kwhSum: 120
+        price:
+          min: 13.8
+          max: 14.4
+          mean: 14.1
+        earningsSum: 3.14
+        date: '2021-01-19T09:37:36.845Z'
+    InverterStatisticsTimeseriesBucket:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date-time
+          description: Date (UTC) at the start of the data point.
+          example: '2023-01-19T09:00:00.000Z'
+        value:
+          type: number
+          description: The energy produced (kWh) in the specified interval.
+          example: 1.1
+      required:
+      - date
+      - value
+      additionalProperties: false
+    NullableAggregates:
+      type: object
+      properties:
+        min:
+          type:
+          - number
+          - 'null'
+          description: The minimum amount for this period.
+        max:
+          type:
+          - number
+          - 'null'
+          description: The maximum amount for this period.
+        mean:
+          type:
+          - number
+          - 'null'
+          description: The average for this period.
+      required:
+      - min
+      - max
+      - mean
+      additionalProperties: false
+    InverterStatisticsBuckets:
+      type: object
+      properties:
+        unit:
+          type: string
+          enum:
+          - kWh
+          description: The unit of measurement for power production data. Always kWh.
+          example: kWh
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/InverterStatisticsTimeseriesBucket'
+          description: An array of data points representing the power production statistics.
+          example:
+          - date: '2021-01-19T09:37:36.845Z'
+            value: 1.1
+      required:
+      - unit
+      - data
+      additionalProperties: false
+    Aggregates:
+      type: object
+      properties:
+        min:
+          type: number
+          description: The minimum amount for this period.
+        max:
+          type: number
+          description: The maximum amount for this period.
+        mean:
+          type: number
+          description: The average for this period.
+      required:
+      - min
+      - max
+      - mean
+      additionalProperties: false
+    Problem:
+      type: object
+      properties:
+        type:
+          type: string
+          description: A URI reference that identifies the problem type.
+        title:
+          type: string
+          description: A short, human-readable summary of the problem type.
+        detail:
+          type: string
+          description: A human-readable explanation specific to this occurrence of the problem.
+        issues:
+          type: array
+          items:
+            type: object
+            properties: {}
+          description: A list of validation issues which occurred while validating some component of the network payload.
+      required:
+      - type
+      - title
+      - detail
+      description: Standard Problem Error
+      example:
+        type: https://docs.enode.io/api/problems/not-found
+        title: Not Found
+        detail: The requested asset wasn't found.
+  securitySchemes:
+    ClientAccessToken:
+      type: oauth2
+      description: 'A `ClientAccessToken` is obtained via the [OAuth 2.0 Client Credentials grant](https://www.oauth.com/oauth2-servers/access-tokens/client-credentials/) and carries authorization to access all functionalities and data in your Enode account.
+
+        Full details at [The ClientAccessToken](/api#getting-an-access-token)
+
+        '
+      flows:
+        clientCredentials:
+          tokenUrl: https://oauth.production.enode.io/oauth2/token
+          scopes: {}

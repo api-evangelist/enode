@@ -1,80 +1,1179 @@
 openapi: 3.2.0
 info:
   title: Enode HVAC API
-  description: Enode connects and controls electric vehicles, EV chargers, HVAC systems, home batteries, solar inverters, and smart meters through a single API. End users authorize access to their devices via the Enode Link OAuth flow; applications then read normalized device telemetry, issue control actions (charging, climate, battery mode), configure smart charging, and subscribe to webhooks. Access tokens are obtained via the OAuth 2.0 client_credentials grant and presented as a Bearer token.
-  termsOfService: https://enode.com/legal/terms-of-service
-  contact:
-    name: Enode Support
-    url: https://developers.enode.com
-  version: '2024-10-01'
+  version: '2023-08-01'
+  description: One integration, 1000+ energy devices.
+  license:
+    name: Enode Commercial License
+    url: https://enode.com
 servers:
 - url: https://enode-api.production.enode.io
-  description: Production
-- url: https://enode-api.sandbox.enode.io
-  description: Sandbox
-security:
-- bearerAuth: []
 tags:
 - name: HVAC
-  description: Read and control connected HVAC units.
+  description: HVAC units (heaters, heat pumps, air conditioning, thermostats, etc.) are controlled by altering the mode & target setpoints. This can be done directly using the Set Permanent Hold endpoint, Return to Schedule, or via Schedules.
 paths:
   /hvacs:
     get:
-      operationId: listHvacs
-      tags:
-      - HVAC
       summary: List HVAC units
-      parameters:
-      - $ref: '#/components/parameters/pageAfter'
-      - $ref: '#/components/parameters/pageSize'
-      responses:
-        '200':
-          description: A paginated list of HVAC units.
-          content:
-            application/json:
-              schema:
-                type: object
-  /hvacs/{hvacId}:
-    get:
-      operationId: getHvac
+      operationId: listHVACs
+      description: Paginated list of HVAC units
       tags:
       - HVAC
-      summary: Get an HVAC unit
+      security:
+      - ClientAccessToken: []
       parameters:
-      - $ref: '#/components/parameters/hvacId'
+      - $ref: '#/components/parameters/PaginationQueryAfter'
+      - $ref: '#/components/parameters/PaginationQueryBefore'
+      - $ref: '#/components/parameters/PaginationQueryPageSize'
       responses:
         '200':
-          description: An HVAC unit.
+          description: Successful
           content:
             application/json:
               schema:
-                type: object
+                $ref: '#/components/schemas/PaginatedHVACList'
+  /users/{userId}/hvacs:
+    get:
+      summary: List User HVAC units
+      description: Paginated list of HVAC units for the given User
+      operationId: listUserHVACs
+      tags:
+      - HVAC
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/UserPathId'
+      - $ref: '#/components/parameters/PaginationQueryAfter'
+      - $ref: '#/components/parameters/PaginationQueryBefore'
+      - $ref: '#/components/parameters/PaginationQueryPageSize'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedHVACList'
+  /hvacs/{hvacId}:
+    put:
+      summary: Set Location for an HVAC unit
+      operationId: updateHVAC
+      description: Update the `locationId` field on an HVAC unit.
+      tags:
+      - HVAC
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/HvacPathId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/hvacUpdatePayload'
+      responses:
+        '200':
+          description: Successfully updated HVAC unit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Hvac'
+    get:
+      summary: Get HVAC Unit
+      operationId: getHVAC
+      tags:
+      - HVAC
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/HvacPathId'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Hvac'
+  /hvacs/actions/{actionId}:
+    get:
+      summary: Get Action
+      description: Returns the current state of the requested action.
+      operationId: getHvacsAction
+      tags:
+      - HVAC
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/ActionPathId'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              example:
+                id: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+                userId: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+                createdAt: '2023-08-01T01:00:00Z'
+                updatedAt: '2023-08-01T01:00:12Z'
+                completedAt: '2023-08-01T01:00:12Z'
+                state: CONFIRMED
+                failureReason: null
+                targetId: f723fed5-73aa-4004-b7f0-89e5173ee15e
+                targetType: hvac
+                target:
+                  coolSetpoint: 21
+                  mode: COOL
+                  holdType: PERMANENT
+              schema:
+                $ref: '#/components/schemas/HvacAction'
+        '404':
+          description: Action not found.
+  /hvacs/actions/{actionId}/cancel:
+    post:
+      summary: Cancel HVAC Action
+      description: 'Cancels a pending HVAC action, halting any further attempts by Enode to execute it.
+
+
+        Note: This only updates the action''s status to `CANCELLED` within Enode and does not reflect a change in the vendor''s cloud. Thus any pending action in the vendor''s cloud might still be executed.'
+      operationId: cancelHvacAction
+      tags:
+      - HVAC
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/ActionPathId'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              example:
+                id: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+                userId: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+                createdAt: '2023-08-01T01:00:00Z'
+                updatedAt: '2023-08-01T01:00:12Z'
+                completedAt: '2023-08-01T01:00:12Z'
+                state: CANCELLED
+                failureReason:
+                  type: REQUESTED_CANCELLATION
+                  detail: The action was cancelled following an external request.
+                targetId: f723fed5-73aa-4004-b7f0-89e5173ee15e
+                targetType: hvac
+                target:
+                  coolSetpoint: 21
+                  mode: COOL
+                  holdType: PERMANENT
+              schema:
+                $ref: '#/components/schemas/HvacAction'
+        '404':
+          description: Action not found.
+        '409':
+          description: Action already in a resolved state.
+          content:
+            application/json:
+              example:
+                id: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+                userId: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+                createdAt: '2023-08-01T01:00:00Z'
+                updatedAt: '2023-08-01T01:00:12Z'
+                completedAt: '2023-08-01T01:00:12Z'
+                state: CONFIRMED
+                failureReason: null
+                targetId: f723fed5-73aa-4004-b7f0-89e5173ee15e
+                targetType: hvac
+                target:
+                  coolSetpoint: 21
+                  mode: COOL
+                  holdType: PERMANENT
+              schema:
+                $ref: '#/components/schemas/HvacAction'
+  /hvacs/{hvacId}/follow-schedule:
+    post:
+      summary: Set HVAC unit to follow device schedule
+      operationId: postSetHvacFollowSchedule
+      description: Tell an HVAC unit to follow the schedule set on the device. Only available if the target's `capabilities.setFollowSchedule.isCapable` is set to `true`. This endpoint can be used to cancel permanent holds. We retry sending the command until the HVAC unit's fields transition to the expected values. Note that this request will complete before any commands are sent to the HVAC unit. You may react to transitions by listening for the `user:vendor-action:updated` webhook event or polling the HVAC action endpoint.
+      tags:
+      - HVAC
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/HvacPathId'
+      responses:
+        '200':
+          description: Resulting HVAC action
+          content:
+            application/json:
+              example:
+                id: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+                userId: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+                createdAt: '2023-08-01T01:00:00Z'
+                updatedAt: '2023-08-01T01:00:00Z'
+                completedAt: null
+                state: PENDING
+                failureReason: null
+                targetId: f723fed5-73aa-4004-b7f0-89e5173ee15e
+                targetType: hvac
+                target:
+                  holdType: SCHEDULED
+              schema:
+                $ref: '#/components/schemas/HvacActionFollowSchedule'
+        '400':
+          description: A precondition check failed that is unlikely to change within the action's timeout window. This occurs if the HVAC unit cannot perform the action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: HVAC unit controlled by an Enode Schedule
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /hvacs/{hvacId}/refresh-hint:
+    post:
+      summary: Refresh HVAC unit data
+      description: 'Use this endpoint to initiate an expedited data refresh for the specified HVAC unit.
+
+
+        Note: The Enode platform keeps data automatically up-to-date and detects changes in the OEM APIs within seconds to a few minutes. We change the refresh interval dynamically based on a number of heuristics. This ensures we find the best trade-off between the stability of the connection to the OEM and freshness of the data.
+
+        This method overrides most of our heuristics and should therefore be used with caution. You may use it when you have a strong reason to believe the data might be stale.'
+      operationId: hvacsRefreshHint
+      tags:
+      - HVAC
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/HvacPathId'
+      responses:
+        '204':
+          description: Refresh hint registered successfully.
+          content: {}
+        '404':
+          description: The specified hvac was not found.
+        '429':
+          description: Rate limited. Retry after the number of seconds given in the Retry-After header.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                pattern: ^\d+$
+                description: Seconds until the current UTC hour resets and another refresh hint can be submitted.
+                example: '1800'
+              required: true
+              description: Seconds until the current UTC hour resets and another refresh hint can be submitted.
+          content:
+            application/problem+json:
+              example:
+                type: https://docs.enode.io/api/problems/rate-limited
+                title: Rate limited
+                detail: You have reached the maximum number of 9 refresh-hints per hour for this device.
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /hvacs/{hvacId}/permanent-hold:
+    post:
+      summary: Set HVAC unit Mode as Permanent Hold
+      operationId: postSetHvacPermanentHold
+      description: Tell an HVAC unit to enter a permanent hold. Only available if the target's `capabilities.setPermanentHold.isCapable` is set to `true`. We retry sending the command until the HVAC unit's `target` field transition to the expected value. Note that this request will complete before any commands are sent to the HVAC unit. You may react to transitions by listening for the `user:vendor-action:updated` webhook event or polling the HVAC action endpoint.
+      tags:
+      - HVAC
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/HvacPathId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HVACSetPermanentHoldPayload'
+      responses:
+        '200':
+          description: Resulting action
+          content:
+            application/json:
+              example:
+                id: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+                userId: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+                createdAt: '2023-08-01T01:00:00Z'
+                updatedAt: '2023-08-01T01:00:00Z'
+                completedAt: null
+                state: PENDING
+                failureReason: null
+                targetId: f723fed5-73aa-4004-b7f0-89e5173ee15e
+                targetType: hvac
+                target:
+                  coolSetpoint: 21
+                  mode: COOL
+                  holdType: PERMANENT
+              schema:
+                $ref: '#/components/schemas/HvacActionPermanentHold'
+        '400':
+          description: A precondition check failed that is unlikely to change within the action's timeout window. This occurs if the HVAC unit cannot perform the action or the setpoints are invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: HVAC unit controlled by an Enode Schedule
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
 components:
+  schemas:
+    NullableTemperatureDifferenceRange:
+      type:
+      - object
+      - 'null'
+      properties:
+        min:
+          type:
+          - number
+          - 'null'
+          description: The minimum allowable difference, inclusive.
+        max:
+          type:
+          - number
+          - 'null'
+          description: The maximum allowable difference, inclusive.
+      required:
+      - min
+      - max
+      additionalProperties: false
+    HvacActionFollowSchedule:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+          x-format:
+            guid: true
+          description: The ID of the action.
+        userId:
+          type: string
+          description: The ID of the user that owns the target of this action.
+          example: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+        createdAt:
+          type: string
+          format: date-time
+          description: Time when this action was created
+          example: '2020-04-07T17:04:26Z'
+        updatedAt:
+          type: string
+          format: date-time
+          description: Time when this action was last updated
+          example: '2020-04-07T17:04:26Z'
+        completedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Time when the action transitioned to a non-pending state.
+          example: '2020-04-07T17:04:26Z'
+        state:
+          $ref: '#/components/schemas/ActionState'
+        targetId:
+          type: string
+          description: ID of the entity asset (HVAC) which this action is controlling.
+        targetType:
+          type: string
+          enum:
+          - hvac
+        target:
+          $ref: '#/components/schemas/ScheduledTargetState'
+        failureReason:
+          allOf:
+          - $ref: '#/components/schemas/ActionFailureReason'
+      required:
+      - id
+      - userId
+      - createdAt
+      - updatedAt
+      - completedAt
+      - state
+      - targetId
+      - targetType
+      - target
+      - failureReason
+      additionalProperties: false
+      title: Follow Schedule Action
+    PermanentHoldTargetState:
+      anyOf:
+      - $ref: '#/components/schemas/CoolTargetState'
+      - $ref: '#/components/schemas/HeatTargetState'
+      - $ref: '#/components/schemas/AutoTargetState'
+      - $ref: '#/components/schemas/OffTargetState'
+      title: Permanent Hold
+    ActionState:
+      type: string
+      enum:
+      - PENDING
+      - CONFIRMED
+      - FAILED
+      - CANCELLED
+      description: "The real-time status of an action executed on a target. \n\n * `PENDING`: The initial state. Enode is actively sending commands and monitoring the target for changes. \n * `CONFIRMED`: Successful transition of the target to the desired state. \n * `FAILED`: The target did not respond to the action before timing out. Enode has ceased sending additional commands. \n * `CANCELLED`: A required precondition was not met during the action's timeout window or another action has been sent to the target, overriding this one."
+    NullableTemperatureRange:
+      type:
+      - object
+      - 'null'
+      properties:
+        min:
+          type:
+          - number
+          - 'null'
+          description: The minimum allowable temperature, inclusive.
+        max:
+          type:
+          - number
+          - 'null'
+          description: The maximum allowable temperature, inclusive.
+      required:
+      - min
+      - max
+      additionalProperties: false
+    Brand:
+      type: string
+      description: A formatted and properly cased OEM brand name, suitable for reading by humans. May contain special characters.
+      example: Tesla
+    Capability:
+      type: object
+      properties:
+        isCapable:
+          type: boolean
+          description: The entity is fully capable of providing this data or functionality. If false, support is partial or missing. A capable entity (`true`) may still list recommended interventions in `interventionIds`.
+          example: false
+        interventionIds:
+          type: array
+          items:
+            type: string
+            example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+            x-format:
+              guid: true
+          description: 'IDs of interventions the user can make to alter the availability of this capability.
+
+            Interventions may be present even when `isCapable` is `true` (recommended, non-blocking actions). See [the interventions guide](/docs/interventions#accessing-interventions-via-our-api).'
+      required:
+      - isCapable
+      - interventionIds
+      additionalProperties: false
+    PaginationQueryAfter:
+      type: string
+      description: Opaque cursor used to fetch next page. Cannot be set together with `before`. Refer to [Pagination](/api#pagination) for more information.
+      example: MjAyMy0wNy0xOFQxMDowODowMi4zNzNa
+    PaginationQueryBefore:
+      type: string
+      description: Opaque cursor used to fetch previous page. Cannot be used together with `after`. Refer to [Pagination](/api#pagination) for more information.
+      example: MjAyMy0wNy0xOFQxMDowODowMi4zNzNa
+    OffPermanentHold:
+      type: object
+      properties:
+        mode:
+          type: string
+          enum:
+          - 'OFF'
+      required:
+      - mode
+      additionalProperties: false
+      title: 'OFF'
+      description: Target mode for an HVAC unit
+    hvacUpdatePayload:
+      type: object
+      properties:
+        locationId:
+          type:
+          - string
+          - 'null'
+          example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+          x-format:
+            guid: true
+      required:
+      - locationId
+      additionalProperties: false
+    ScheduledTargetState:
+      type: object
+      properties:
+        holdType:
+          type: string
+          enum:
+          - SCHEDULED
+      required:
+      - holdType
+      additionalProperties: false
+      title: Follow Device Schedule
+    PaginatedHVACList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Hvac'
+          description: List of paginated HVAC units
+        pagination:
+          $ref: '#/components/schemas/PaginationCursors'
+      required:
+      - data
+      - pagination
+      additionalProperties: false
+      description: Paginated response of HVAC units
+    AutoPermanentHold:
+      type: object
+      properties:
+        coolSetpoint:
+          type: number
+        heatSetpoint:
+          type: number
+        mode:
+          type: string
+          enum:
+          - AUTO
+      required:
+      - coolSetpoint
+      - heatSetpoint
+      - mode
+      additionalProperties: false
+      title: AUTO
+      description: Target mode for an HVAC unit
+    AutoTargetState:
+      type: object
+      properties:
+        coolSetpoint:
+          type: number
+        heatSetpoint:
+          type: number
+        mode:
+          type: string
+          enum:
+          - AUTO
+        holdType:
+          type: string
+          enum:
+          - PERMANENT
+      required:
+      - coolSetpoint
+      - heatSetpoint
+      - mode
+      - holdType
+      additionalProperties: false
+      title: AUTO
+      description: Target mode for an HVAC unit
+    HvacPathId:
+      type: string
+      description: ID of the HVAC unit.
+      example: 8f39fa8d-8f10-4984-a319-741dc23848c0
+    Hvac:
+      type: object
+      properties:
+        id:
+          type: string
+          description: HVAC unit ID
+        userId:
+          type: string
+          description: The ID of the user that linked this hvac.
+          example: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+        vendor:
+          $ref: '#/components/schemas/HvacVendor'
+        lastSeen:
+          type: string
+          format: date-time
+          description: The last time Enode successfully communicated with the vendor or when the HVAC unit was initially linked.
+          example: '2020-04-07T17:04:26Z'
+        isReachable:
+          type: boolean
+          description: Indicates whether Enode can currently access live data from the HVAC. If the HVAC is not reachable, data updates will be delayed.
+        consumptionRate:
+          type:
+          - number
+          - 'null'
+          description: The current rate of energy consumption in kW. An inactive HVAC will have a consumption rate of 0. HVACs not supporting consumption rate will report null. This value is currently only supported by a small number of devices.
+        information:
+          type: object
+          properties:
+            brand:
+              $ref: '#/components/schemas/Brand'
+            model:
+              type:
+              - string
+              - 'null'
+              description: Device model name
+            displayName:
+              type: string
+              description: Name of the device, as set by the user on the device/vendor. If no user-specified name is available, we construct a fallback name using the vendor/device/model names.
+            groupName:
+              type:
+              - string
+              - 'null'
+              description: Name of the group the device belongs to, as set by the user on the device/vendor. Groups are typically presented as "rooms" or "zones".
+            category:
+              type: string
+              enum:
+              - HEATING
+              - COOLING
+              - HEAT_PUMP
+              - AGGREGATOR
+              description: "Classification of the connected HVAC device.\n\n * `HEATING`: A direct heating device, such as an electric panel heater\n\n * `COOLING`: A direct cooling device, such as an air conditioner \n\n * `HEAT_PUMP`: An air-to-air heat pump capable of both heating and cooling\n\n * `AGGREGATOR`: A device that is capable of controlling various HVAC systems behind it, such as a smart thermostat"
+          required:
+          - brand
+          - model
+          - displayName
+          - groupName
+          - category
+          additionalProperties: false
+          description: Descriptive information about the HVAC unit
+        temperatureState:
+          type: object
+          properties:
+            currentTemperature:
+              type:
+              - number
+              - 'null'
+              description: Current air temperature reported by device in degrees Celsius.
+            isActive:
+              type: boolean
+              description: Whether the HVAC unit is actively heating or cooling.
+            lastUpdated:
+              type:
+              - string
+              - 'null'
+              format: date-time
+              description: Time of last temperature state update. Reflects when the OEM reported a change or Enode recorded a change in any field, whichever is newer
+              example: '2020-04-07T17:04:26Z'
+          required:
+          - currentTemperature
+          - isActive
+          - lastUpdated
+          additionalProperties: false
+          description: Latest information about temperature. `null` values indicate we are unable to determine a value for the field based on the information coming from the vendor.
+        thermostatState:
+          type: object
+          properties:
+            mode:
+              allOf:
+              - $ref: '#/components/schemas/HvacMode'
+            heatSetpoint:
+              type:
+              - number
+              - 'null'
+              description: If mode allows, heat when `currentTemperature` falls below this point.
+            coolSetpoint:
+              type:
+              - number
+              - 'null'
+              description: If mode allows, cool when `currentTemperature` rises above this point.
+            holdType:
+              allOf:
+              - $ref: '#/components/schemas/HvacHoldType'
+              description: The duration the setpoints and mode are expected to be held. If `SCHEDULED`, the device is being controlled by an OEM schedule configured on the device.
+            lastUpdated:
+              type:
+              - string
+              - 'null'
+              format: date-time
+              description: Time of last thermostat state update. Reflects when the OEM reported a change or Enode recorded a change in any field, whichever is newer.
+              example: '2020-04-07T17:04:26Z'
+          required:
+          - mode
+          - heatSetpoint
+          - coolSetpoint
+          - holdType
+          - lastUpdated
+          additionalProperties: false
+          description: Latest information about the thermostat state. `null` values indicate we are unable to determine a value for the field based on the information coming from the vendor.
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Scopes that the user has granted for this HVAC unit.
+          example:
+          - hvac:control:mode
+          - hvac:read:data
+        mode:
+          allOf:
+          - $ref: '#/components/schemas/HvacMode'
+          description: Replaced by `thermostatState.mode`. The HVAC's mode.
+          deprecated: true
+        heatSetpoint:
+          type:
+          - number
+          - 'null'
+          deprecated: true
+          description: Replaced by `thermostatState.heatSetpoint`. If mode allows, heat when `currentTemperature` falls below this point.
+        coolSetpoint:
+          type:
+          - number
+          - 'null'
+          deprecated: true
+          description: Replaced by `thermostatState.coolSetpoint`. If mode allows, cool when `currentTemperature` rises above this point.
+        holdType:
+          allOf:
+          - $ref: '#/components/schemas/HvacHoldType'
+          deprecated: true
+          description: Replaced by `thermostatState.holdType`. The duration the setpoints and mode are expected to be held. If `SCHEDULED`, the device is being controlled by an OEM schedule configured on the device.
+        isActive:
+          type: boolean
+          deprecated: true
+          description: Replaced by `temperatureState.isActive`. Whether the HVAC unit is actively heating or cooling.
+        currentTemperature:
+          type:
+          - number
+          - 'null'
+          deprecated: true
+          description: Replaced by `temperatureState.currentTemperature`. Current air temperature reported by device in degrees Celsius.
+        capabilities:
+          type: object
+          properties:
+            capableModes:
+              type:
+              - array
+              - 'null'
+              items:
+                allOf:
+                - $ref: '#/components/schemas/HvacMode'
+              description: A list of valid modes for this HVAC unit.
+            coolSetpointRange:
+              allOf:
+              - $ref: '#/components/schemas/NullableTemperatureRange'
+              description: The range of allowable values for `coolSetpoint`.
+            heatSetpointRange:
+              allOf:
+              - $ref: '#/components/schemas/NullableTemperatureRange'
+              description: The range of allowable values for `heatSetpoint`.
+            setpointDifferenceRange:
+              allOf:
+              - $ref: '#/components/schemas/NullableTemperatureDifferenceRange'
+              description: A constraint specifying the minimum and maximum allowable difference between `heatSetpoint` and `coolSetpoint`. Only applicable in `AUTO` mode.
+            setFollowSchedule:
+              allOf:
+              - $ref: '#/components/schemas/Capability'
+              description: Supports following a schedule set on the device.
+            setPermanentHold:
+              allOf:
+              - $ref: '#/components/schemas/Capability'
+              description: Supports setting a permanent hold.
+            capableHoldTypes:
+              type:
+              - array
+              - 'null'
+              items:
+                $ref: '#/components/schemas/HvacHoldType'
+              deprecated: true
+              description: 'A list of valid hold types for this HVAC unit.
+
+
+                Deprecated: Check the `setFollowSchedule` and `setPermanentHold` capabilities instead.'
+          required:
+          - capableModes
+          - coolSetpointRange
+          - heatSetpointRange
+          - setpointDifferenceRange
+          - setFollowSchedule
+          - setPermanentHold
+          - capableHoldTypes
+          additionalProperties: false
+        locationId:
+          type:
+          - string
+          - 'null'
+          example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+          x-format:
+            guid: true
+          description: ID of the location the HVAC unit is housed at (if any)
+      required:
+      - id
+      - userId
+      - vendor
+      - lastSeen
+      - isReachable
+      - consumptionRate
+      - information
+      - temperatureState
+      - thermostatState
+      - scopes
+      - mode
+      - heatSetpoint
+      - coolSetpoint
+      - holdType
+      - isActive
+      - currentTemperature
+      - capabilities
+      - locationId
+      additionalProperties: false
+      example:
+        isActive: true
+        currentTemperature: 20.8
+        mode: HEAT
+        heatSetpoint: 22
+        coolSetpoint: 24
+        holdType: PERMANENT
+        locationId: 8d90101b-3f2f-462a-bbb4-1ed320d33bbe
+        id: 8f39fa8d-8f10-4984-a319-741dc23848c0
+        userId: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+        vendor: ADAX
+        lastSeen: '2020-04-07T17:04:26.000Z'
+        isReachable: true
+        consumptionRate: 1.8
+        information:
+          brand: ADAX
+          model: Neo Wi-Fi Skirting
+          displayName: Bedroom Panel Heater
+          groupName: Bedroom
+          category: HEATING
+        capabilities:
+          capableModes:
+          - HEAT
+          - COOL
+          - 'OFF'
+          capableHoldTypes:
+          - PERMANENT
+          coolSetpointRange:
+            min: 15
+            max: 25
+          heatSetpointRange:
+            min: 15
+            max: 25
+          setpointDifferenceRange:
+            min: 15
+            max: 25
+          setFollowSchedule:
+            isCapable: true
+            interventionIds: []
+          setPermanentHold:
+            isCapable: true
+            interventionIds: []
+        thermostatState:
+          mode: HEAT
+          heatSetpoint: 22
+          coolSetpoint: 24
+          holdType: PERMANENT
+          lastUpdated: '2020-04-07T17:04:26.000Z'
+        temperatureState:
+          currentTemperature: 20.8
+          isActive: true
+          lastUpdated: '2020-04-07T17:03:26.000Z'
+        scopes:
+        - hvac:control:mode
+        - hvac:read:data
+    HVACSetPermanentHoldPayload:
+      anyOf:
+      - $ref: '#/components/schemas/CoolPermanentHold'
+      - $ref: '#/components/schemas/HeatPermanentHold'
+      - $ref: '#/components/schemas/AutoPermanentHold'
+      - $ref: '#/components/schemas/OffPermanentHold'
+      title: Permanent Hold
+    HvacHoldType:
+      type: string
+      enum:
+      - PERMANENT
+      - SCHEDULED
+    UserPathId:
+      type: string
+      description: ID of the User.
+    PaginationQueryPageSize:
+      type: integer
+      description: Number of records to return per page. Default page size is 50.
+      example: 50
+      exclusiveMinimum: 0
+    CoolPermanentHold:
+      type: object
+      properties:
+        coolSetpoint:
+          type: number
+        mode:
+          type: string
+          enum:
+          - COOL
+      required:
+      - coolSetpoint
+      - mode
+      additionalProperties: false
+      title: COOL
+      description: Target mode for an HVAC unit
+    HvacAction:
+      anyOf:
+      - $ref: '#/components/schemas/HvacActionPermanentHold'
+      - $ref: '#/components/schemas/HvacActionFollowSchedule'
+    HeatTargetState:
+      type: object
+      properties:
+        heatSetpoint:
+          type: number
+        mode:
+          type: string
+          enum:
+          - HEAT
+        holdType:
+          type: string
+          enum:
+          - PERMANENT
+      required:
+      - heatSetpoint
+      - mode
+      - holdType
+      additionalProperties: false
+      title: HEAT
+      description: Target mode for an HVAC unit
+    ActionPathId:
+      type: string
+      example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+      x-format:
+        guid: true
+      description: ID of the Action.
+    HvacMode:
+      type: string
+      enum:
+      - 'OFF'
+      - AUTO
+      - COOL
+      - HEAT
+      example: AUTO
+      description: "The current state of the HVAC unit.\n\n * `OFF`: The HVAC unit is turned off.\n * `AUTO`: The HVAC unit will try to maintain the given setpoint by alternating between cooling and heating based on the ambient temperature\n * `COOL`: The HVAC unit will only cool to the given setpoint.\n * `HEAT`: The HVAC unit will only heat to the given setpoint\n * `null`: The mode of the HVAC unit is currently not available from the vendor or not supported by enode."
+    Problem:
+      type: object
+      properties:
+        type:
+          type: string
+          description: A URI reference that identifies the problem type.
+        title:
+          type: string
+          description: A short, human-readable summary of the problem type.
+        detail:
+          type: string
+          description: A human-readable explanation specific to this occurrence of the problem.
+        issues:
+          type: array
+          items:
+            type: object
+            properties: {}
+          description: A list of validation issues which occurred while validating some component of the network payload.
+      required:
+      - type
+      - title
+      - detail
+      description: Standard Problem Error
+      example:
+        type: https://docs.enode.io/api/problems/not-found
+        title: Not Found
+        detail: The requested asset wasn't found.
+    HvacActionPermanentHold:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+          x-format:
+            guid: true
+          description: The ID of the action.
+        userId:
+          type: string
+          description: The ID of the user that owns the target of this action.
+          example: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+        createdAt:
+          type: string
+          format: date-time
+          description: Time when this action was created
+          example: '2020-04-07T17:04:26Z'
+        updatedAt:
+          type: string
+          format: date-time
+          description: Time when this action was last updated
+          example: '2020-04-07T17:04:26Z'
+        completedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Time when the action transitioned to a non-pending state.
+          example: '2020-04-07T17:04:26Z'
+        state:
+          $ref: '#/components/schemas/ActionState'
+        targetId:
+          type: string
+          description: ID of the entity asset (HVAC) which this action is controlling.
+        targetType:
+          type: string
+          enum:
+          - hvac
+        target:
+          $ref: '#/components/schemas/PermanentHoldTargetState'
+        failureReason:
+          allOf:
+          - $ref: '#/components/schemas/ActionFailureReason'
+      required:
+      - id
+      - userId
+      - createdAt
+      - updatedAt
+      - completedAt
+      - state
+      - targetId
+      - targetType
+      - target
+      - failureReason
+      additionalProperties: false
+      title: Permanent Hold Action
+    HeatPermanentHold:
+      type: object
+      properties:
+        heatSetpoint:
+          type: number
+        mode:
+          type: string
+          enum:
+          - HEAT
+      required:
+      - heatSetpoint
+      - mode
+      additionalProperties: false
+      title: HEAT
+      description: Target mode for an HVAC unit
+    HvacVendor:
+      type: string
+      enum:
+      - TADO
+      - MILL
+      - ADAX
+      - ECOBEE
+      - SENSIBO
+      - HONEYWELL
+      - RESIDEO
+      - MITSUBISHI
+      - MICROMATIC
+      - NIBE
+      - PANASONIC
+      - TOSHIBA
+      - DAIKIN
+      - NEST
+      - FUJITSU
+      - BOSCH
+      - NETATMO
+      description: Machine-friendly name of the vendor. Use this in API requests.
+      example: ADAX
+    ActionFailureReason:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - NO_RESPONSE
+          - FAILED_PRECONDITION
+          - CONFLICT
+          - NOT_FOUND
+          - UNNECESSARY
+          - REQUESTED_CANCELLATION
+          description: "A machine-readable high level error category.\n\n * `NO_RESPONSE`: The device did not react to our commands within the action's timeout window.  \n * `FAILED_PRECONDITION`: The device did not meet all required preconditions for this action to be executed during the action's timeout window. \n * `UNNECESSARY`: The action was not carried out given that the device was already in the desired state. \n * `CONFLICT`: A newer action for this device, or for a device paired with it, has replaced this action. This action is now abandoned.  \n * `REQUESTED_CANCELLATION`: This action was cancelled by request of the controlling owner. The controlling owner may refer to another Enode entity which initiated the command, such as a schedule or smart override. \n * `NOT_FOUND`: The device was deleted while the action was `PENDING`.\n"
+        detail:
+          type: string
+          description: A human-readable explanation of why the action was unsuccessful.
+          example: The device remained unreachable.
+      required:
+      - type
+      - detail
+      description: Information about why was this action not executed successfully.
+    OffTargetState:
+      type: object
+      properties:
+        mode:
+          type: string
+          enum:
+          - 'OFF'
+        holdType:
+          type: string
+          enum:
+          - PERMANENT
+      required:
+      - mode
+      - holdType
+      additionalProperties: false
+      title: 'OFF'
+      description: Target mode for an HVAC unit
+    CoolTargetState:
+      type: object
+      properties:
+        coolSetpoint:
+          type: number
+        mode:
+          type: string
+          enum:
+          - COOL
+        holdType:
+          type: string
+          enum:
+          - PERMANENT
+      required:
+      - coolSetpoint
+      - mode
+      - holdType
+      additionalProperties: false
+      title: COOL
+      description: Target mode for an HVAC unit
+    PaginationCursors:
+      type: object
+      properties:
+        after:
+          type:
+          - string
+          - 'null'
+          example: MjAyMy0wNy0xOFQxMDowODowMi4zNzNa
+        before:
+          type:
+          - string
+          - 'null'
+          example: MjAyMy0wNi0xNlQwOTowMzowMS4yNjJa
+      required:
+      - after
+      - before
+      additionalProperties: false
+      description: Cursors to the pages before and after current page. See the [Pagination](/api#pagination) section for reference.
   parameters:
-    pageSize:
-      name: pageSize
-      in: query
-      required: false
-      description: Number of results to return per page.
+    HvacPathId:
       schema:
-        type: integer
-        default: 50
-    pageAfter:
-      name: after
-      in: query
-      required: false
-      description: Cursor for pagination, returned as the previous page's pageInfo.after.
-      schema:
-        type: string
-    hvacId:
+        $ref: '#/components/schemas/HvacPathId'
+      required: true
+      description: ID of the HVAC unit.
       name: hvacId
       in: path
-      required: true
+    UserPathId:
       schema:
-        type: string
+        $ref: '#/components/schemas/UserPathId'
+      required: true
+      description: ID of the User.
+      name: userId
+      in: path
+    PaginationQueryBefore:
+      schema:
+        $ref: '#/components/schemas/PaginationQueryBefore'
+      required: false
+      description: Opaque cursor used to fetch previous page. Cannot be used together with `after`. Refer to [Pagination](/api#pagination) for more information.
+      name: before
+      in: query
+    ActionPathId:
+      schema:
+        $ref: '#/components/schemas/ActionPathId'
+      required: true
+      description: ID of the Action.
+      name: actionId
+      in: path
+    PaginationQueryPageSize:
+      schema:
+        $ref: '#/components/schemas/PaginationQueryPageSize'
+      required: false
+      description: Number of records to return per page. Default page size is 50.
+      name: pageSize
+      in: query
+    PaginationQueryAfter:
+      schema:
+        $ref: '#/components/schemas/PaginationQueryAfter'
+      required: false
+      description: Opaque cursor used to fetch next page. Cannot be set together with `before`. Refer to [Pagination](/api#pagination) for more information.
+      name: after
+      in: query
   securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-      description: OAuth 2.0 access token obtained via the client_credentials grant from the Enode OAuth token endpoint (https://oauth.production.enode.io/oauth2/token for production, https://oauth.sandbox.enode.io/oauth2/token for sandbox), presented as a Bearer token.
+    ClientAccessToken:
+      type: oauth2
+      description: 'A `ClientAccessToken` is obtained via the [OAuth 2.0 Client Credentials grant](https://www.oauth.com/oauth2-servers/access-tokens/client-credentials/) and carries authorization to access all functionalities and data in your Enode account.
+
+        Full details at [The ClientAccessToken](/api#getting-an-access-token)
+
+        '
+      flows:
+        clientCredentials:
+          tokenUrl: https://oauth.production.enode.io/oauth2/token
+          scopes: {}

@@ -1,0 +1,389 @@
+openapi: 3.2.0
+info:
+  title: Enode Interventions API
+  version: '2023-08-01'
+  description: One integration, 1000+ energy devices.
+  license:
+    name: Enode Commercial License
+    url: https://enode.com
+servers:
+- url: https://enode-api.production.enode.io
+tags:
+- name: Interventions
+  description: Endpoints that return information about interventions. More information and examples are available in the Interventions guide.
+paths:
+  /interventions:
+    get:
+      summary: List Interventions
+      operationId: listInterventions
+      description: 'Returns a list of all supported interventions.
+
+
+        The `language` parameter can be used to specify the language of the resolution title and description.'
+      tags:
+      - Interventions
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - schema:
+          type: string
+          enum:
+          - en-US
+          - en-GB
+          - de-DE
+          - fr-FR
+          - es-ES
+          - it-IT
+          - ja-JP
+          - pt-PT
+          - lv-LV
+          - lt-LT
+          - nl-NL
+          - nl-BE
+          - nb-NO
+          - pl-PL
+          - sv-SE
+          - da-DK
+          - fi-FI
+          - ro-RO
+          - sl-SI
+          description: Preferred BCP47 language code - Request translation for the specified language. Falls back to `en-US` if not provided or provided language code is unsupported.
+          example: en-GB
+        required: false
+        description: Preferred BCP47 language code - Request translation for the specified language. Falls back to `en-US` if not provided or provided language code is unsupported.
+        name: language
+        in: query
+      - schema:
+          allOf:
+          - $ref: '#/components/schemas/VendorType'
+          description: Only return interventions for the specified vendor type.
+        required: false
+        description: Only return interventions for the specified vendor type.
+        example: vehicle
+        name: vendorType
+        in: query
+      - schema:
+          allOf:
+          - $ref: '#/components/schemas/Vendor'
+          description: Only return interventions for the specified vendor.
+        required: false
+        description: Only return interventions for the specified vendor.
+        example: VOLKSWAGEN
+        name: vendor
+        in: query
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InterventionsList'
+  /interventions/{interventionId}:
+    get:
+      summary: Get Intervention
+      operationId: getIntervention
+      description: 'Returns a single intervention.
+
+
+        The `language` parameter can be used to specify the language of the resolution title and description.'
+      tags:
+      - Interventions
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/InterventionPathId'
+      - schema:
+          type: string
+          enum:
+          - en-US
+          - en-GB
+          - de-DE
+          - fr-FR
+          - es-ES
+          - it-IT
+          - ja-JP
+          - pt-PT
+          - lv-LV
+          - lt-LT
+          - nl-NL
+          - nl-BE
+          - nb-NO
+          - pl-PL
+          - sv-SE
+          - da-DK
+          - fi-FI
+          - ro-RO
+          - sl-SI
+          description: Preferred BCP47 language code - Request translation for the specified language. Falls back to `en-US` if not provided or provided language code is unsupported.
+          example: en-GB
+        required: false
+        description: Preferred BCP47 language code - Request translation for the specified language. Falls back to `en-US` if not provided or provided language code is unsupported.
+        name: language
+        in: query
+      - schema:
+          allOf:
+          - $ref: '#/components/schemas/VendorType'
+          description: Only return interventions for the specified vendor type.
+        required: false
+        description: Only return interventions for the specified vendor type.
+        example: vehicle
+        name: vendorType
+        in: query
+      - schema:
+          allOf:
+          - $ref: '#/components/schemas/Vendor'
+          description: Only return interventions for the specified vendor.
+        required: false
+        description: Only return interventions for the specified vendor.
+        example: VOLKSWAGEN
+        name: vendor
+        in: query
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Intervention'
+        '404':
+          description: Intervention not found.
+components:
+  schemas:
+    InterventionsList:
+      type: array
+      items:
+        $ref: '#/components/schemas/Intervention'
+    Intervention:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 9d90a9ad-9b24-4ce0-94e9-e888b1b877f4
+          x-format:
+            guid: true
+        vendor:
+          allOf:
+          - $ref: '#/components/schemas/Vendor'
+          description: Machine-friendly representation of the OEM's name.
+          example: AUDI
+        vendorType:
+          allOf:
+          - $ref: '#/components/schemas/VendorType'
+          description: Type of device this intervention relates to.
+        brand:
+          $ref: '#/components/schemas/Brand'
+        introducedAt:
+          type: string
+          format: date-time
+          description: ISO8601 UTC timestamp of when the intervention was introduced.
+          example: '2023-03-16T00:00:00Z'
+        domain:
+          type: string
+          enum:
+          - Account
+          - Device
+          description: The domain the intervention is related to. i.e. Is the intervention related to the vendor service account or a setting on the device.
+          example: Account
+        resolution:
+          type: object
+          properties:
+            title:
+              type: string
+              description: A localized title for the intervention.
+              example: Accept the Audi terms and conditions
+            description:
+              type: string
+              description: A localized description of how to resolve the intervention. Formatted as Markdown.
+              example: To gain access to your vehicle's telemetry data, it's necessary to accept Audi's terms and conditions. Follow these steps to proceed:<br><br>1. Open the **myAudi app** on your phone<br>2. Follow the prompts to accept Audi's terms and conditions
+            access:
+              type: string
+              enum:
+              - Remote
+              - Physical
+              description: Where the intervention needs to be resolved. i.e. remotely using the vendor's app or directly on the device.
+              example: Remote
+            agent:
+              type: string
+              enum:
+              - User
+              - ThirdParty
+              description: Who can resolve the intervention. i.e. a user can resolve the intervention themselves, or a licensed service retailer is needed.
+              example: User
+            action:
+              allOf:
+              - $ref: '#/components/schemas/InterventionAction'
+          required:
+          - title
+          - description
+          - access
+          - agent
+          - action
+          additionalProperties: false
+      required:
+      - id
+      - vendor
+      - vendorType
+      - brand
+      - introducedAt
+      - domain
+      - resolution
+      additionalProperties: false
+      title: Integration intervention
+    VendorType:
+      type: string
+      enum:
+      - vehicle
+      - charger
+      - hvac
+      - inverter
+      - battery
+      - meter
+      example: vehicle
+    Brand:
+      type: string
+      description: A formatted and properly cased OEM brand name, suitable for reading by humans. May contain special characters.
+      example: Tesla
+    InterventionAction:
+      type: string
+      enum:
+      - Link
+      - LinkAdditionalAsset
+      description: The action to be taken by the user to resolve the intervention, such as relinking their account (`Link`) or linking an additional asset like a charger (`LinkAdditionalAsset`). See [resolving interventions](https://platform.enode.com/docs/link-ui/relinking).
+      example: Link
+    Vendor:
+      type: string
+      enum:
+      - ACURA
+      - ADAX
+      - AFORE
+      - ALFAROMEO
+      - ALPINE
+      - APSYSTEMS
+      - AUDI
+      - BMW
+      - BOSCH
+      - BYD
+      - CADILLAC
+      - CHARGEAMPS
+      - CHARGEPOINT
+      - CHEVROLET
+      - CHRYSLER
+      - CITROEN
+      - CSISolar
+      - CUPRA
+      - DACIA
+      - DAIKIN
+      - DODGE
+      - DS
+      - Deye
+      - EASEE
+      - ECOBEE
+      - ELLI
+      - ENELX
+      - ENPHASE
+      - FIAT
+      - FORD
+      - FOXESS
+      - FRONIUS
+      - FUJITSU
+      - GARO
+      - GIVENERGY
+      - GMC
+      - GOE
+      - GOODWE
+      - GROWATT
+      - HEIDELBERG
+      - HONDA
+      - HONEYWELL
+      - HUAWEI
+      - HYUNDAI
+      - Hoymiles
+      - INDRA
+      - INVT
+      - JAGUAR
+      - JEEP
+      - KEBA
+      - KIA
+      - LANCIA
+      - LANDROVER
+      - LEAPMOTOR
+      - LEXUS
+      - LUCID
+      - MAZDA
+      - MERCEDES
+      - MG
+      - MICROMATIC
+      - MILL
+      - MINI
+      - MITSUBISHI
+      - MYENERGI
+      - NEST
+      - NETATMO
+      - NIBE
+      - NIO
+      - NISSAN
+      - OHME
+      - OMODA
+      - OPEL
+      - PANASONIC
+      - PEBLAR
+      - PEUGEOT
+      - PODPOINT
+      - POLESTAR
+      - PORSCHE
+      - RAM
+      - RENAULT
+      - RESIDEO
+      - RIVIAN
+      - SCHNEIDER
+      - SEAT
+      - SENSIBO
+      - SKODA
+      - SMA
+      - SMART
+      - SOFAR
+      - SOLAREDGE
+      - SOLARK
+      - SOLAX
+      - SOLIS
+      - SOLPLANET
+      - SUBARU
+      - SUNGROW
+      - SUNSYNK
+      - TADO
+      - TESLA
+      - TOSHIBA
+      - TOYOTA
+      - TSUN
+      - VAUXHALL
+      - VOLKSWAGEN
+      - VOLVO
+      - WALLBOX
+      - XPENG
+      - ZAPTEC
+      description: Machine-friendly name of the vendor. Use this in API requests.
+      example: TESLA
+    InterventionPathId:
+      type: string
+      description: ID of the intervention.
+      example: ad84e742-0f46-4cf4-b0db-7d890f8f23f5
+  parameters:
+    InterventionPathId:
+      schema:
+        $ref: '#/components/schemas/InterventionPathId'
+      required: true
+      description: ID of the intervention.
+      name: interventionId
+      in: path
+  securitySchemes:
+    ClientAccessToken:
+      type: oauth2
+      description: 'A `ClientAccessToken` is obtained via the [OAuth 2.0 Client Credentials grant](https://www.oauth.com/oauth2-servers/access-tokens/client-credentials/) and carries authorization to access all functionalities and data in your Enode account.
+
+        Full details at [The ClientAccessToken](/api#getting-an-access-token)
+
+        '
+      flows:
+        clientCredentials:
+          tokenUrl: https://oauth.production.enode.io/oauth2/token
+          scopes: {}

@@ -171,48 +171,6 @@ apis:
     url: https://developers.enode.com/docs/webhooks
   - type: APIReference
     url: https://developers.enode.com/api/reference#webhooks
-- aid: enode:enode-inverters-api
-  name: Enode Inverters API
-  description: Read connected solar inverters.
-  humanURL: https://developers.enode.com/api/reference#users
-  baseURL: https://enode-api.production.enode.io
-  tags:
-  - Inverters
-  properties:
-  - type: OpenAPI
-    url: openapi/enode-inverters-api-openapi.yml
-  - type: Documentation
-    url: https://developers.enode.com/docs/linking
-  - type: APIReference
-    url: https://developers.enode.com/api/reference#users
-  - type: PostmanCollection
-    url: collections/enode.postman_collection.json
-  - type: OpenCollection
-    url: collections/enode.opencollection.json
-  - type: Documentation
-    url: https://developers.enode.com/docs/vehicles
-  - type: APIReference
-    url: https://developers.enode.com/api/reference#vehicles
-  - type: Documentation
-    url: https://developers.enode.com/docs/chargers
-  - type: APIReference
-    url: https://developers.enode.com/api/reference#chargers
-  - type: Documentation
-    url: https://developers.enode.com/docs/hvac
-  - type: APIReference
-    url: https://developers.enode.com/api/reference#hvacs
-  - type: Documentation
-    url: https://developers.enode.com/docs/batteries
-  - type: APIReference
-    url: https://developers.enode.com/api/reference#batteries
-  - type: Documentation
-    url: https://developers.enode.com/docs/smart-charging
-  - type: APIReference
-    url: https://developers.enode.com/api/reference#smart-charging
-  - type: Documentation
-    url: https://developers.enode.com/docs/webhooks
-  - type: APIReference
-    url: https://developers.enode.com/api/reference#webhooks
 - aid: enode:enode-meters-api
   name: Enode Meters API
   description: Read connected smart meters.
@@ -223,92 +181,6 @@ apis:
   properties:
   - type: OpenAPI
     url: openapi/enode-meters-api-openapi.yml
-  - type: Documentation
-    url: https://developers.enode.com/docs/linking
-  - type: APIReference
-    url: https://developers.enode.com/api/reference#users
-  - type: PostmanCollection
-    url: collections/enode.postman_collection.json
-  - type: OpenCollection
-    url: collections/enode.opencollection.json
-  - type: Documentation
-    url: https://developers.enode.com/docs/vehicles
-  - type: APIReference
-    url: https://developers.enode.com/api/reference#vehicles
-  - type: Documentation
-    url: https://developers.enode.com/docs/chargers
-  - type: APIReference
-    url: https://developers.enode.com/api/reference#chargers
-  - type: Documentation
-    url: https://developers.enode.com/docs/hvac
-  - type: APIReference
-    url: https://developers.enode.com/api/reference#hvacs
-  - type: Documentation
-    url: https://developers.enode.com/docs/batteries
-  - type: APIReference
-    url: https://developers.enode.com/api/reference#batteries
-  - type: Documentation
-    url: https://developers.enode.com/docs/smart-charging
-  - type: APIReference
-    url: https://developers.enode.com/api/reference#smart-charging
-  - type: Documentation
-    url: https://developers.enode.com/docs/webhooks
-  - type: APIReference
-    url: https://developers.enode.com/api/reference#webhooks
-- aid: enode:enode-smart-charging-api
-  name: Enode Smart Charging API
-  description: Configure smart-charging policies and overrides for vehicles.
-  humanURL: https://developers.enode.com/api/reference#users
-  baseURL: https://enode-api.production.enode.io
-  tags:
-  - Smart Charging
-  properties:
-  - type: OpenAPI
-    url: openapi/enode-smart-charging-api-openapi.yml
-  - type: Documentation
-    url: https://developers.enode.com/docs/linking
-  - type: APIReference
-    url: https://developers.enode.com/api/reference#users
-  - type: PostmanCollection
-    url: collections/enode.postman_collection.json
-  - type: OpenCollection
-    url: collections/enode.opencollection.json
-  - type: Documentation
-    url: https://developers.enode.com/docs/vehicles
-  - type: APIReference
-    url: https://developers.enode.com/api/reference#vehicles
-  - type: Documentation
-    url: https://developers.enode.com/docs/chargers
-  - type: APIReference
-    url: https://developers.enode.com/api/reference#chargers
-  - type: Documentation
-    url: https://developers.enode.com/docs/hvac
-  - type: APIReference
-    url: https://developers.enode.com/api/reference#hvacs
-  - type: Documentation
-    url: https://developers.enode.com/docs/batteries
-  - type: APIReference
-    url: https://developers.enode.com/api/reference#batteries
-  - type: Documentation
-    url: https://developers.enode.com/docs/smart-charging
-  - type: APIReference
-    url: https://developers.enode.com/api/reference#smart-charging
-  - type: Documentation
-    url: https://developers.enode.com/docs/webhooks
-  - type: APIReference
-    url: https://developers.enode.com/api/reference#webhooks
-- aid: enode:enode-users-api
-  name: Enode Users API
-  description: Manage end users and Link sessions.
-  humanURL: https://developers.enode.com/api/reference#users
-  baseURL: https://enode-api.production.enode.io
-  tags:
-  - User
-  tags_raw:
-  - Users
-  properties:
-  - type: OpenAPI
-    url: openapi/enode-users-api-openapi.yml
   - type: Documentation
     url: https://developers.enode.com/docs/linking
   - type: APIReference
@@ -395,6 +267,440 @@ apis:
   properties:
   - type: OpenAPI
     url: openapi/enode-webhooks-api-openapi.yml
+  - type: Documentation
+    url: https://developers.enode.com/docs/linking
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#users
+  - type: PostmanCollection
+    url: collections/enode.postman_collection.json
+  - type: OpenCollection
+    url: collections/enode.opencollection.json
+  - type: Documentation
+    url: https://developers.enode.com/docs/vehicles
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#vehicles
+  - type: Documentation
+    url: https://developers.enode.com/docs/chargers
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#chargers
+  - type: Documentation
+    url: https://developers.enode.com/docs/hvac
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#hvacs
+  - type: Documentation
+    url: https://developers.enode.com/docs/batteries
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#batteries
+  - type: Documentation
+    url: https://developers.enode.com/docs/smart-charging
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#smart-charging
+  - type: Documentation
+    url: https://developers.enode.com/docs/webhooks
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#webhooks
+- aid: enode:enode-beta-api
+  name: Enode Beta API
+  description: >-
+    This product or endpoint is now feature complete and the implementation will not change. There may
+    be bugs or stability issues but they are actively being worked on. We are still open to receiving
+    feedback before delivering a stable release. See [Versioning Labels](/api#labels).
+  humanURL: https://developers.enode.com/api/reference#users
+  baseURL: https://enode-api.production.enode.io
+  tags:
+  - Beta
+  properties:
+  - type: OpenAPI
+    url: openapi/enode-beta-api-openapi.yml
+  - type: Documentation
+    url: https://developers.enode.com/docs/linking
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#users
+  - type: PostmanCollection
+    url: collections/enode.postman_collection.json
+  - type: OpenCollection
+    url: collections/enode.opencollection.json
+  - type: Documentation
+    url: https://developers.enode.com/docs/vehicles
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#vehicles
+  - type: Documentation
+    url: https://developers.enode.com/docs/chargers
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#chargers
+  - type: Documentation
+    url: https://developers.enode.com/docs/hvac
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#hvacs
+  - type: Documentation
+    url: https://developers.enode.com/docs/batteries
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#batteries
+  - type: Documentation
+    url: https://developers.enode.com/docs/smart-charging
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#smart-charging
+  - type: Documentation
+    url: https://developers.enode.com/docs/webhooks
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#webhooks
+- aid: enode:enode-early-adopter-api
+  name: Enode Early Adopter API
+  description: >-
+    This feature or endpoint is available to early adopters for initial feedback. The implementation is
+    still evolving and may change or be removed. See [Versioning Labels](/api#labels).
+  humanURL: https://developers.enode.com/api/reference#users
+  baseURL: https://enode-api.production.enode.io
+  tags:
+  - Early Adopter
+  properties:
+  - type: OpenAPI
+    url: openapi/enode-early-adopter-api-openapi.yml
+  - type: Documentation
+    url: https://developers.enode.com/docs/linking
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#users
+  - type: PostmanCollection
+    url: collections/enode.postman_collection.json
+  - type: OpenCollection
+    url: collections/enode.opencollection.json
+  - type: Documentation
+    url: https://developers.enode.com/docs/vehicles
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#vehicles
+  - type: Documentation
+    url: https://developers.enode.com/docs/chargers
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#chargers
+  - type: Documentation
+    url: https://developers.enode.com/docs/hvac
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#hvacs
+  - type: Documentation
+    url: https://developers.enode.com/docs/batteries
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#batteries
+  - type: Documentation
+    url: https://developers.enode.com/docs/smart-charging
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#smart-charging
+  - type: Documentation
+    url: https://developers.enode.com/docs/webhooks
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#webhooks
+- aid: enode:enode-interventions-api
+  name: Enode Interventions API
+  description: >-
+    Endpoints that return information about interventions. More information and examples are available
+    in the [Interventions](/docs/interventions) guide.
+  humanURL: https://developers.enode.com/api/reference#users
+  baseURL: https://enode-api.production.enode.io
+  tags:
+  - Interventions
+  properties:
+  - type: OpenAPI
+    url: openapi/enode-interventions-api-openapi.yml
+  - type: Documentation
+    url: https://developers.enode.com/docs/linking
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#users
+  - type: PostmanCollection
+    url: collections/enode.postman_collection.json
+  - type: OpenCollection
+    url: collections/enode.opencollection.json
+  - type: Documentation
+    url: https://developers.enode.com/docs/vehicles
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#vehicles
+  - type: Documentation
+    url: https://developers.enode.com/docs/chargers
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#chargers
+  - type: Documentation
+    url: https://developers.enode.com/docs/hvac
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#hvacs
+  - type: Documentation
+    url: https://developers.enode.com/docs/batteries
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#batteries
+  - type: Documentation
+    url: https://developers.enode.com/docs/smart-charging
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#smart-charging
+  - type: Documentation
+    url: https://developers.enode.com/docs/webhooks
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#webhooks
+- aid: enode:enode-locations-api
+  name: Enode Locations API
+  description: >-
+    Locations are used to assign devices to a geographical group. This is useful when running schedules,
+    smart charging, or smart heating, as target behavior usually depends on a common locality of demand
+    (charging, heating, cooling, etc.) and supply (tariff, battery, inverter, etc.) of energy.
+  humanURL: https://developers.enode.com/api/reference#users
+  baseURL: https://enode-api.production.enode.io
+  tags:
+  - Locations
+  properties:
+  - type: OpenAPI
+    url: openapi/enode-locations-api-openapi.yml
+  - type: Documentation
+    url: https://developers.enode.com/docs/linking
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#users
+  - type: PostmanCollection
+    url: collections/enode.postman_collection.json
+  - type: OpenCollection
+    url: collections/enode.opencollection.json
+  - type: Documentation
+    url: https://developers.enode.com/docs/vehicles
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#vehicles
+  - type: Documentation
+    url: https://developers.enode.com/docs/chargers
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#chargers
+  - type: Documentation
+    url: https://developers.enode.com/docs/hvac
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#hvacs
+  - type: Documentation
+    url: https://developers.enode.com/docs/batteries
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#batteries
+  - type: Documentation
+    url: https://developers.enode.com/docs/smart-charging
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#smart-charging
+  - type: Documentation
+    url: https://developers.enode.com/docs/webhooks
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#webhooks
+- aid: enode:enode-schedules-api
+  name: Enode Schedules API
+  description: "Endpoints to manage schedules for Vehicles, Chargers and HVACs. \n\nMore information and\
+    \ examples are available in the [Scheduling](/docs/scheduling/overview) guide."
+  humanURL: https://developers.enode.com/api/reference#users
+  baseURL: https://enode-api.production.enode.io
+  tags:
+  - Schedules
+  properties:
+  - type: OpenAPI
+    url: openapi/enode-schedules-api-openapi.yml
+  - type: Documentation
+    url: https://developers.enode.com/docs/linking
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#users
+  - type: PostmanCollection
+    url: collections/enode.postman_collection.json
+  - type: OpenCollection
+    url: collections/enode.opencollection.json
+  - type: Documentation
+    url: https://developers.enode.com/docs/vehicles
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#vehicles
+  - type: Documentation
+    url: https://developers.enode.com/docs/chargers
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#chargers
+  - type: Documentation
+    url: https://developers.enode.com/docs/hvac
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#hvacs
+  - type: Documentation
+    url: https://developers.enode.com/docs/batteries
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#batteries
+  - type: Documentation
+    url: https://developers.enode.com/docs/smart-charging
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#smart-charging
+  - type: Documentation
+    url: https://developers.enode.com/docs/webhooks
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#webhooks
+- aid: enode:enode-service-health-api
+  name: Enode Service Health API
+  description: Endpoints that return information about the health of Enode and our integrations.
+  humanURL: https://developers.enode.com/api/reference#users
+  baseURL: https://enode-api.production.enode.io
+  tags:
+  - Service Health
+  properties:
+  - type: OpenAPI
+    url: openapi/enode-service-health-api-openapi.yml
+  - type: Documentation
+    url: https://developers.enode.com/docs/linking
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#users
+  - type: PostmanCollection
+    url: collections/enode.postman_collection.json
+  - type: OpenCollection
+    url: collections/enode.opencollection.json
+  - type: Documentation
+    url: https://developers.enode.com/docs/vehicles
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#vehicles
+  - type: Documentation
+    url: https://developers.enode.com/docs/chargers
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#chargers
+  - type: Documentation
+    url: https://developers.enode.com/docs/hvac
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#hvacs
+  - type: Documentation
+    url: https://developers.enode.com/docs/batteries
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#batteries
+  - type: Documentation
+    url: https://developers.enode.com/docs/smart-charging
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#smart-charging
+  - type: Documentation
+    url: https://developers.enode.com/docs/webhooks
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#webhooks
+- aid: enode:enode-solar-inverters-api
+  name: Enode Solar inverters API
+  description: Solar inverters can be queried for current production state
+  humanURL: https://developers.enode.com/api/reference#users
+  baseURL: https://enode-api.production.enode.io
+  tags:
+  - Solar inverters
+  properties:
+  - type: OpenAPI
+    url: openapi/enode-solar-inverters-api-openapi.yml
+  - type: Documentation
+    url: https://developers.enode.com/docs/linking
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#users
+  - type: PostmanCollection
+    url: collections/enode.postman_collection.json
+  - type: OpenCollection
+    url: collections/enode.opencollection.json
+  - type: Documentation
+    url: https://developers.enode.com/docs/vehicles
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#vehicles
+  - type: Documentation
+    url: https://developers.enode.com/docs/chargers
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#chargers
+  - type: Documentation
+    url: https://developers.enode.com/docs/hvac
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#hvacs
+  - type: Documentation
+    url: https://developers.enode.com/docs/batteries
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#batteries
+  - type: Documentation
+    url: https://developers.enode.com/docs/smart-charging
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#smart-charging
+  - type: Documentation
+    url: https://developers.enode.com/docs/webhooks
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#webhooks
+- aid: enode:enode-statistics-api
+  name: Enode Statistics API
+  description: Endpoints returning timeseries data collected from linked devices.
+  humanURL: https://developers.enode.com/api/reference#users
+  baseURL: https://enode-api.production.enode.io
+  tags:
+  - Statistics
+  properties:
+  - type: OpenAPI
+    url: openapi/enode-statistics-api-openapi.yml
+  - type: Documentation
+    url: https://developers.enode.com/docs/linking
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#users
+  - type: PostmanCollection
+    url: collections/enode.postman_collection.json
+  - type: OpenCollection
+    url: collections/enode.opencollection.json
+  - type: Documentation
+    url: https://developers.enode.com/docs/vehicles
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#vehicles
+  - type: Documentation
+    url: https://developers.enode.com/docs/chargers
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#chargers
+  - type: Documentation
+    url: https://developers.enode.com/docs/hvac
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#hvacs
+  - type: Documentation
+    url: https://developers.enode.com/docs/batteries
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#batteries
+  - type: Documentation
+    url: https://developers.enode.com/docs/smart-charging
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#smart-charging
+  - type: Documentation
+    url: https://developers.enode.com/docs/webhooks
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#webhooks
+- aid: enode:enode-tariffs-api
+  name: Enode Tariffs API
+  description: >-
+    Use the Tariffs API to submit pricing information to Enode. These prices will be preferred over market
+    prices in Enode's smart products, like [Smart Charging](/api#updateVehicleSmartChargingPolicy), and
+    will be used to calculate costs in [Statistics](/api#getChargingStatistics).
+  humanURL: https://developers.enode.com/api/reference#users
+  baseURL: https://enode-api.production.enode.io
+  tags:
+  - Tariffs
+  properties:
+  - type: OpenAPI
+    url: openapi/enode-tariffs-api-openapi.yml
+  - type: Documentation
+    url: https://developers.enode.com/docs/linking
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#users
+  - type: PostmanCollection
+    url: collections/enode.postman_collection.json
+  - type: OpenCollection
+    url: collections/enode.opencollection.json
+  - type: Documentation
+    url: https://developers.enode.com/docs/vehicles
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#vehicles
+  - type: Documentation
+    url: https://developers.enode.com/docs/chargers
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#chargers
+  - type: Documentation
+    url: https://developers.enode.com/docs/hvac
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#hvacs
+  - type: Documentation
+    url: https://developers.enode.com/docs/batteries
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#batteries
+  - type: Documentation
+    url: https://developers.enode.com/docs/smart-charging
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#smart-charging
+  - type: Documentation
+    url: https://developers.enode.com/docs/webhooks
+  - type: APIReference
+    url: https://developers.enode.com/api/reference#webhooks
+- aid: enode:enode-user-management-api
+  name: Enode User Management API
+  description: Endpoints used to link and unlink users or vendors.
+  humanURL: https://developers.enode.com/api/reference#users
+  baseURL: https://enode-api.production.enode.io
+  tags:
+  - User Management
+  properties:
+  - type: OpenAPI
+    url: openapi/enode-user-management-api-openapi.yml
   - type: Documentation
     url: https://developers.enode.com/docs/linking
   - type: APIReference

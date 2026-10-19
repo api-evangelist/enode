@@ -1,0 +1,723 @@
+openapi: 3.2.0
+info:
+  title: Enode Schedules API
+  version: '2023-08-01'
+  description: One integration, 1000+ energy devices.
+  license:
+    name: Enode Commercial License
+    url: https://enode.com
+servers:
+- url: https://enode-api.production.enode.io
+tags:
+- name: Schedules
+  description: 'Endpoints to manage schedules for Vehicles, Chargers and HVACs.
+
+
+    More information and examples are available in the Scheduling guide.'
+paths:
+  /users/{userId}/schedules:
+    get:
+      summary: List Schedules
+      description: Returns a list of Schedules registered to the User.
+      operationId: getSchedules
+      security:
+      - ClientAccessToken: []
+      tags:
+      - Schedules
+      parameters:
+      - $ref: '#/components/parameters/UserPathId'
+      - $ref: '#/components/parameters/PaginationQueryAfter'
+      - $ref: '#/components/parameters/PaginationQueryBefore'
+      - $ref: '#/components/parameters/PaginationQueryPageSize'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedScheduleList'
+    post:
+      summary: Create Schedule
+      operationId: createSchedule
+      security:
+      - ClientAccessToken: []
+      tags:
+      - Schedules
+      parameters:
+      - $ref: '#/components/parameters/UserPathId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Schedule'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleResponse'
+  /schedules/{scheduleId}:
+    get:
+      summary: Get Schedule
+      operationId: getSchedule
+      security:
+      - ClientAccessToken: []
+      tags:
+      - Schedules
+      parameters:
+      - $ref: '#/components/parameters/PathScheduleId'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleResponse'
+    put:
+      summary: Update Schedule
+      description: Does a partial update of a schedule.
+      operationId: updateSchedule
+      security:
+      - ClientAccessToken: []
+      tags:
+      - Schedules
+      parameters:
+      - $ref: '#/components/parameters/PathScheduleId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartialSchedule'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleResponse'
+    delete:
+      summary: Delete Schedule
+      description: Delete a Schedule
+      operationId: deleteSchedule
+      security:
+      - ClientAccessToken: []
+      tags:
+      - Schedules
+      parameters:
+      - $ref: '#/components/parameters/PathScheduleId'
+      responses:
+        '204':
+          description: No Content
+          content: {}
+  /schedules/{scheduleId}/status:
+    get:
+      summary: Get Schedule Status
+      operationId: getScheduleStatus
+      tags:
+      - Schedules
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/PathScheduleId'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleStatus'
+components:
+  schemas:
+    TemperatureTargetState:
+      anyOf:
+      - $ref: '#/components/schemas/CoolTargetState'
+      - $ref: '#/components/schemas/HeatTargetState'
+      - $ref: '#/components/schemas/AutoTargetState'
+      - $ref: '#/components/schemas/OffTargetState'
+      - $ref: '#/components/schemas/ScheduledTargetState'
+    PartialChargeSchedule:
+      type: object
+      properties:
+        targetId:
+          type: string
+          minLength: 1
+          description: ID of the asset (Vehicle/Charger) to which this schedule applies
+        locationId:
+          type:
+          - string
+          - 'null'
+          example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+          x-format:
+            guid: true
+          description: ID of the Location to which this schedule applies. The behavior of a null value differs based on the `targetType`. For chargers, a null value is essentially ignored and the schedule is applied even if the charger isn't at a location. This is designed to prevent schedules from controlling vehicles at public chargers where the user doesn't pay for electricity.
+        targetType:
+          type: string
+          enum:
+          - vehicle
+          - charger
+        isEnabled:
+          type: boolean
+          description: Whether this Schedule should be attempting to control the target's charge state.
+        defaultShouldCharge:
+          type: boolean
+          description: When no rule is active, the default charge state for the target.
+        rules:
+          type: array
+          items:
+            allOf:
+            - $ref: '#/components/schemas/ScheduleFilters'
+            - type: object
+              properties:
+                shouldCharge:
+                  type: boolean
+                  description: Whether a chargeable asset should want to charge while this rule is active.
+              required:
+              - shouldCharge
+              additionalProperties: false
+          description: Each rule sets a value for `shouldCharge`, either `true` or `false`. All other properties of the rule are optional filters that limit the times to which this rule applies.
+      additionalProperties: false
+      title: Partial Charge Schedule
+    ChargeScheduleResponse:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/PartialChargeSchedule'
+      - type: object
+        title: Charge Schedule
+        properties:
+          id:
+            type: string
+        required:
+        - targetId
+        - locationId
+        - targetType
+        - isEnabled
+        - defaultShouldCharge
+        - rules
+        - id
+    ScheduleStatus:
+      anyOf:
+      - $ref: '#/components/schemas/ChargeScheduleStatus'
+      - $ref: '#/components/schemas/TemperatureScheduleStatus'
+    PaginationQueryAfter:
+      type: string
+      description: Opaque cursor used to fetch next page. Cannot be set together with `before`. Refer to [Pagination](/api#pagination) for more information.
+      example: MjAyMy0wNy0xOFQxMDowODowMi4zNzNa
+    PaginationQueryBefore:
+      type: string
+      description: Opaque cursor used to fetch previous page. Cannot be used together with `after`. Refer to [Pagination](/api#pagination) for more information.
+      example: MjAyMy0wNy0xOFQxMDowODowMi4zNzNa
+    ChargeableVendorType:
+      type: string
+      enum:
+      - vehicle
+      - charger
+    ScheduleState:
+      type: string
+      enum:
+      - ALIGNED
+      - MISALIGNED
+      - PENDING
+      - INACTIVE:OVERRIDDEN
+      - INACTIVE:DISABLED
+      - INACTIVE:AWAY
+      - INACTIVE:INCAPABLE
+      description: An enum value that describes the current state of the Schedule
+    Schedule:
+      anyOf:
+      - $ref: '#/components/schemas/ChargeSchedule'
+      - $ref: '#/components/schemas/TemperatureSchedule'
+    ChargeScheduleStatus:
+      type: object
+      properties:
+        scheduleId:
+          type: string
+          example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+          x-format:
+            guid: true
+          description: ID of the schedule.
+        scheduleType:
+          type: string
+          enum:
+          - CHARGE
+        changedAt:
+          type: string
+          format: date-time
+          description: Time at which any value of the status last changed
+          example: '2020-04-07T17:04:26Z'
+        state:
+          $ref: '#/components/schemas/ScheduleState'
+        isCharging:
+          type: boolean
+          description: Whether the target is currently actually charging
+        isChargingExpected:
+          type: boolean
+          description: Whether the target is currently expected to be charging
+        isChargingExpectedParts:
+          type: object
+          properties:
+            needsCharge:
+              type: boolean
+            isPluggedIn:
+              type: boolean
+            shouldCharge:
+              type: boolean
+          required:
+          - needsCharge
+          - isPluggedIn
+          - shouldCharge
+          additionalProperties: false
+          description: Collection of booleans that - when combined via AND operator - forms the `isChargingExpected` value
+        upcomingTransitions:
+          type: array
+          items:
+            type: object
+            properties:
+              at:
+                type: string
+                format: date-time
+                description: ISO8601 UTC timestamp
+                example: '2020-04-07T17:04:26Z'
+              shouldCharge:
+                type: boolean
+            required:
+            - at
+            - shouldCharge
+            additionalProperties: false
+          description: List of upcoming transitions of the `shouldCharge` or `targetTemperature` value. A maximum of 2 items are returned.
+        smartOverride:
+          allOf:
+          - $ref: '#/components/schemas/SmartOverrideStatus'
+      required:
+      - scheduleId
+      - scheduleType
+      - changedAt
+      - state
+      - isCharging
+      - isChargingExpected
+      - isChargingExpectedParts
+      - upcomingTransitions
+      - smartOverride
+      additionalProperties: false
+      title: Charge Schedule Status
+      description: The state of a Charge Schedule at a particular point in time.
+    ScheduledTargetState:
+      type: object
+      properties:
+        holdType:
+          type: string
+          enum:
+          - SCHEDULED
+      required:
+      - holdType
+      additionalProperties: false
+      title: Follow Device Schedule
+    PaginatedScheduleList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScheduleResponse'
+          description: Paginated list of schedules
+        pagination:
+          $ref: '#/components/schemas/PaginationCursors'
+      required:
+      - data
+      - pagination
+      additionalProperties: false
+      description: Paginated response of schedules
+    ChargeSchedule:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/PartialChargeSchedule'
+      - type: object
+        title: Charge Schedule
+        required:
+        - targetId
+        - locationId
+        - targetType
+        - isEnabled
+        - defaultShouldCharge
+        - rules
+    AutoTargetState:
+      type: object
+      properties:
+        coolSetpoint:
+          type: number
+        heatSetpoint:
+          type: number
+        mode:
+          type: string
+          enum:
+          - AUTO
+        holdType:
+          type: string
+          enum:
+          - PERMANENT
+      required:
+      - coolSetpoint
+      - heatSetpoint
+      - mode
+      - holdType
+      additionalProperties: false
+      title: AUTO
+      description: Target mode for an HVAC unit
+    TemperatureScheduleResponse:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/PartialTemperatureSchedule'
+      - type: object
+        title: Temperature Schedule
+        required:
+        - isEnabled
+        - targetId
+        - targetType
+        - defaultTargetState
+        - rules
+        - id
+        properties:
+          id:
+            type: string
+    UserPathId:
+      type: string
+      description: ID of the User.
+    PaginationQueryPageSize:
+      type: integer
+      description: Number of records to return per page. Default page size is 50.
+      example: 50
+      exclusiveMinimum: 0
+    HeatTargetState:
+      type: object
+      properties:
+        heatSetpoint:
+          type: number
+        mode:
+          type: string
+          enum:
+          - HEAT
+        holdType:
+          type: string
+          enum:
+          - PERMANENT
+      required:
+      - heatSetpoint
+      - mode
+      - holdType
+      additionalProperties: false
+      title: HEAT
+      description: Target mode for an HVAC unit
+    ScheduleResponse:
+      anyOf:
+      - $ref: '#/components/schemas/ChargeScheduleResponse'
+      - $ref: '#/components/schemas/TemperatureScheduleResponse'
+    PartialTemperatureSchedule:
+      type: object
+      properties:
+        isEnabled:
+          type: boolean
+          description: Whether this Schedule should be attempting to control the HVAC's temperature settings.
+        targetId:
+          type: string
+          minLength: 1
+          description: ID of the HVAC asset to which this schedule applies.
+        targetType:
+          type: string
+          enum:
+          - hvac
+        defaultTargetState:
+          allOf:
+          - $ref: '#/components/schemas/TemperatureTargetState'
+          description: The target state to apply when no rules are active.
+        rules:
+          type: array
+          items:
+            allOf:
+            - $ref: '#/components/schemas/ScheduleFilters'
+            - type: object
+              properties:
+                targetState:
+                  allOf:
+                  - $ref: '#/components/schemas/TemperatureTargetState'
+                  description: The target state to apply when this rule is active.
+              required:
+              - targetState
+              additionalProperties: false
+          description: Each rule sets a value for `holdType` and associated settings. All other properties of the rule are optional filters that limit the times to which this rule applies.
+      additionalProperties: false
+      title: Temperature Schedule
+    PartialSchedule:
+      anyOf:
+      - $ref: '#/components/schemas/PartialChargeSchedule'
+      - $ref: '#/components/schemas/PartialTemperatureSchedule'
+    TemperatureScheduleStatus:
+      type: object
+      properties:
+        scheduleId:
+          type: string
+          example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+          x-format:
+            guid: true
+        scheduleType:
+          type: string
+          enum:
+          - TEMPERATURE
+        changedAt:
+          type: string
+          format: date-time
+          description: Time at which any value of the status last changed
+          example: '2020-04-07T17:04:26Z'
+        state:
+          $ref: '#/components/schemas/ScheduleState'
+        current:
+          $ref: '#/components/schemas/NullableTemperatureTargetState'
+        expected:
+          $ref: '#/components/schemas/TemperatureTargetState'
+        upcomingTransitions:
+          type: array
+          items:
+            type: object
+            properties:
+              at:
+                type: string
+                format: date-time
+                description: ISO8601 UTC timestamp
+                example: '2020-04-07T17:04:26Z'
+              target:
+                $ref: '#/components/schemas/TemperatureTargetState'
+            required:
+            - at
+            - target
+            additionalProperties: false
+          description: List of upcoming transitions. A maximum of 2 items are returned.
+      required:
+      - scheduleId
+      - scheduleType
+      - changedAt
+      - state
+      - current
+      - expected
+      - upcomingTransitions
+      additionalProperties: false
+      title: Temperature Schedule Status
+      description: The state of a Temperature Schedule at a particular point in time.
+    TemperatureSchedule:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/PartialTemperatureSchedule'
+      - type: object
+        title: Temperature Schedule
+        required:
+        - isEnabled
+        - targetId
+        - targetType
+        - defaultTargetState
+        - rules
+    SmartOverrideStatus:
+      type: object
+      properties:
+        createdAt:
+          type: string
+          format: date-time
+          description: Time at which the smart override was created.
+          example: '2020-04-07T17:04:26Z'
+        endedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Time at which the smart override was ended. If null, the smart override is still active.
+          example: '2020-04-07T17:04:26Z'
+        targetType:
+          allOf:
+          - $ref: '#/components/schemas/ChargeableVendorType'
+          example: vehicle
+        targetId:
+          type: string
+          description: ID of the target which this smart override is affecting.
+          example: 07f8368d-be7e-4dbd-8cf0-94d00dd67ad3
+        vendorActionId:
+          type:
+          - string
+          - 'null'
+          example: 213ae0a8-fb65-40be-981a-6a86df3e1c7f
+          x-format:
+            guid: true
+          description: The ID of the Action responsible for starting charging on the target. Use the [Get Vehicle Action](/api#getVehiclesAction) or the [Get Charger Action](/api#getChargersAction) endpoints to monitor action results. Null when no start Action was queued, for example because the target was already charging.
+      required:
+      - createdAt
+      - endedAt
+      - targetType
+      - targetId
+      - vendorActionId
+      additionalProperties: false
+      description: This field populates after using Vehicle [Create Smart Override](/api#vehicleCreateSmartOverride) or Charger Create Smart Override. Once populated, the target enters an overridden state, stopping Enode from sending Smart Charging actions. The Smart Override persists until the target ceases charging for any reason or is manually ended via Vehicle [End Smart Override](/api#vehicleEndSmartOverride) or Charger End Smart Override.
+    PathScheduleId:
+      type: string
+      example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+      x-format:
+        guid: true
+      description: ID of the Schedule.
+    NullableTemperatureTargetState:
+      anyOf:
+      - $ref: '#/components/schemas/CoolTargetState'
+      - $ref: '#/components/schemas/HeatTargetState'
+      - $ref: '#/components/schemas/AutoTargetState'
+      - $ref: '#/components/schemas/OffTargetState'
+      - $ref: '#/components/schemas/ScheduledTargetState'
+      - {}
+    OffTargetState:
+      type: object
+      properties:
+        mode:
+          type: string
+          enum:
+          - 'OFF'
+        holdType:
+          type: string
+          enum:
+          - PERMANENT
+      required:
+      - mode
+      - holdType
+      additionalProperties: false
+      title: 'OFF'
+      description: Target mode for an HVAC unit
+    ScheduleFilters:
+      type: object
+      properties:
+        hourMinute:
+          type: object
+          properties:
+            from:
+              type: string
+              pattern: ^(((?:[01]\d|2[0-3]):[0-5]\d)|24:00)$
+              description: Clock time from which this rule should apply each day.
+              example: 08:00
+            to:
+              type: string
+              pattern: ^(((?:[01]\d|2[0-3]):[0-5]\d)|24:00)$
+              description: Clock time until which this rule should apply each day.
+              example: 09:00
+          required:
+          - from
+          - to
+          additionalProperties: false
+          description: An interval composed of two clock times during which this rule applies each day. `to` always resolves to a timestamp after `from`, and thus may span across midnight and fall on the next day.
+        fromTimestamp:
+          type: string
+          format: date-time
+          description: UTC timestamp from which this rule should apply.
+          example: '2020-04-07T17:04:26Z'
+        toTimestamp:
+          type: string
+          format: date-time
+          description: UTC timestamp until which this rule should apply.
+          example: '2020-04-07T17:04:26Z'
+        weekdays:
+          type: array
+          items:
+            type: integer
+            enum:
+            - 0
+            - 1
+            - 2
+            - 3
+            - 4
+            - 5
+            - 6
+          example:
+          - 0
+          - 1
+          - 2
+          - 3
+          - 4
+          - 5
+          description: An array of weekdays to which this rule should apply. A weekday starts with 0 for Monday and ends with 6 for Sunday.
+      additionalProperties: false
+    CoolTargetState:
+      type: object
+      properties:
+        coolSetpoint:
+          type: number
+        mode:
+          type: string
+          enum:
+          - COOL
+        holdType:
+          type: string
+          enum:
+          - PERMANENT
+      required:
+      - coolSetpoint
+      - mode
+      - holdType
+      additionalProperties: false
+      title: COOL
+      description: Target mode for an HVAC unit
+    PaginationCursors:
+      type: object
+      properties:
+        after:
+          type:
+          - string
+          - 'null'
+          example: MjAyMy0wNy0xOFQxMDowODowMi4zNzNa
+        before:
+          type:
+          - string
+          - 'null'
+          example: MjAyMy0wNi0xNlQwOTowMzowMS4yNjJa
+      required:
+      - after
+      - before
+      additionalProperties: false
+      description: Cursors to the pages before and after current page. See the [Pagination](/api#pagination) section for reference.
+  parameters:
+    UserPathId:
+      schema:
+        $ref: '#/components/schemas/UserPathId'
+      required: true
+      description: ID of the User.
+      name: userId
+      in: path
+    PaginationQueryBefore:
+      schema:
+        $ref: '#/components/schemas/PaginationQueryBefore'
+      required: false
+      description: Opaque cursor used to fetch previous page. Cannot be used together with `after`. Refer to [Pagination](/api#pagination) for more information.
+      name: before
+      in: query
+    PaginationQueryPageSize:
+      schema:
+        $ref: '#/components/schemas/PaginationQueryPageSize'
+      required: false
+      description: Number of records to return per page. Default page size is 50.
+      name: pageSize
+      in: query
+    PathScheduleId:
+      schema:
+        $ref: '#/components/schemas/PathScheduleId'
+      required: true
+      description: ID of the Schedule.
+      name: scheduleId
+      in: path
+    PaginationQueryAfter:
+      schema:
+        $ref: '#/components/schemas/PaginationQueryAfter'
+      required: false
+      description: Opaque cursor used to fetch next page. Cannot be set together with `before`. Refer to [Pagination](/api#pagination) for more information.
+      name: after
+      in: query
+  securitySchemes:
+    ClientAccessToken:
+      type: oauth2
+      description: 'A `ClientAccessToken` is obtained via the [OAuth 2.0 Client Credentials grant](https://www.oauth.com/oauth2-servers/access-tokens/client-credentials/) and carries authorization to access all functionalities and data in your Enode account.
+
+        Full details at [The ClientAccessToken](/api#getting-an-access-token)
+
+        '
+      flows:
+        clientCredentials:
+          tokenUrl: https://oauth.production.enode.io/oauth2/token
+          scopes: {}

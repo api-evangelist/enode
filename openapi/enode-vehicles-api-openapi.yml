@@ -1,213 +1,1995 @@
 openapi: 3.2.0
 info:
   title: Enode Vehicles API
-  description: Enode connects and controls electric vehicles, EV chargers, HVAC systems, home batteries, solar inverters, and smart meters through a single API. End users authorize access to their devices via the Enode Link OAuth flow; applications then read normalized device telemetry, issue control actions (charging, climate, battery mode), configure smart charging, and subscribe to webhooks. Access tokens are obtained via the OAuth 2.0 client_credentials grant and presented as a Bearer token.
-  termsOfService: https://enode.com/legal/terms-of-service
-  contact:
-    name: Enode Support
-    url: https://developers.enode.com
-  version: '2024-10-01'
+  version: '2023-08-01'
+  description: One integration, 1000+ energy devices.
+  license:
+    name: Enode Commercial License
+    url: https://enode.com
 servers:
 - url: https://enode-api.production.enode.io
-  description: Production
-- url: https://enode-api.sandbox.enode.io
-  description: Sandbox
-security:
-- bearerAuth: []
 tags:
 - name: Vehicles
-  description: Read and control connected electric vehicles.
+  description: EVs provide charge, location, and odometer data. Vehicles can be controlled either directly using the Control Charging endpoint, or through Smart Charging and Schedules.
 paths:
   /vehicles:
     get:
-      operationId: listVehicles
+      summary: List Vehicles
+      operationId: getVehicles
+      description: Returns a paginated list of all available Vehicles
       tags:
       - Vehicles
-      summary: List vehicles
+      security:
+      - ClientAccessToken: []
       parameters:
-      - $ref: '#/components/parameters/pageAfter'
-      - $ref: '#/components/parameters/pageSize'
+      - $ref: '#/components/parameters/PaginationQueryAfter'
+      - $ref: '#/components/parameters/PaginationQueryBefore'
+      - $ref: '#/components/parameters/PaginationQueryPageSize'
       responses:
         '200':
-          description: A paginated list of vehicles.
+          description: Successful
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/VehicleList'
+                $ref: '#/components/schemas/PaginatedVehicleList'
+  /users/{userId}/vehicles:
+    get:
+      summary: List User Vehicles
+      operationId: listUserVehicles
+      description: Paginated list of user vehicles.
+      tags:
+      - Vehicles
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/UserPathId'
+      - $ref: '#/components/parameters/PaginationQueryAfter'
+      - $ref: '#/components/parameters/PaginationQueryBefore'
+      - $ref: '#/components/parameters/PaginationQueryPageSize'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedVehicleList'
   /vehicles/{vehicleId}:
     get:
+      summary: Get Vehicle
       operationId: getVehicle
       tags:
       - Vehicles
-      summary: Get a vehicle
+      security:
+      - ClientAccessToken: []
       parameters:
-      - $ref: '#/components/parameters/vehicleId'
+      - $ref: '#/components/parameters/VehiclePathId'
       responses:
         '200':
-          description: A vehicle.
+          description: Successful
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Vehicle'
-  /vehicles/{vehicleId}/charging:
+                allOf:
+                - $ref: '#/components/schemas/Vehicle'
+                - type: object
+                  properties:
+                    locationId:
+                      type:
+                      - string
+                      - 'null'
+                      example: 07f8368d-be7e-4dbd-8cf0-94d00dd67ad3
+                      x-format:
+                        guid: true
+                      description: ID of the location the vehicle is currently positioned at (if any).
+                  required:
+                  - locationId
+                  additionalProperties: false
+  /vehicles/{vehicleId}/max-current:
     post:
-      operationId: controlVehicleCharging
+      summary: Set Max Current
+      operationId: postVehiclesVehicleidMaxCurrent
+      deprecated: true
+      description: 'Deprecated: Use Set Charge Rate Limit instead, which accepts a target in kW.
+
+
+        Set the max current the vehicle is allowed to consume during charging. Currently only supported for Tesla vehicles and behind a feature flag. Reach out to Customer Success to get access.
+
+
+        This request creates an Action that will retry until the vehicle''s `maxCurrent` matches the expected value. The Action must complete before any further commands are sent to the vehicle. Only one Action can be active for a specific vehicle at a time. If a new Action is created, the previous Action will be automatically cancelled and transitioned to the `CANCELLED` state. Transitions can be tracked via the `user:vendor-action:updated` webhook event or Get Vehicle Action.'
       tags:
       - Vehicles
-      summary: Start or stop vehicle charging
+      security:
+      - ClientAccessToken: []
       parameters:
-      - $ref: '#/components/parameters/vehicleId'
+      - $ref: '#/components/parameters/VehiclePathId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TargetMaxCurrent'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              example:
+                id: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+                userId: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+                createdAt: '2023-08-01T01:00:00Z'
+                updatedAt: '2023-08-01T01:00:00Z'
+                completedAt: null
+                state: PENDING
+                failureReason: null
+                targetId: f723fed5-73aa-4004-b7f0-89e5173ee15e
+                targetType: vehicle
+                targetState:
+                  maxCurrent: 10
+              schema:
+                $ref: '#/components/schemas/MaxCurrentAction'
+        '400':
+          description: A precondition check failed that is unlikely to change within the action's timeout window. This occurs if the vehicle cannot perform the action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /vehicles/{vehicleId}/charge-rate-limit:
+    post:
+      summary: Set Charge Rate Limit
+      operationId: postVehiclesVehicleidChargeRateLimit
+      description: 'Sets the charge rate limit for a vehicle in kW. The vehicle must be plugged into a charger that supports this capability. Creates an Action that retries until the vehicle''s `chargeRateLimit` matches the target value. Setting chargeRateLimit also changes maxCurrent.
+
+
+        Only one Action can be active for a specific vehicle at a time. If a new Action is created, the previous Action will be automatically cancelled and transitioned to the `CANCELLED` state. Track transitions via the `user:vendor-action:updated` webhook event or Get Vehicle Action.
+
+
+        If you are interested in joining the Early Adopter program, please reach out to Enode with a short description of your use case.'
+      tags:
+      - Vehicles
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/VehiclePathId'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ChargeActionRequest'
+              $ref: '#/components/schemas/ChargeRateLimitPayload'
       responses:
         '200':
-          description: Charge action accepted.
+          description: Successful
+          content:
+            application/json:
+              example:
+                id: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+                userId: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+                createdAt: '2023-08-01T01:00:00Z'
+                updatedAt: '2023-08-01T01:00:00Z'
+                completedAt: null
+                state: PENDING
+                failureReason: null
+                targetId: f723fed5-73aa-4004-b7f0-89e5173ee15e
+                targetType: vehicle
+                targetState:
+                  chargeRateLimit: 5.2
+              schema:
+                $ref: '#/components/schemas/VehicleChargeRateLimitAction'
+        '400':
+          description: A precondition check failed. This occurs if the vehicle is not capable, not plugged in, or the charge rate limit is outside the allowed range.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Action'
+                $ref: '#/components/schemas/Problem'
+  /vehicles/actions/{actionId}:
+    get:
+      summary: Get Vehicle Action
+      description: Returns the current state of the requested Action.
+      operationId: getVehiclesAction
+      tags:
+      - Vehicles
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/ActionPathId'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              example:
+                id: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+                userId: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+                createdAt: '2023-08-01T01:00:00Z'
+                updatedAt: '2023-08-01T01:00:12Z'
+                completedAt: '2023-08-01T01:00:12Z'
+                state: CONFIRMED
+                failureReason: null
+                targetId: f723fed5-73aa-4004-b7f0-89e5173ee15e
+                targetType: vehicle
+                kind: START
+              schema:
+                $ref: '#/components/schemas/VehicleAction'
+        '404':
+          description: Action not found.
+  /vehicles/actions/{actionId}/cancel:
+    post:
+      summary: Cancel Vehicle Action
+      description: 'Cancels a pending vehicle action, halting any further attempts by Enode to execute it.
+
+
+        Note: This only updates the action''s status to `CANCELLED` within Enode and does not reflect a change in the vendor''s cloud. Thus any pending action in the vendor''s cloud might still be executed.'
+      operationId: cancelVehicleAction
+      tags:
+      - Vehicles
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/ActionPathId'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              example:
+                id: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+                userId: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+                createdAt: '2023-08-01T01:00:00Z'
+                updatedAt: '2023-08-01T01:00:12Z'
+                completedAt: '2023-08-01T01:00:12Z'
+                state: CANCELLED
+                failureReason:
+                  type: REQUESTED_CANCELLATION
+                  detail: The action was cancelled following an external request.
+                targetId: f723fed5-73aa-4004-b7f0-89e5173ee15e
+                targetType: vehicle
+                kind: START
+              schema:
+                $ref: '#/components/schemas/ChargeAction'
+        '404':
+          description: Action not found.
+        '409':
+          description: Action already in a resolved state.
+          content:
+            application/json:
+              example:
+                id: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+                userId: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+                createdAt: '2023-08-01T01:00:00Z'
+                updatedAt: '2023-08-01T01:00:12Z'
+                completedAt: '2023-08-01T01:00:12Z'
+                state: CONFIRMED
+                failureReason: null
+                targetId: f723fed5-73aa-4004-b7f0-89e5173ee15e
+                targetType: vehicle
+                kind: START
+              schema:
+                $ref: '#/components/schemas/ChargeAction'
+  /vehicles/{vehicleId}/refresh-hint:
+    post:
+      summary: Refresh Vehicle Data
+      description: 'Use this endpoint to initiate an expedited data refresh for the specified vehicle.
+
+
+        Note: The Enode platform keeps data automatically up-to-date and detects changes in the OEM APIs within seconds to a few minutes. We change the refresh interval dynamically based on a number of heuristics. This ensures we find the best trade-off between the stability of the connection to the OEM and freshness of the data.
+
+        This method overrides most of our heuristics and should therefore be used with caution. You may use it when you have a strong reason to believe the data might be stale.'
+      operationId: vehiclesRefreshHint
+      tags:
+      - Vehicles
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/VehiclePathId'
+      responses:
+        '204':
+          description: Refresh hint registered successfully.
+          content: {}
+        '404':
+          description: The specified vehicle was not found.
+        '429':
+          description: Rate limited. Retry after the number of seconds given in the Retry-After header.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                pattern: ^\d+$
+                description: Seconds until the current UTC hour resets and another refresh hint can be submitted.
+                example: '1800'
+              required: true
+              description: Seconds until the current UTC hour resets and another refresh hint can be submitted.
+          content:
+            application/problem+json:
+              example:
+                type: https://docs.enode.io/api/problems/rate-limited
+                title: Rate limited
+                detail: You have reached the maximum number of 9 refresh-hints per hour for this device.
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /vehicles/{vehicleId}/charging:
+    post:
+      summary: Control Charging
+      operationId: postVehiclesVehicleidCharging
+      description: 'Request for a vehicle to start or stop charging. This request creates an Action that will retry until the vehicle''s `powerDeliveryState` matches the expected value. The Action must complete before any further commands are sent to the vehicle. If a `PENDING` action for the same target and type already exists, it will be reused and a new action will not be created. If the new Action has a different target or type, the existing Action will be automatically transitioned to the `CANCELLED` state and a new Action will be created. Transitions can be tracked via the `user:vendor-action:updated` webhook event or Get Vehicle Action.
+
+
+        This endpoint returns an error with status code 422 if the vehicle is controlled by a schedule or has an active smart charging plan. To restore user control, either disable the schedule, disable smart charging, or use Create Smart Override to temporarily enable charging.'
+      tags:
+      - Vehicles
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/VehiclePathId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                action:
+                  allOf:
+                  - $ref: '#/components/schemas/ChargingAction'
+                  description: Charging action to perform
+              required:
+              - action
+              additionalProperties: false
+      responses:
+        '200':
+          description: Resulting charge action
+          content:
+            application/json:
+              example:
+                id: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+                userId: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+                createdAt: '2023-08-01T01:00:00Z'
+                updatedAt: '2023-08-01T01:00:00Z'
+                completedAt: null
+                state: PENDING
+                failureReason: null
+                targetId: f723fed5-73aa-4004-b7f0-89e5173ee15e
+                targetType: vehicle
+                kind: START
+              schema:
+                $ref: '#/components/schemas/ChargeAction'
+        '400':
+          description: A precondition check failed that is unlikely to change within the action's timeout window. This occurs if the vehicle cannot perform the action, is fully charged, or is already in the desired state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Vehicle controlled by a Schedule or has active Smart Charging Plan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /vehicles/{vehicleId}/smart-charging-plans/{smartChargingPlanId}:
+    get:
+      summary: Get Smart Charging Plan
+      description: 'Check status of current or historical Smart Charging Plans for a Vehicle. Returns a Smart Charging Plan for this vehicle.
+
+
+        To fetch the most recently created Plan, call the endpoint with `smartChargingPlanId` set to `latest`.'
+      operationId: getVehiclesVehicleidSmartchargingplans
+      tags:
+      - Vehicles
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/VehiclePathId'
+      - $ref: '#/components/parameters/SmartChargingPlanPathId'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SmartChargingPlan'
+  /vehicles/{vehicleId}/smart-charging-policy:
+    get:
+      summary: Get Vehicle Smart Charging Policy
+      description: Get a vehicle's Smart Charging policy
+      operationId: getVehiclesVehicleidSmartchargingpolicy
+      tags:
+      - Vehicles
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/VehiclePathId'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleSmartChargingPolicy'
+    put:
+      summary: Update Vehicle Smart Charging Policy
+      operationId: updateVehicleSmartChargingPolicy
+      description: Updates the Smart Charging policy for a vehicle
+      tags:
+      - Vehicles
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/VehiclePathId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartialVehicleSmartChargingPolicy'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleSmartChargingPolicy'
+        '400':
+          description: 'Bad Request. For example: another user has activated smart charging for the same vehicle, missing deadline, maxChargeLimit < minChargeLimit, minChargeLimit below threshold for vendor or user does not have a price area or tariffs.'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    description: A URI reference that identifies the problem type.
+                  title:
+                    type: string
+                    description: A short, human-readable summary of the problem type.
+                  detail:
+                    type: string
+                    description: A human-readable explanation specific to this occurrence of the problem.
+                  issues:
+                    type: array
+                    items:
+                      type: object
+                      properties: {}
+                    description: A list of validation issues which occurred while validating some component of the network payload.
+                required:
+                - type
+                - title
+                - detail
+                description: Various Bad Request errors. Title and detail can vary.
+                example:
+                  type: https://docs.enode.io/api/problems/bad-request
+                  title: Cannot activate smart charging
+                  detail: Another user already has smart charging enabled for this vehicle
+  /vehicles/{vehicleId}/smart-override:
+    post:
+      summary: Create Smart Override
+      operationId: vehicleCreateSmartOverride
+      description: Overrides an active smart feature by forcing the vehicle to start charging. This feature is meant to be used in situations where the user wants to charge immediately without disabling other smart features. The override remains active until the vehicle stops charging, or until End Smart Override is called. When the override ends, the overridden smart feature will regain control of the vehicle. This endpoint should not be used for standard charge control, use Control Charging instead.
+      tags:
+      - Vehicles
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/VehiclePathId'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/SmartOverrideStatus'
+                - type: object
+                  properties:
+                    userId:
+                      type: string
+                      description: ID of the User
+                      example: 0bec82e0-0d54-4f2f-83b1-5b248604de0b
+                    vendor:
+                      $ref: '#/components/schemas/ChargeableVendor'
+                  required:
+                  - userId
+                  - vendor
+                  additionalProperties: false
+                description: This field populates after using Vehicle [Create Smart Override](/api#vehicleCreateSmartOverride) or Charger Create Smart Override. Once populated, the target enters an overridden state, stopping Enode from sending Smart Charging actions. The Smart Override persists until the target ceases charging for any reason or is manually ended via Vehicle [End Smart Override](/api#vehicleEndSmartOverride) or Charger End Smart Override.
+        '400':
+          description: 'No override was created: there is no smart feature to override, or a charging start Action was rejected for a plugged-in vehicle that is not charging. Action rate limits return `429` instead.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    delete:
+      summary: End Smart Override
+      operationId: vehicleEndSmartOverride
+      description: Ends any active Smart Override for the vehicle specified by `vehicleId`. If previously configured, Schedules or Smart Charging will resume control over the target vehicle. Note that this does not mean the vehicle will stop charging, only that it will return to the state expected by the active Schedule or Smart Charging Plan.
+      tags:
+      - Vehicles
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/VehiclePathId'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/SmartOverrideStatus'
+                - type: object
+                  properties:
+                    userId:
+                      type: string
+                      description: ID of the User
+                      example: 0bec82e0-0d54-4f2f-83b1-5b248604de0b
+                    vendor:
+                      $ref: '#/components/schemas/ChargeableVendor'
+                  required:
+                  - userId
+                  - vendor
+                  additionalProperties: false
+                description: This field populates after using Vehicle [Create Smart Override](/api#vehicleCreateSmartOverride) or Charger Create Smart Override. Once populated, the target enters an overridden state, stopping Enode from sending Smart Charging actions. The Smart Override persists until the target ceases charging for any reason or is manually ended via Vehicle [End Smart Override](/api#vehicleEndSmartOverride) or Charger End Smart Override.
+        '404':
+          description: No Smart Override Exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /vehicles/{vehicleId}/smart-charging-status:
+    get:
+      summary: Get Vehicle Smart Charging Status
+      description: Every vehicle in Enode has a Smart Charging Status that describes the vehicle in terms of smart charging.
+      operationId: getVehiclesVehicleidSmartchargingstatus
+      tags:
+      - Vehicles
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/VehiclePathId'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    description: Time when the Smart Charging Status was recalculated, irrespective of whether or not any values changed
+                    example: '2020-04-07T17:04:26Z'
+                  vehicleId:
+                    type: string
+                    description: ID of the vehicle to which this Smart Charging Status represents
+                    example: 4b5ada14-ea87-4ca1-aab9-3c979c34cf4a
+                  userId:
+                    type: string
+                    description: ID of the user that owns this vehicle
+                    example: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+                  vendor:
+                    allOf:
+                    - $ref: '#/components/schemas/VehicleVendor'
+                    description: Vendor of the Vehicle
+                  state:
+                    $ref: '#/components/schemas/SmartChargeState'
+                  stateChangedAt:
+                    type: string
+                    format: date-time
+                    description: Time when the `state` property transitioned to its current value
+                    example: '2020-04-07T17:04:26Z'
+                  consideration:
+                    $ref: '#/components/schemas/Consideration'
+                  plan:
+                    allOf:
+                    - $ref: '#/components/schemas/SmartChargingPlan'
+                    description: '`null` by default, but during all of the `PLAN:*` states,  the value is populated with a description of the active plan'
+                  smartOverride:
+                    allOf:
+                    - $ref: '#/components/schemas/SmartOverrideStatus'
+                required:
+                - updatedAt
+                - vehicleId
+                - userId
+                - vendor
+                - state
+                - stateChangedAt
+                - consideration
+                - plan
+                - smartOverride
+                additionalProperties: false
 components:
   schemas:
-    Action:
+    SmartChargingPlanPathId:
+      type: string
+      description: ID of the Smart Charging Plan, or 'latest' to fetch the most recent plan.
+      example: latest
+    ChargingAction:
+      type: string
+      enum:
+      - START
+      - STOP
+    VehicleVendor:
+      type: string
+      enum:
+      - ACURA
+      - AUDI
+      - BMW
+      - JAGUAR
+      - LANDROVER
+      - MINI
+      - PORSCHE
+      - RENAULT
+      - SEAT
+      - SKODA
+      - TESLA
+      - VOLKSWAGEN
+      - VOLVO
+      - XPENG
+      - KIA
+      - HYUNDAI
+      - PEUGEOT
+      - OPEL
+      - DS
+      - MERCEDES
+      - FORD
+      - TOYOTA
+      - LEXUS
+      - NISSAN
+      - CITROEN
+      - CUPRA
+      - VAUXHALL
+      - FIAT
+      - RIVIAN
+      - NIO
+      - CHEVROLET
+      - CADILLAC
+      - GMC
+      - HONDA
+      - POLESTAR
+      - SUBARU
+      - JEEP
+      - MAZDA
+      - MG
+      - CHRYSLER
+      - DODGE
+      - RAM
+      - ALFAROMEO
+      - LANCIA
+      - LUCID
+      - BYD
+      - DACIA
+      - ALPINE
+      - LEAPMOTOR
+      - SMART
+      - OMODA
+      description: Machine-friendly name of the vendor. Use this in API requests.
+      example: TESLA
+    Consideration:
+      type:
+      - object
+      - 'null'
+      properties:
+        isPluggedIn:
+          type: boolean
+          description: The vehicle is plugged in
+        isCharging:
+          type: boolean
+          description: The vehicle is charging
+        atChargingLocation:
+          type: boolean
+          description: The vehicle is located at a configured Charging Location
+        hasTimeEstimate:
+          type: boolean
+          description: A good estimate is available of how much time it will take to charge.
+      required:
+      - isPluggedIn
+      - isCharging
+      - atChargingLocation
+      - hasTimeEstimate
+      additionalProperties: false
+    VehicleChargeRateLimitAction:
       type: object
       properties:
         id:
           type: string
+          example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+          x-format:
+            guid: true
+          description: The ID of the action.
         userId:
           type: string
-        targetId:
-          type: string
-        targetType:
-          type: string
-        state:
-          type: string
-          enum:
-          - PENDING
-          - CONFIRMED
-          - FAILED
-          - CANCELLED
-        kind:
-          type: string
+          description: The ID of the user that owns the target of this action.
+          example: bb28471e-cde6-4eff-ace4-9a7f4f50882a
         createdAt:
           type: string
           format: date-time
+          description: Time when this action was created
+          example: '2020-04-07T17:04:26Z'
+        updatedAt:
+          type: string
+          format: date-time
+          description: Time when this action was last updated
+          example: '2020-04-07T17:04:26Z'
         completedAt:
           type:
           - string
           - 'null'
           format: date-time
-    ChargeActionRequest:
-      type: object
-      required:
-      - action
-      properties:
-        action:
+          description: Time when the action transitioned to a non-pending state.
+          example: '2020-04-07T17:04:26Z'
+        state:
+          $ref: '#/components/schemas/ActionState'
+        targetId:
+          type: string
+          description: ID of the entity which this action is controlling.
+        targetState:
+          $ref: '#/components/schemas/ChargeRateLimitPayload'
+        failureReason:
+          allOf:
+          - $ref: '#/components/schemas/ActionFailureReason'
+        targetType:
           type: string
           enum:
-          - START
-          - STOP
+          - vehicle
+      required:
+      - id
+      - userId
+      - createdAt
+      - updatedAt
+      - completedAt
+      - state
+      - targetId
+      - targetState
+      - failureReason
+      - targetType
+      additionalProperties: false
+      title: Vehicle Charge Rate Limit Action
+    ActionState:
+      type: string
+      enum:
+      - PENDING
+      - CONFIRMED
+      - FAILED
+      - CANCELLED
+      description: "The real-time status of an action executed on a target. \n\n * `PENDING`: The initial state. Enode is actively sending commands and monitoring the target for changes. \n * `CONFIRMED`: Successful transition of the target to the desired state. \n * `FAILED`: The target did not respond to the action before timing out. Enode has ceased sending additional commands. \n * `CANCELLED`: A required precondition was not met during the action's timeout window or another action has been sent to the target, overriding this one."
+    Brand:
+      type: string
+      description: A formatted and properly cased OEM brand name, suitable for reading by humans. May contain special characters.
+      example: Tesla
+    VehicleSmartChargingPolicy:
+      type: object
+      properties:
+        isEnabled:
+          type: boolean
+          description: When enabled, this vehicle's charging status may be controlled by [Smart Charging](/docs/smart-charging/introduction)
+        deadline:
+          type:
+          - string
+          - 'null'
+          pattern: ^(((?:[01]\d|2[0-3]):[0-5]\d)|24:00)$
+          description: The hour-minute deadline for fully charging the vehicle. Smart charging does not work without setting a deadline. If a timezone is set on the location at which the smart charging occurs, the deadline is interpreted in that timezone, otherwise UTC is used.
+          example: 07:00
+        minimumChargeLimit:
+          type: number
+          description: Proceed to charge promptly, disregarding energy prices, until the vehicle achieves this preset minimum limit. Please note that this limit cannot exceed the vehicle's maximum charge limit. The default setting is zero. The unit of measure is percentage.
+      required:
+      - isEnabled
+      - deadline
+      - minimumChargeLimit
+      title: Smart Charging Policy
+      description: '[Smart Charging](/docs/smart-charging/introduction) configuration properties. Configured via [Update Vehicle Smart Charging Policy](/api#updateVehicleSmartChargingPolicy).'
+    SmartChargeState:
+      type: string
+      enum:
+      - DISABLED
+      - CONSIDERING
+      - UNKNOWN
+      - PLAN:EXECUTING:STOPPING
+      - PLAN:EXECUTING:STOP_FAILED
+      - PLAN:EXECUTING:STOPPED
+      - PLAN:EXECUTING:STOPPED:AWAITING_PRICES
+      - PLAN:EXECUTING:STARTING
+      - PLAN:EXECUTING:START_FAILED
+      - PLAN:EXECUTING:STARTED
+      - PLAN:EXECUTING:CHARGE_INTERRUPTED
+      - PLAN:EXECUTING:OVERRIDDEN
+      - PLAN:ENDED:FINISHED
+      - PLAN:ENDED:UNPLUGGED
+      - PLAN:ENDED:FAILED
+      - PLAN:ENDED:DISABLED
+      - PLAN:ENDED:DEADLINE_CHANGED
+      - FULLY_CHARGED
+      description: An enum value that describes the current Smart Charging state of the vehicle. Every vehicle is in exactly one state, at all times. If the returned state is `UNKNOWN`, this might indicate that the vehicle is no longer capable of smart charging. In this case we recommend that you check the capabilities of the vehicle to determine what should be communicated to users. If we don't have pricing data or tariffs for the location of the vehicle, the state will also be `UNKNOWN`. In this case, we recommend that you contact Enode staff.
+      example: PLAN:EXECUTING:STARTING
+    VehicleInformation:
+      type: object
+      properties:
+        vin:
+          type:
+          - string
+          - 'null'
+          description: Vehicle VIN
+          example: 2HGFB2F5XEH542858
+        brand:
+          allOf:
+          - $ref: '#/components/schemas/Brand'
+        model:
+          type:
+          - string
+          - 'null'
+          description: Vehicle model
+          example: Model S P85
+        year:
+          type:
+          - integer
+          - 'null'
+          minimum: -2147483648
+          maximum: 2147483647
+          description: Vehicle production year
+          example: 2020
+        displayName:
+          type:
+          - string
+          - 'null'
+          description: User-defined vehicle nickname.
+          example: Batmobile
+        imageUrl:
+          type:
+          - string
+          - 'null'
+          description: URL to an image of the vehicle model. `null` when not available.
+          example: https://cdn.images.enode.com/assets/019c8221-f8be-7fb3-a2eb-3c9c223f4d73.webp
+      required:
+      - vin
+      - brand
+      - model
+      - year
+      - displayName
+      - imageUrl
+      additionalProperties: false
+      description: Descriptive information about the Vehicle.
+    Capability:
+      type: object
+      properties:
+        isCapable:
+          type: boolean
+          description: The entity is fully capable of providing this data or functionality. If false, support is partial or missing. A capable entity (`true`) may still list recommended interventions in `interventionIds`.
+          example: false
+        interventionIds:
+          type: array
+          items:
+            type: string
+            example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+            x-format:
+              guid: true
+          description: 'IDs of interventions the user can make to alter the availability of this capability.
+
+            Interventions may be present even when `isCapable` is `true` (recommended, non-blocking actions). See [the interventions guide](/docs/interventions#accessing-interventions-via-our-api).'
+      required:
+      - isCapable
+      - interventionIds
+      additionalProperties: false
+    MonetaryAmount:
+      type: number
+    PaginationQueryAfter:
+      type: string
+      description: Opaque cursor used to fetch next page. Cannot be set together with `before`. Refer to [Pagination](/api#pagination) for more information.
+      example: MjAyMy0wNy0xOFQxMDowODowMi4zNzNa
+    VehicleOdometer:
+      type: object
+      properties:
+        distance:
+          type:
+          - number
+          - 'null'
+          description: Odometer in kilometers
+          example: 65393
+        lastUpdated:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Time of the last odometer update (ISO 8601 UTC timestamp)
+          example: '2024-01-07T17:04:26.000Z'
+      required:
+      - distance
+      - lastUpdated
+      additionalProperties: false
+      description: Vehicle's odometer reading in kilometers with timestamp
+    PaginationQueryBefore:
+      type: string
+      description: Opaque cursor used to fetch previous page. Cannot be used together with `after`. Refer to [Pagination](/api#pagination) for more information.
+      example: MjAyMy0wNy0xOFQxMDowODowMi4zNzNa
+    ChargeableVendorType:
+      type: string
+      enum:
+      - vehicle
+      - charger
+    CurrencyCode:
+      type: string
+      description: Currency in which monetary amounts are denominated (ISO 4217 3-character Alpha code)
+      example: USD
+    VehicleChargeState:
+      type: object
+      properties:
+        batteryLevel:
+          type:
+          - number
+          - 'null'
+          description: Remaining battery in percent
+          example: 66
+        range:
+          type:
+          - number
+          - 'null'
+          description: Estimated remaining kilometers
+          example: 228
+        isPluggedIn:
+          type:
+          - boolean
+          - 'null'
+          description: Indicates whether the vehicle is connected to a charging box (regardless of whether it is actually charging)
+          example: true
+        isCharging:
+          type:
+          - boolean
+          - 'null'
+          description: Indicates whether the vehicle is currently receiving power from the charger and actively charging its battery.
+          example: true
+        isFullyCharged:
+          type:
+          - boolean
+          - 'null'
+          description: Indicates whether the vehicle is fully charged. 'Fully charged' may be a `batteryLevel` of less than 100 if a `chargeLimit` has been configured in the vehicle. This will be `null` when `powerDeliveryState` is `UNKNOWN`.
+          example: false
+        batteryCapacity:
+          type:
+          - number
+          - 'null'
+          description: Vehicle's usable battery capacity in kWh.
+          example: 48.1
+        chargeLimit:
+          type:
+          - number
+          - 'null'
+          description: 'Charge limit, as a percent of `batteryCapacity`.
+
+
+            When `null`, the vendor did not report a charge limit when we last received data from them. We recommend assuming the limit is 100%.'
+          example: 90
+        chargeRate:
+          type:
+          - number
+          - 'null'
+          description: 'The current charge rate in kW.
+
+
+            This property is only available when the vehicle is charging, and is `null` any other time.'
+          example: 2
+        chargeTimeRemaining:
+          type:
+          - number
+          - 'null'
+          description: 'Estimated time until the current charging intent is completed, in minutes.
+
+
+            This property is only available when the vehicle is charging, and is `null` any other time.'
+          example: 285
+        lastUpdated:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Time of last received charge state update
+          example: '2020-04-07T17:04:26Z'
+        maxCurrent:
+          type:
+          - number
+          - 'null'
+          deprecated: true
+          description: 'Deprecated: Use `chargeRateLimit` instead.
+
+
+            The maximum current that the vehicle can draw from the charger, in amps.'
+          example: 16
+        powerDeliveryState:
+          $ref: '#/components/schemas/VehiclePowerDeliveryState'
+        pluggedInChargerId:
+          type:
+          - string
+          - 'null'
+          description: "ID of the charger currently plugged into the vehicle. By default, this attribute will be `null` and will only be populated if:\n * The charger and the vehicle are linked to the same Enode `userId`.\n * AND Enode has determined that the vehicle and charger are **currently** plugged into each other."
+          example: e7d4db80-4fca-4781-ac70-14108f560706
+        chargeRateLimit:
+          type:
+          - number
+          - 'null'
+          description: 'The current charge rate limit in kW. Returns `null` when the vehicle is not plugged into a charger or when the value is unavailable from the vendor.
+
+
+            Early Adopter: This property is only available for early adopters of [Set Charge Rate Limit](/api#postVehiclesVehicleidChargeRateLimit).'
+      required:
+      - batteryLevel
+      - range
+      - isPluggedIn
+      - isCharging
+      - isFullyCharged
+      - batteryCapacity
+      - chargeLimit
+      - chargeRate
+      - chargeTimeRemaining
+      - lastUpdated
+      - maxCurrent
+      - powerDeliveryState
+      additionalProperties: false
+      description: Latest information about the electric or hybrid battery. `null` values indicate we are unable to determine a value for the field based on the information coming from the vendor.
+    VehicleAction:
+      anyOf:
+      - type: object
+        properties:
+          id:
+            type: string
+            example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+            x-format:
+              guid: true
+            description: The ID of the action.
+          userId:
+            type: string
+            description: The ID of the user that owns the target of this action.
+            example: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+          createdAt:
+            type: string
+            format: date-time
+            description: Time when this action was created
+            example: '2020-04-07T17:04:26Z'
+          updatedAt:
+            type: string
+            format: date-time
+            description: Time when this action was last updated
+            example: '2020-04-07T17:04:26Z'
+          completedAt:
+            type:
+            - string
+            - 'null'
+            format: date-time
+            description: Time when the action transitioned to a non-pending state.
+            example: '2020-04-07T17:04:26Z'
+          state:
+            $ref: '#/components/schemas/ActionState'
+          targetId:
+            type: string
+            description: ID of the target which this action is controlling.
+            example: bfbccded-8a1c-45a8-bbda-dcaeef29977a
+          kind:
+            allOf:
+            - $ref: '#/components/schemas/ChargingAction'
+            description: The charging action to perform
+          failureReason:
+            allOf:
+            - $ref: '#/components/schemas/ActionFailureReason'
+          targetType:
+            type: string
+            enum:
+            - vehicle
+        required:
+        - id
+        - userId
+        - createdAt
+        - updatedAt
+        - completedAt
+        - state
+        - targetId
+        - kind
+        - failureReason
+        - targetType
+        additionalProperties: false
+        title: Charge Action
+      - type: object
+        properties:
+          id:
+            type: string
+            example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+            x-format:
+              guid: true
+            description: The ID of the action.
+          userId:
+            type: string
+            description: The ID of the user that owns the target of this action.
+            example: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+          createdAt:
+            type: string
+            format: date-time
+            description: Time when this action was created
+            example: '2020-04-07T17:04:26Z'
+          updatedAt:
+            type: string
+            format: date-time
+            description: Time when this action was last updated
+            example: '2020-04-07T17:04:26Z'
+          completedAt:
+            type:
+            - string
+            - 'null'
+            format: date-time
+            description: Time when the action transitioned to a non-pending state.
+            example: '2020-04-07T17:04:26Z'
+          state:
+            $ref: '#/components/schemas/ActionState'
+          targetId:
+            type: string
+            description: ID of the entity which this action is controlling.
+          targetState:
+            $ref: '#/components/schemas/TargetMaxCurrent'
+          failureReason:
+            allOf:
+            - $ref: '#/components/schemas/ActionFailureReason'
+          targetType:
+            type: string
+            enum:
+            - vehicle
+        required:
+        - id
+        - userId
+        - createdAt
+        - updatedAt
+        - completedAt
+        - state
+        - targetId
+        - targetState
+        - failureReason
+        - targetType
+        additionalProperties: false
+        deprecated: true
+        title: Max Current Action
+      - type: object
+        properties:
+          id:
+            type: string
+            example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+            x-format:
+              guid: true
+            description: The ID of the action.
+          userId:
+            type: string
+            description: The ID of the user that owns the target of this action.
+            example: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+          createdAt:
+            type: string
+            format: date-time
+            description: Time when this action was created
+            example: '2020-04-07T17:04:26Z'
+          updatedAt:
+            type: string
+            format: date-time
+            description: Time when this action was last updated
+            example: '2020-04-07T17:04:26Z'
+          completedAt:
+            type:
+            - string
+            - 'null'
+            format: date-time
+            description: Time when the action transitioned to a non-pending state.
+            example: '2020-04-07T17:04:26Z'
+          state:
+            $ref: '#/components/schemas/ActionState'
+          targetId:
+            type: string
+            description: ID of the entity which this action is controlling.
+          targetState:
+            $ref: '#/components/schemas/ChargeRateLimitPayload'
+          failureReason:
+            allOf:
+            - $ref: '#/components/schemas/ActionFailureReason'
+          targetType:
+            type: string
+            enum:
+            - vehicle
+        required:
+        - id
+        - userId
+        - createdAt
+        - updatedAt
+        - completedAt
+        - state
+        - targetId
+        - targetState
+        - failureReason
+        - targetType
+        additionalProperties: false
+        title: Charge Rate Limit Action
     Vehicle:
       type: object
       properties:
         id:
           type: string
+          description: Vehicle ID
+          example: 05ee9df5-d072-4ee8-b773-399dec8f5693
         userId:
           type: string
+          description: The ID of the user that linked this vehicle.
+          example: bb28471e-cde6-4eff-ace4-9a7f4f50882a
         vendor:
-          type: string
-        isReachable:
-          type: boolean
+          $ref: '#/components/schemas/VehicleVendor'
         lastSeen:
           type: string
           format: date-time
+          description: The last time Enode received live data or when the vehicle was initially linked.
+          example: '2024-01-07T17:04:26.000Z'
+        isReachable:
+          type:
+          - boolean
+          - 'null'
+          description: Indicates whether Enode can currently access live data from the vehicle. If the vehicle is not reachable, data updates will be delayed.
+          example: true
         information:
-          type: object
-          properties:
-            brand:
-              type: string
-            model:
-              type: string
-            year:
-              type: integer
-            vin:
-              type: string
+          $ref: '#/components/schemas/VehicleInformation'
         chargeState:
-          type: object
-          properties:
-            batteryLevel:
-              type: integer
-              description: State of charge as a percentage.
-            isCharging:
-              type: boolean
-            isPluggedIn:
-              type: boolean
-            range:
-              type: number
-            chargeLimit:
-              type: integer
-            powerDeliveryState:
-              type: string
+          $ref: '#/components/schemas/VehicleChargeState'
+        smartChargingPolicy:
+          $ref: '#/components/schemas/VehicleSmartChargingPolicy'
         location:
-          type: object
-          properties:
-            latitude:
-              type: number
-            longitude:
-              type: number
+          $ref: '#/components/schemas/VehicleLocation'
         odometer:
-          type: object
-          properties:
-            distance:
-              type: number
-    VehicleList:
+          $ref: '#/components/schemas/VehicleOdometer'
+        capabilities:
+          $ref: '#/components/schemas/VehicleCapabilities'
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Scopes that the user has granted for this vehicle.
+          example:
+          - vehicle:control:charging
+          - vehicle:read:data
+          - vehicle:read:location
+      required:
+      - id
+      - userId
+      - vendor
+      - lastSeen
+      - isReachable
+      - information
+      - chargeState
+      - smartChargingPolicy
+      - location
+      - odometer
+      - capabilities
+      - scopes
+      additionalProperties: false
+    ChargeAction:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+          x-format:
+            guid: true
+          description: The ID of the action.
+        userId:
+          type: string
+          description: The ID of the user that owns the target of this action.
+          example: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+        createdAt:
+          type: string
+          format: date-time
+          description: Time when this action was created
+          example: '2020-04-07T17:04:26Z'
+        updatedAt:
+          type: string
+          format: date-time
+          description: Time when this action was last updated
+          example: '2020-04-07T17:04:26Z'
+        completedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Time when the action transitioned to a non-pending state.
+          example: '2020-04-07T17:04:26Z'
+        state:
+          $ref: '#/components/schemas/ActionState'
+        targetId:
+          type: string
+          description: ID of the target which this action is controlling.
+          example: bfbccded-8a1c-45a8-bbda-dcaeef29977a
+        targetType:
+          $ref: '#/components/schemas/ChargeableVendorType'
+        kind:
+          allOf:
+          - $ref: '#/components/schemas/ChargingAction'
+          description: The charging action to perform
+        failureReason:
+          allOf:
+          - $ref: '#/components/schemas/ActionFailureReason'
+      required:
+      - id
+      - userId
+      - createdAt
+      - updatedAt
+      - completedAt
+      - state
+      - targetId
+      - targetType
+      - kind
+      - failureReason
+      additionalProperties: false
+      title: Charge Action
+    PartialVehicleSmartChargingPolicy:
+      type: object
+      properties:
+        isEnabled:
+          type: boolean
+          description: When enabled, this vehicle's charging status may be controlled by [Smart Charging](/docs/smart-charging/introduction)
+        deadline:
+          type: string
+          pattern: ^(((?:[01]\d|2[0-3]):[0-5]\d)|24:00)$
+          description: The hour-minute deadline for fully charging the vehicle. Smart charging does not work without setting a deadline. If a timezone is set on the location at which the smart charging occurs, the deadline is interpreted in that timezone, otherwise UTC is used.
+          example: 07:00
+        minimumChargeLimit:
+          type: number
+          description: Proceed to charge promptly, disregarding energy prices, until the vehicle achieves this preset minimum limit. Please note that this limit cannot exceed the vehicle's maximum charge limit. The default setting is zero. The unit of measure is percentage.
+    SmartChargingPlanFinalState:
+      type: string
+      enum:
+      - PLAN:ENDED:FINISHED
+      - PLAN:ENDED:UNPLUGGED
+      - PLAN:ENDED:FAILED
+      - PLAN:ENDED:DISABLED
+      - PLAN:ENDED:DEADLINE_CHANGED
+    VehiclePathId:
+      type: string
+      description: ID of the Vehicle.
+      example: ad84e742-0f46-4cf4-b0db-7d890f8f23f5
+    FailureCondition:
+      type: string
+      enum:
+      - STOP_FAILED
+      - START_FAILED
+      - FINISHED_LATE
+      - UNKNOWN
+      - CHARGE_INTERRUPTED
+      description: An enum value that describes the current SmartCharging state of the vehicle. Every vehicle is in exactly one state, at all times
+    VehiclePowerDeliveryState:
+      type: string
+      enum:
+      - UNKNOWN
+      - UNPLUGGED
+      - PLUGGED_IN:INITIALIZING
+      - PLUGGED_IN:CHARGING
+      - PLUGGED_IN:STOPPED
+      - PLUGGED_IN:COMPLETE
+      - PLUGGED_IN:NO_POWER
+      - PLUGGED_IN:FAULT
+      - PLUGGED_IN:DISCHARGING
+      example: PLUGGED_IN:CHARGING
+      description: "The current state of power delivery between the vehicle and charger.\n\n * `UNKNOWN`: The state of power delivery is currently unknown. \n * `UNPLUGGED`: The vehicle is not connected to the charger. \n * `PLUGGED_IN:INITIALIZING`: The charging station is preparing to deliver power to the vehicle. It is expected for this state to shortly transition into PLUGGED_IN:CHARGING. \n * `PLUGGED_IN:CHARGING`: The vehicle is actively receiving power from the charger, causing the battery level to increase. \n * `PLUGGED_IN:COMPLETE`: The charging process has finished and the vehicle's battery has reached the target charge limit. \n * `PLUGGED_IN:STOPPED`: The charging process has been intentionally stopped by either the vehicle or the charger. The vehicle is still plugged in and waiting for the charging process to resume. \n * `PLUGGED_IN:NO_POWER`: The vehicle attempted to initialize charging, however no external power was available. It is not possible to transition into a charging state with a remote command until there is some user intervention to resolve the issue. \n * `PLUGGED_IN:FAULT`: A malfunction in the charging process is preventing power from being delivered. Possible causes include a charging cable not being properly locked, extreme temperatures, or malfunctions in either the charging station or the vehicle's internal system. It is not possible to transition into a charging state with a remote command until there is some user intervention to resolve the issue.\n * `PLUGGED_IN:DISCHARGING`: The vehicle is actively discharging by giving power to the home/grid, causing the battery level to decrease."
+    ChargeRateLimitCapability:
+      type: object
+      properties:
+        isCapable:
+          type: boolean
+          description: The entity is fully capable of providing this data or functionality. If false, support is partial or missing. A capable entity (`true`) may still list recommended interventions in `interventionIds`.
+          example: false
+        interventionIds:
+          type: array
+          items:
+            type: string
+            example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+            x-format:
+              guid: true
+          description: 'IDs of interventions the user can make to alter the availability of this capability.
+
+            Interventions may be present even when `isCapable` is `true` (recommended, non-blocking actions). See [the interventions guide](/docs/interventions#accessing-interventions-via-our-api).'
+        allowedRange:
+          allOf:
+          - $ref: '#/components/schemas/ChargeRateLimitRange'
+          description: Allowed charge rate limits for the charger.
+      required:
+      - isCapable
+      - interventionIds
+      - allowedRange
+      additionalProperties: false
+    PaginationQueryPageSize:
+      type: integer
+      description: Number of records to return per page. Default page size is 50.
+      example: 50
+      exclusiveMinimum: 0
+    UserPathId:
+      type: string
+      description: ID of the User.
+    ChargeRateLimitPayload:
+      type: object
+      properties:
+        chargeRateLimit:
+          type: number
+          description: Desired charge rate limit in kilowatts (kW)
+          example: 5.2
+          exclusiveMinimum: 0
+      required:
+      - chargeRateLimit
+      additionalProperties: false
+      description: Target charge rate limit for charger
+    ActionPathId:
+      type: string
+      example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+      x-format:
+        guid: true
+      description: ID of the Action.
+    PaginatedVehicleList:
       type: object
       properties:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/Vehicle'
-        pageInfo:
-          $ref: '#/components/schemas/PageInfo'
-    PageInfo:
+            allOf:
+            - $ref: '#/components/schemas/Vehicle'
+            - type: object
+              properties:
+                locationId:
+                  type:
+                  - string
+                  - 'null'
+                  example: 07f8368d-be7e-4dbd-8cf0-94d00dd67ad3
+                  x-format:
+                    guid: true
+                  description: ID of the location the vehicle is currently positioned at (if any).
+              required:
+              - locationId
+              additionalProperties: false
+        pagination:
+          $ref: '#/components/schemas/PaginationCursors'
+      required:
+      - data
+      - pagination
+      additionalProperties: false
+    SmartChargingPlan:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ID of the Smart Charging Plan
+          example: 53559d39-019a-443b-a2a7-a2ca29f54d4b
+        vehicleId:
+          type: string
+          description: ID of the Vehicle to which the Smart Charging Plan belongs
+          example: 4b5ada14-ea87-4ca1-aab9-3c979c34cf4a
+        userId:
+          type: string
+          description: ID of the User to which the Smart Charging Plan belongs
+          example: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+        locationId:
+          type:
+          - string
+          - 'null'
+          example: 07f8368d-be7e-4dbd-8cf0-94d00dd67ad3
+          x-format:
+            guid: true
+          description: ID of the location at which the Smart Charging Plan is being executed. Null for Smart Charging Plans started before March 2022.
+        vendor:
+          allOf:
+          - $ref: '#/components/schemas/VehicleVendor'
+          description: Vendor of the Vehicle to which the Smart Charging Plan belongs
+        currency:
+          $ref: '#/components/schemas/CurrencyCode'
+        nonSmartCost:
+          allOf:
+          - $ref: '#/components/schemas/MonetaryAmount'
+          description: Estimated cost of charging, if smart charging were not on for the vehicle
+          example: 17.2
+        smartCost:
+          allOf:
+          - $ref: '#/components/schemas/MonetaryAmount'
+          description: Estimated cost of charging, achieved by this Smart Charging Plan
+          example: 12.8
+        stopAt:
+          type: string
+          format: date-time
+          description: Time at which the current Smart Charging Plan will stop the vehicle's charging. The charging will be resumed when prices are optimal.
+          example: '2020-04-07T17:04:26Z'
+        startAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Time at which the current Smart Charging Plan will resume the vehicle's charging, when prices are optimal.
+          example: '2020-04-07T17:04:26Z'
+        estimatedFinishAt:
+          type: string
+          format: date-time
+          description: Time at which charging is estimated to be complete, due to the current Smart Charging Plan
+          example: '2020-04-07T17:04:26Z'
+        stopConfirmedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: During a Smart Charging Plan, the first time at which the vehicle's charging was confirmed as stopped. If a vehicle stops charging outside of smart charging's control (e.g., via a 3rd party app), this will be populated with that timestamp.
+          example: '2020-04-07T17:04:26Z'
+        startConfirmedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: During a Smart Charging Plan, the first time at which the vehicle's charging was confirmed as started. If a vehicle starts charging outside of smart charging's control (e.g., via a 3rd party app), this will be populated with that timestamp.
+          example: '2020-04-07T17:04:26Z'
+        endedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: The time at which the Smart Charging Plan ended
+          example: '2020-04-07T17:04:26Z'
+        finalState:
+          allOf:
+          - $ref: '#/components/schemas/SmartChargingPlanFinalState'
+          description: The final state of the Smart Charging Plan when it ended
+        failureCondition:
+          allOf:
+          - $ref: '#/components/schemas/FailureCondition'
+          description: If the finalState was `PLAN:ENDED:FAILED`, failureCondition is populated with the condition in which the Smart Charging Plan failed. If the finalState was `PLAN:ENDED:FINISHED`, failureCondition is populated with `FINISHED_LATE` if the plan was more than 15% late.
+          example: CHARGE_INTERRUPTED
+        externalStart:
+          allOf:
+          - $ref: '#/components/schemas/SmartOverrideStatus'
+          description: Deprecated, replaced by `smartOverride` from [Get Vehicle Smart Charging Status](/api#getVehiclesVehicleidSmartchargingstatus)
+          deprecated: true
+        chargingLocationId:
+          type:
+          - string
+          - 'null'
+          example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+          x-format:
+            guid: true
+          description: Deprecated. Replaced by `locationId`. ID of the location at which the Smart Charging Plan is being executed. Null for Smart Charging Plans started before March 2022.
+          deprecated: true
+      required:
+      - id
+      - vehicleId
+      - userId
+      - locationId
+      - vendor
+      - currency
+      - nonSmartCost
+      - smartCost
+      - stopAt
+      - startAt
+      - estimatedFinishAt
+      - stopConfirmedAt
+      - startConfirmedAt
+      - endedAt
+      - finalState
+      - failureCondition
+      - externalStart
+      - chargingLocationId
+      additionalProperties: false
+    Problem:
+      type: object
+      properties:
+        type:
+          type: string
+          description: A URI reference that identifies the problem type.
+        title:
+          type: string
+          description: A short, human-readable summary of the problem type.
+        detail:
+          type: string
+          description: A human-readable explanation specific to this occurrence of the problem.
+        issues:
+          type: array
+          items:
+            type: object
+            properties: {}
+          description: A list of validation issues which occurred while validating some component of the network payload.
+      required:
+      - type
+      - title
+      - detail
+      description: Standard Problem Error
+      example:
+        type: https://docs.enode.io/api/problems/not-found
+        title: Not Found
+        detail: The requested asset wasn't found.
+    ChargeRateLimitRange:
+      type: object
+      properties:
+        kW:
+          type: object
+          properties:
+            min:
+              type:
+              - number
+              - 'null'
+              description: The minimum charge rate limit in kW. Returns null when unavailable from the vendor.
+            max:
+              type:
+              - number
+              - 'null'
+              description: The maximum charge rate limit in kW. Returns null when unavailable from the vendor.
+          required:
+          - min
+          - max
+          additionalProperties: false
+          description: Allowed charge rate limit range in kW.
+      required:
+      - kW
+      additionalProperties: false
+    TargetMaxCurrent:
+      type: object
+      properties:
+        maxCurrent:
+          type: number
+          description: Desired max current in ampere
+          example: 10
+          exclusiveMinimum: 0
+      required:
+      - maxCurrent
+      additionalProperties: false
+      description: Target maximum current for entity
+    VehicleCapabilities:
+      type: object
+      properties:
+        information:
+          allOf:
+          - $ref: '#/components/schemas/Capability'
+          description: Full availability of information data.
+        chargeState:
+          allOf:
+          - $ref: '#/components/schemas/Capability'
+          description: Full availability of chargeState data.
+        location:
+          allOf:
+          - $ref: '#/components/schemas/Capability'
+          description: Full availability of location data.
+        odometer:
+          allOf:
+          - $ref: '#/components/schemas/Capability'
+          description: Full availability of odometer data.
+        setMaxCurrent:
+          allOf:
+          - $ref: '#/components/schemas/Capability'
+          deprecated: true
+          description: 'Deprecated: Use `setChargeRateLimit` instead.
+
+
+            Supports setting the maximum charge current.'
+        startCharging:
+          allOf:
+          - $ref: '#/components/schemas/Capability'
+          description: Supports START charging command.
+        stopCharging:
+          allOf:
+          - $ref: '#/components/schemas/Capability'
+          description: Supports STOP charging command.
+        smartCharging:
+          allOf:
+          - $ref: '#/components/schemas/Capability'
+          description: Support for smartCharging. This value is dynamic and may change over time.
+        refreshState:
+          allOf:
+          - $ref: '#/components/schemas/Capability'
+          description: Supports refreshing the vehicle state on demand. This value is dynamic and may change over time.
+        setChargeRateLimit:
+          allOf:
+          - $ref: '#/components/schemas/ChargeRateLimitCapability'
+          description: 'Ability to set the charge rate limit in kW. Only available when the vehicle is paired with a capable charger.
+
+
+            Early Adopter: This property is only available for early adopters of [Set Charge Rate Limit](/api#postVehiclesVehicleidChargeRateLimit)'
+      required:
+      - information
+      - chargeState
+      - location
+      - odometer
+      - setMaxCurrent
+      - startCharging
+      - stopCharging
+      - smartCharging
+      additionalProperties: false
+      description: 'A collection of descriptors that describe the capabilities of this specific vehicle.
+
+
+        When the vehicle is paired with a linked charger, each capability''s `interventionIds` merge interventions from both assets. See [Interventions](/docs/ev-charger-pairing/overview#interventions) for how charger interventions are surfaced, when vehicle interventions are suppressed, and how the recommended `LinkAdditionalAsset` ("link a charger") intervention behaves.'
+    SmartOverrideStatus:
+      type: object
+      properties:
+        createdAt:
+          type: string
+          format: date-time
+          description: Time at which the smart override was created.
+          example: '2020-04-07T17:04:26Z'
+        endedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Time at which the smart override was ended. If null, the smart override is still active.
+          example: '2020-04-07T17:04:26Z'
+        targetType:
+          allOf:
+          - $ref: '#/components/schemas/ChargeableVendorType'
+          example: vehicle
+        targetId:
+          type: string
+          description: ID of the target which this smart override is affecting.
+          example: 07f8368d-be7e-4dbd-8cf0-94d00dd67ad3
+        vendorActionId:
+          type:
+          - string
+          - 'null'
+          example: 213ae0a8-fb65-40be-981a-6a86df3e1c7f
+          x-format:
+            guid: true
+          description: The ID of the Action responsible for starting charging on the target. Use the [Get Vehicle Action](/api#getVehiclesAction) or the [Get Charger Action](/api#getChargersAction) endpoints to monitor action results. Null when no start Action was queued, for example because the target was already charging.
+      required:
+      - createdAt
+      - endedAt
+      - targetType
+      - targetId
+      - vendorActionId
+      additionalProperties: false
+      description: This field populates after using Vehicle [Create Smart Override](/api#vehicleCreateSmartOverride) or Charger Create Smart Override. Once populated, the target enters an overridden state, stopping Enode from sending Smart Charging actions. The Smart Override persists until the target ceases charging for any reason or is manually ended via Vehicle [End Smart Override](/api#vehicleEndSmartOverride) or Charger End Smart Override.
+    ActionFailureReason:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - NO_RESPONSE
+          - FAILED_PRECONDITION
+          - CONFLICT
+          - NOT_FOUND
+          - UNNECESSARY
+          - REQUESTED_CANCELLATION
+          description: "A machine-readable high level error category.\n\n * `NO_RESPONSE`: The device did not react to our commands within the action's timeout window.  \n * `FAILED_PRECONDITION`: The device did not meet all required preconditions for this action to be executed during the action's timeout window. \n * `UNNECESSARY`: The action was not carried out given that the device was already in the desired state. \n * `CONFLICT`: A newer action for this device, or for a device paired with it, has replaced this action. This action is now abandoned.  \n * `REQUESTED_CANCELLATION`: This action was cancelled by request of the controlling owner. The controlling owner may refer to another Enode entity which initiated the command, such as a schedule or smart override. \n * `NOT_FOUND`: The device was deleted while the action was `PENDING`.\n"
+        detail:
+          type: string
+          description: A human-readable explanation of why the action was unsuccessful.
+          example: The device remained unreachable.
+      required:
+      - type
+      - detail
+      description: Information about why was this action not executed successfully.
+    ChargeableVendor:
+      type: string
+      enum:
+      - ACURA
+      - ALFAROMEO
+      - ALPINE
+      - AUDI
+      - BMW
+      - BYD
+      - CADILLAC
+      - CHARGEAMPS
+      - CHARGEPOINT
+      - CHEVROLET
+      - CHRYSLER
+      - CITROEN
+      - CUPRA
+      - DACIA
+      - DODGE
+      - DS
+      - EASEE
+      - ELLI
+      - ENELX
+      - ENPHASE
+      - FIAT
+      - FORD
+      - FOXESS
+      - GARO
+      - GIVENERGY
+      - GMC
+      - GOE
+      - GROWATT
+      - HEIDELBERG
+      - HONDA
+      - HUAWEI
+      - HYUNDAI
+      - INDRA
+      - JAGUAR
+      - JEEP
+      - KEBA
+      - KIA
+      - LANCIA
+      - LANDROVER
+      - LEAPMOTOR
+      - LEXUS
+      - LUCID
+      - MAZDA
+      - MERCEDES
+      - MG
+      - MINI
+      - MYENERGI
+      - NIO
+      - NISSAN
+      - OHME
+      - OMODA
+      - OPEL
+      - PEBLAR
+      - PEUGEOT
+      - PODPOINT
+      - POLESTAR
+      - PORSCHE
+      - RAM
+      - RENAULT
+      - RIVIAN
+      - SCHNEIDER
+      - SEAT
+      - SKODA
+      - SMA
+      - SMART
+      - SOLAREDGE
+      - SOLAX
+      - SOLIS
+      - SUBARU
+      - SUNGROW
+      - TESLA
+      - TOYOTA
+      - VAUXHALL
+      - VOLKSWAGEN
+      - VOLVO
+      - WALLBOX
+      - XPENG
+      - ZAPTEC
+      description: Machine-friendly name of the vendor. Use this in API requests.
+      example: TESLA
+    VehicleLocation:
+      type: object
+      properties:
+        longitude:
+          type:
+          - number
+          - 'null'
+          description: Longitude in degrees
+          example: 10.7197486
+        latitude:
+          type:
+          - number
+          - 'null'
+          description: Latitude in degrees
+          example: 59.9173985
+        lastUpdated:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Time of last received location
+          example: '2024-01-07T17:04:26.000Z'
+      required:
+      - longitude
+      - latitude
+      - lastUpdated
+      additionalProperties: false
+      description: Vehicle's GPS coordinates with timestamp
+    MaxCurrentAction:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+          x-format:
+            guid: true
+          description: The ID of the action.
+        userId:
+          type: string
+          description: The ID of the user that owns the target of this action.
+          example: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+        createdAt:
+          type: string
+          format: date-time
+          description: Time when this action was created
+          example: '2020-04-07T17:04:26Z'
+        updatedAt:
+          type: string
+          format: date-time
+          description: Time when this action was last updated
+          example: '2020-04-07T17:04:26Z'
+        completedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Time when the action transitioned to a non-pending state.
+          example: '2020-04-07T17:04:26Z'
+        state:
+          $ref: '#/components/schemas/ActionState'
+        targetId:
+          type: string
+          description: ID of the entity which this action is controlling.
+        targetType:
+          $ref: '#/components/schemas/ChargeableVendorType'
+        targetState:
+          $ref: '#/components/schemas/TargetMaxCurrent'
+        failureReason:
+          allOf:
+          - $ref: '#/components/schemas/ActionFailureReason'
+      required:
+      - id
+      - userId
+      - createdAt
+      - updatedAt
+      - completedAt
+      - state
+      - targetId
+      - targetType
+      - targetState
+      - failureReason
+      additionalProperties: false
+      deprecated: true
+      title: Max Current Action
+      description: 'Deprecated: Use ChargeRateLimitAction instead.'
+    PaginationCursors:
       type: object
       properties:
         after:
           type:
           - string
           - 'null'
+          example: MjAyMy0wNy0xOFQxMDowODowMi4zNzNa
         before:
           type:
           - string
           - 'null'
+          example: MjAyMy0wNi0xNlQwOTowMzowMS4yNjJa
+      required:
+      - after
+      - before
+      additionalProperties: false
+      description: Cursors to the pages before and after current page. See the [Pagination](/api#pagination) section for reference.
   parameters:
-    pageAfter:
-      name: after
-      in: query
-      required: false
-      description: Cursor for pagination, returned as the previous page's pageInfo.after.
+    UserPathId:
       schema:
-        type: string
-    vehicleId:
+        $ref: '#/components/schemas/UserPathId'
+      required: true
+      description: ID of the User.
+      name: userId
+      in: path
+    PaginationQueryBefore:
+      schema:
+        $ref: '#/components/schemas/PaginationQueryBefore'
+      required: false
+      description: Opaque cursor used to fetch previous page. Cannot be used together with `after`. Refer to [Pagination](/api#pagination) for more information.
+      name: before
+      in: query
+    VehiclePathId:
+      schema:
+        $ref: '#/components/schemas/VehiclePathId'
+      required: true
+      description: ID of the Vehicle.
       name: vehicleId
       in: path
-      required: true
+    ActionPathId:
       schema:
-        type: string
-    pageSize:
+        $ref: '#/components/schemas/ActionPathId'
+      required: true
+      description: ID of the Action.
+      name: actionId
+      in: path
+    PaginationQueryPageSize:
+      schema:
+        $ref: '#/components/schemas/PaginationQueryPageSize'
+      required: false
+      description: Number of records to return per page. Default page size is 50.
       name: pageSize
       in: query
-      required: false
-      description: Number of results to return per page.
+    PaginationQueryAfter:
       schema:
-        type: integer
-        default: 50
+        $ref: '#/components/schemas/PaginationQueryAfter'
+      required: false
+      description: Opaque cursor used to fetch next page. Cannot be set together with `before`. Refer to [Pagination](/api#pagination) for more information.
+      name: after
+      in: query
+    SmartChargingPlanPathId:
+      schema:
+        $ref: '#/components/schemas/SmartChargingPlanPathId'
+      required: true
+      description: ID of the Smart Charging Plan, or 'latest' to fetch the most recent plan.
+      name: smartChargingPlanId
+      in: path
   securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-      description: OAuth 2.0 access token obtained via the client_credentials grant from the Enode OAuth token endpoint (https://oauth.production.enode.io/oauth2/token for production, https://oauth.sandbox.enode.io/oauth2/token for sandbox), presented as a Bearer token.
+    ClientAccessToken:
+      type: oauth2
+      description: 'A `ClientAccessToken` is obtained via the [OAuth 2.0 Client Credentials grant](https://www.oauth.com/oauth2-servers/access-tokens/client-credentials/) and carries authorization to access all functionalities and data in your Enode account.
+
+        Full details at [The ClientAccessToken](/api#getting-an-access-token)
+
+        '
+      flows:
+        clientCredentials:
+          tokenUrl: https://oauth.production.enode.io/oauth2/token
+          scopes: {}

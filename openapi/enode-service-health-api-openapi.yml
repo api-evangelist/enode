@@ -1,0 +1,608 @@
+openapi: 3.2.0
+info:
+  title: Enode Service Health API
+  version: '2023-08-01'
+  description: One integration, 1000+ energy devices.
+  license:
+    name: Enode Commercial License
+    url: https://enode.com
+servers:
+- url: https://enode-api.production.enode.io
+tags:
+- name: Service Health
+  description: Endpoints that return information about the health of Enode and our integrations.
+paths:
+  /health/chargers:
+    get:
+      summary: Check Available Charger Vendors
+      operationId: getHealthChargerVendors
+      description: Lists the available charger vendors, including the activated vendors that your client has access to. Learn more about vendors requiring activation.
+      tags:
+      - Service Health
+      security:
+      - ClientAccessToken: []
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChargerHealth'
+                example:
+                - vendor: EASEE
+                  displayName: Easee
+                  portalName: Easee
+                  status: READY
+                  linkingStatus: READY
+                - vendor: WALLBOX
+                  displayName: Wallbox
+                  portalName: Wallbox
+                  status: READY
+                  linkingStatus: READY
+                - vendor: ZAPTEC
+                  displayName: Zaptec
+                  portalName: Zaptec
+                  status: READY
+                  linkingStatus: READY
+  /health/vehicles:
+    get:
+      summary: Check Available Vehicle Vendors
+      operationId: getHealthVehicleVendors
+      description: Lists the available vehicle vendors, including the activated vendors that your client has access to. Learn more about vendors requiring activation.
+      tags:
+      - Service Health
+      security:
+      - ClientAccessToken: []
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VehicleHealth'
+                example:
+                - vendor: TESLA
+                  displayName: Tesla
+                  portalName: Tesla
+                  status: READY
+                  linkingStatus: READY
+                - vendor: BMW
+                  displayName: BMW
+                  portalName: My BMW
+                  status: READY
+                  linkingStatus: READY
+                - vendor: AUDI
+                  displayName: Audi
+                  portalName: myAudi
+                  status: READY
+                  linkingStatus: READY
+  /health/batteries:
+    get:
+      summary: Check Available Battery Vendors
+      operationId: getHealthBatteryVendors
+      description: Lists the available battery vendors, including the activated vendors that your client has access to. Learn more about vendors requiring activation.
+      tags:
+      - Service Health
+      security:
+      - ClientAccessToken: []
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BatteryHealth'
+                example:
+                - vendor: ENPHASE
+                  displayName: Enphase
+                  portalName: Enphase
+                  status: READY
+                  linkingStatus: READY
+                - vendor: HUAWEI
+                  displayName: Huawei
+                  portalName: Huawei
+                  status: READY
+                  linkingStatus: READY
+                - vendor: TESLA
+                  displayName: Tesla
+                  portalName: Tesla
+                  status: READY
+                  linkingStatus: READY
+  /health/inverters:
+    get:
+      summary: Check Available Inverter Vendors
+      operationId: getHealthInverterVendors
+      description: Lists the available inverter vendors, including the activated vendors that your client has access to. Learn more about vendors requiring activation.
+      tags:
+      - Service Health
+      security:
+      - ClientAccessToken: []
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InverterHealth'
+                example:
+                - vendor: SOLAREDGE
+                  displayName: SolarEdge
+                  portalName: Solar Edge
+                  status: READY
+                  linkingStatus: READY
+                - vendor: SMA
+                  displayName: SMA
+                  portalName: SMA Energy
+                  status: READY
+                  linkingStatus: READY
+                - vendor: SOLIS
+                  displayName: Solis
+                  portalName: Solis
+                  status: READY
+                  linkingStatus: READY
+                - vendor: FRONIUS
+                  displayName: Fronius
+                  status: READY
+                  linkingStatus: READY
+                  portalName: Fronius
+  /health/hvacs:
+    get:
+      summary: Check Available Hvac Vendors
+      operationId: getHealthHvacVendors
+      description: Lists the available HVAC vendors, including the activated vendors that your client has access to. Learn more about vendors requiring activation.
+      tags:
+      - Service Health
+      security:
+      - ClientAccessToken: []
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HvacHealth'
+                example:
+                - vendor: MILL
+                  displayName: Mill
+                  portalName: Mill
+                  status: READY
+                  linkingStatus: READY
+  /health/meters:
+    get:
+      summary: Check Available Meter Vendors
+      operationId: getHealthMeterVendors
+      description: Lists the available Meter vendors, including the activated vendors that your client has access to. Learn more about vendors requiring activation.
+      tags:
+      - Service Health
+      security:
+      - ClientAccessToken: []
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MeterHealth'
+                example:
+                - vendor: TESLA
+                  displayName: Tesla
+                  portalName: Tesla
+                  status: READY
+                  linkingStatus: READY
+  /health/ready:
+    get:
+      summary: Check Service Readiness
+      operationId: getHealthReady
+      security: []
+      description: Gets the combined health status of the service and all functionalities and dependencies.
+      tags:
+      - Service Health
+      responses:
+        '204':
+          description: All functionalities are operating nominally.
+          content: {}
+        '503':
+          description: At least one functionality of the system is not operating nominally.
+          content: {}
+components:
+  schemas:
+    HvacHealth:
+      type: object
+      properties:
+        vendor:
+          $ref: '#/components/schemas/HvacVendor'
+        displayName:
+          $ref: '#/components/schemas/Brand'
+        status:
+          type: string
+          enum:
+          - READY
+          - ELEVATED_ERROR_RATE
+          - OUTAGE
+          - MAINTENANCE
+          description: "Ready-state of the Vendor.\n\n  * `READY`: We are not aware of any issues with this Vendor.\n  * `ELEVATED_ERROR_RATE`: Performance is degraded. Data updates may arrive slower than usual, and actions may fail.\n  * `OUTAGE`: Connectivity to this Vendor is broken. Data updates and actions are failing until this is resolved.\n  * `MAINTENANCE`: Planned maintenance at the Vendor. Data updates and actions may be unavailable until it completes.\n\nThis follows the incidents and in-progress maintenance windows we publish on [our status page](https://status.enode.com) and may lag them. A maintenance window that has been announced but has not started does not change this field. It reports only what we have detected and declared, so `READY` means we are not aware of an issue, not that we have confirmed the Vendor is healthy. It is informational: whether a user can link is `linkingStatus`."
+          example: READY
+        portalName:
+          type: string
+          description: The name of the first party service or app that the user normally logs into.
+        linkingStatus:
+          type: string
+          enum:
+          - READY
+          - ELEVATED_ERROR_RATE
+          - OUTAGE
+          - MAINTENANCE
+          description: "Ready-state for linking with the Vendor.\n\n  * `READY`: The Vendor is ready to be linked with.\n  * `ELEVATED_ERROR_RATE`: Multiple attempts may be needed to link successfully. We are showing a warning in Link UI.\n  * `OUTAGE`: The Vendor is currently not available for linking. We will show an error in Link UI and not let the user attempt to link with the Vendor.\n  * `MAINTENANCE`: The Vendor is temporarily unavailable for linking due to planned maintenance. We will show a planned maintenance screen in Link UI and not let the user attempt to link with the Vendor."
+          example: READY
+      required:
+      - vendor
+      - displayName
+      - status
+      - portalName
+      - linkingStatus
+      additionalProperties: false
+    VehicleHealth:
+      type: object
+      properties:
+        vendor:
+          $ref: '#/components/schemas/VehicleVendor'
+        displayName:
+          $ref: '#/components/schemas/Brand'
+        status:
+          type: string
+          enum:
+          - READY
+          - ELEVATED_ERROR_RATE
+          - OUTAGE
+          - MAINTENANCE
+          description: "Ready-state of the Vendor.\n\n  * `READY`: We are not aware of any issues with this Vendor.\n  * `ELEVATED_ERROR_RATE`: Performance is degraded. Data updates may arrive slower than usual, and actions may fail.\n  * `OUTAGE`: Connectivity to this Vendor is broken. Data updates and actions are failing until this is resolved.\n  * `MAINTENANCE`: Planned maintenance at the Vendor. Data updates and actions may be unavailable until it completes.\n\nThis follows the incidents and in-progress maintenance windows we publish on [our status page](https://status.enode.com) and may lag them. A maintenance window that has been announced but has not started does not change this field. It reports only what we have detected and declared, so `READY` means we are not aware of an issue, not that we have confirmed the Vendor is healthy. It is informational: whether a user can link is `linkingStatus`."
+          example: READY
+        portalName:
+          type: string
+          description: The name of the first party service or app that the user normally logs into.
+        linkingStatus:
+          type: string
+          enum:
+          - READY
+          - ELEVATED_ERROR_RATE
+          - OUTAGE
+          - MAINTENANCE
+          description: "Ready-state for linking with the Vendor.\n\n  * `READY`: The Vendor is ready to be linked with.\n  * `ELEVATED_ERROR_RATE`: Multiple attempts may be needed to link successfully. We are showing a warning in Link UI.\n  * `OUTAGE`: The Vendor is currently not available for linking. We will show an error in Link UI and not let the user attempt to link with the Vendor.\n  * `MAINTENANCE`: The Vendor is temporarily unavailable for linking due to planned maintenance. We will show a planned maintenance screen in Link UI and not let the user attempt to link with the Vendor."
+          example: READY
+      required:
+      - vendor
+      - displayName
+      - status
+      - portalName
+      - linkingStatus
+      additionalProperties: false
+    VehicleVendor:
+      type: string
+      enum:
+      - ACURA
+      - AUDI
+      - BMW
+      - JAGUAR
+      - LANDROVER
+      - MINI
+      - PORSCHE
+      - RENAULT
+      - SEAT
+      - SKODA
+      - TESLA
+      - VOLKSWAGEN
+      - VOLVO
+      - XPENG
+      - KIA
+      - HYUNDAI
+      - PEUGEOT
+      - OPEL
+      - DS
+      - MERCEDES
+      - FORD
+      - TOYOTA
+      - LEXUS
+      - NISSAN
+      - CITROEN
+      - CUPRA
+      - VAUXHALL
+      - FIAT
+      - RIVIAN
+      - NIO
+      - CHEVROLET
+      - CADILLAC
+      - GMC
+      - HONDA
+      - POLESTAR
+      - SUBARU
+      - JEEP
+      - MAZDA
+      - MG
+      - CHRYSLER
+      - DODGE
+      - RAM
+      - ALFAROMEO
+      - LANCIA
+      - LUCID
+      - BYD
+      - DACIA
+      - ALPINE
+      - LEAPMOTOR
+      - SMART
+      - OMODA
+      description: Machine-friendly name of the vendor. Use this in API requests.
+      example: TESLA
+    ChargerHealth:
+      type: object
+      properties:
+        vendor:
+          $ref: '#/components/schemas/ChargerVendor'
+        displayName:
+          $ref: '#/components/schemas/Brand'
+        status:
+          type: string
+          enum:
+          - READY
+          - ELEVATED_ERROR_RATE
+          - OUTAGE
+          - MAINTENANCE
+          description: "Ready-state of the Vendor.\n\n  * `READY`: We are not aware of any issues with this Vendor.\n  * `ELEVATED_ERROR_RATE`: Performance is degraded. Data updates may arrive slower than usual, and actions may fail.\n  * `OUTAGE`: Connectivity to this Vendor is broken. Data updates and actions are failing until this is resolved.\n  * `MAINTENANCE`: Planned maintenance at the Vendor. Data updates and actions may be unavailable until it completes.\n\nThis follows the incidents and in-progress maintenance windows we publish on [our status page](https://status.enode.com) and may lag them. A maintenance window that has been announced but has not started does not change this field. It reports only what we have detected and declared, so `READY` means we are not aware of an issue, not that we have confirmed the Vendor is healthy. It is informational: whether a user can link is `linkingStatus`."
+          example: READY
+        portalName:
+          type: string
+          description: The name of the first party service or app that the user normally logs into.
+        linkingStatus:
+          type: string
+          enum:
+          - READY
+          - ELEVATED_ERROR_RATE
+          - OUTAGE
+          - MAINTENANCE
+          description: "Ready-state for linking with the Vendor.\n\n  * `READY`: The Vendor is ready to be linked with.\n  * `ELEVATED_ERROR_RATE`: Multiple attempts may be needed to link successfully. We are showing a warning in Link UI.\n  * `OUTAGE`: The Vendor is currently not available for linking. We will show an error in Link UI and not let the user attempt to link with the Vendor.\n  * `MAINTENANCE`: The Vendor is temporarily unavailable for linking due to planned maintenance. We will show a planned maintenance screen in Link UI and not let the user attempt to link with the Vendor."
+          example: READY
+      required:
+      - vendor
+      - displayName
+      - status
+      - portalName
+      - linkingStatus
+      additionalProperties: false
+    MeterHealth:
+      type: object
+      properties:
+        vendor:
+          $ref: '#/components/schemas/MeterVendor'
+        displayName:
+          $ref: '#/components/schemas/Brand'
+        status:
+          type: string
+          enum:
+          - READY
+          - ELEVATED_ERROR_RATE
+          - OUTAGE
+          - MAINTENANCE
+          description: "Ready-state of the Vendor.\n\n  * `READY`: We are not aware of any issues with this Vendor.\n  * `ELEVATED_ERROR_RATE`: Performance is degraded. Data updates may arrive slower than usual, and actions may fail.\n  * `OUTAGE`: Connectivity to this Vendor is broken. Data updates and actions are failing until this is resolved.\n  * `MAINTENANCE`: Planned maintenance at the Vendor. Data updates and actions may be unavailable until it completes.\n\nThis follows the incidents and in-progress maintenance windows we publish on [our status page](https://status.enode.com) and may lag them. A maintenance window that has been announced but has not started does not change this field. It reports only what we have detected and declared, so `READY` means we are not aware of an issue, not that we have confirmed the Vendor is healthy. It is informational: whether a user can link is `linkingStatus`."
+          example: READY
+        portalName:
+          type: string
+          description: The name of the first party service or app that the user normally logs into.
+        linkingStatus:
+          type: string
+          enum:
+          - READY
+          - ELEVATED_ERROR_RATE
+          - OUTAGE
+          - MAINTENANCE
+          description: "Ready-state for linking with the Vendor.\n\n  * `READY`: The Vendor is ready to be linked with.\n  * `ELEVATED_ERROR_RATE`: Multiple attempts may be needed to link successfully. We are showing a warning in Link UI.\n  * `OUTAGE`: The Vendor is currently not available for linking. We will show an error in Link UI and not let the user attempt to link with the Vendor.\n  * `MAINTENANCE`: The Vendor is temporarily unavailable for linking due to planned maintenance. We will show a planned maintenance screen in Link UI and not let the user attempt to link with the Vendor."
+          example: READY
+      required:
+      - vendor
+      - displayName
+      - status
+      - portalName
+      - linkingStatus
+      additionalProperties: false
+    BatteryHealth:
+      type: object
+      properties:
+        vendor:
+          $ref: '#/components/schemas/BatteryVendor'
+        displayName:
+          $ref: '#/components/schemas/Brand'
+        status:
+          type: string
+          enum:
+          - READY
+          - ELEVATED_ERROR_RATE
+          - OUTAGE
+          - MAINTENANCE
+          description: "Ready-state of the Vendor.\n\n  * `READY`: We are not aware of any issues with this Vendor.\n  * `ELEVATED_ERROR_RATE`: Performance is degraded. Data updates may arrive slower than usual, and actions may fail.\n  * `OUTAGE`: Connectivity to this Vendor is broken. Data updates and actions are failing until this is resolved.\n  * `MAINTENANCE`: Planned maintenance at the Vendor. Data updates and actions may be unavailable until it completes.\n\nThis follows the incidents and in-progress maintenance windows we publish on [our status page](https://status.enode.com) and may lag them. A maintenance window that has been announced but has not started does not change this field. It reports only what we have detected and declared, so `READY` means we are not aware of an issue, not that we have confirmed the Vendor is healthy. It is informational: whether a user can link is `linkingStatus`."
+          example: READY
+        portalName:
+          type: string
+          description: The name of the first party service or app that the user normally logs into.
+        linkingStatus:
+          type: string
+          enum:
+          - READY
+          - ELEVATED_ERROR_RATE
+          - OUTAGE
+          - MAINTENANCE
+          description: "Ready-state for linking with the Vendor.\n\n  * `READY`: The Vendor is ready to be linked with.\n  * `ELEVATED_ERROR_RATE`: Multiple attempts may be needed to link successfully. We are showing a warning in Link UI.\n  * `OUTAGE`: The Vendor is currently not available for linking. We will show an error in Link UI and not let the user attempt to link with the Vendor.\n  * `MAINTENANCE`: The Vendor is temporarily unavailable for linking due to planned maintenance. We will show a planned maintenance screen in Link UI and not let the user attempt to link with the Vendor."
+          example: READY
+      required:
+      - vendor
+      - displayName
+      - status
+      - portalName
+      - linkingStatus
+      additionalProperties: false
+    Brand:
+      type: string
+      description: A formatted and properly cased OEM brand name, suitable for reading by humans. May contain special characters.
+      example: Tesla
+    BatteryVendor:
+      type: string
+      enum:
+      - ENPHASE
+      - GIVENERGY
+      - FOXESS
+      - HUAWEI
+      - SMA
+      - SOLAREDGE
+      - SOLAX
+      - SOLIS
+      - TESLA
+      - SUNGROW
+      - GROWATT
+      description: Machine-friendly name of the vendor. Use this in API requests.
+      example: TESLA
+    InverterVendor:
+      type: string
+      enum:
+      - AFORE
+      - APSYSTEMS
+      - CSISolar
+      - Deye
+      - ENPHASE
+      - FOXESS
+      - FRONIUS
+      - GIVENERGY
+      - GOODWE
+      - GROWATT
+      - Hoymiles
+      - HUAWEI
+      - INVT
+      - SMA
+      - SOFAR
+      - SOLAREDGE
+      - SOLARK
+      - SOLAX
+      - SOLIS
+      - SOLPLANET
+      - SUNGROW
+      - SUNSYNK
+      - TESLA
+      - TSUN
+      description: Machine-friendly name of the vendor. Use this in API requests.
+      example: ENPHASE
+    HvacVendor:
+      type: string
+      enum:
+      - TADO
+      - MILL
+      - ADAX
+      - ECOBEE
+      - SENSIBO
+      - HONEYWELL
+      - RESIDEO
+      - MITSUBISHI
+      - MICROMATIC
+      - NIBE
+      - PANASONIC
+      - TOSHIBA
+      - DAIKIN
+      - NEST
+      - FUJITSU
+      - BOSCH
+      - NETATMO
+      description: Machine-friendly name of the vendor. Use this in API requests.
+      example: ADAX
+    MeterVendor:
+      type: string
+      enum:
+      - ENPHASE
+      - GIVENERGY
+      - FOXESS
+      - HUAWEI
+      - SMA
+      - SOLAREDGE
+      - SOLIS
+      - SOLAX
+      - SUNGROW
+      - TESLA
+      - GROWATT
+      description: Machine-friendly name of the vendor. Use this in API requests.
+      example: TESLA
+    ChargerVendor:
+      type: string
+      enum:
+      - ZAPTEC
+      - EASEE
+      - WALLBOX
+      - CHARGEAMPS
+      - GOE
+      - CHARGEPOINT
+      - ENELX
+      - TESLA
+      - OHME
+      - GARO
+      - SCHNEIDER
+      - PODPOINT
+      - KEBA
+      - MYENERGI
+      - HEIDELBERG
+      - ELLI
+      - INDRA
+      - PEBLAR
+      description: Machine-friendly name of the vendor. Use this in API requests.
+      example: ZAPTEC
+    InverterHealth:
+      type: object
+      properties:
+        vendor:
+          $ref: '#/components/schemas/InverterVendor'
+        displayName:
+          $ref: '#/components/schemas/Brand'
+        status:
+          type: string
+          enum:
+          - READY
+          - ELEVATED_ERROR_RATE
+          - OUTAGE
+          - MAINTENANCE
+          description: "Ready-state of the Vendor.\n\n  * `READY`: We are not aware of any issues with this Vendor.\n  * `ELEVATED_ERROR_RATE`: Performance is degraded. Data updates may arrive slower than usual, and actions may fail.\n  * `OUTAGE`: Connectivity to this Vendor is broken. Data updates and actions are failing until this is resolved.\n  * `MAINTENANCE`: Planned maintenance at the Vendor. Data updates and actions may be unavailable until it completes.\n\nThis follows the incidents and in-progress maintenance windows we publish on [our status page](https://status.enode.com) and may lag them. A maintenance window that has been announced but has not started does not change this field. It reports only what we have detected and declared, so `READY` means we are not aware of an issue, not that we have confirmed the Vendor is healthy. It is informational: whether a user can link is `linkingStatus`."
+          example: READY
+        portalName:
+          type: string
+          description: The name of the first party service or app that the user normally logs into.
+        linkingStatus:
+          type: string
+          enum:
+          - READY
+          - ELEVATED_ERROR_RATE
+          - OUTAGE
+          - MAINTENANCE
+          description: "Ready-state for linking with the Vendor.\n\n  * `READY`: The Vendor is ready to be linked with.\n  * `ELEVATED_ERROR_RATE`: Multiple attempts may be needed to link successfully. We are showing a warning in Link UI.\n  * `OUTAGE`: The Vendor is currently not available for linking. We will show an error in Link UI and not let the user attempt to link with the Vendor.\n  * `MAINTENANCE`: The Vendor is temporarily unavailable for linking due to planned maintenance. We will show a planned maintenance screen in Link UI and not let the user attempt to link with the Vendor."
+          example: READY
+      required:
+      - vendor
+      - displayName
+      - status
+      - portalName
+      - linkingStatus
+      additionalProperties: false
+  securitySchemes:
+    ClientAccessToken:
+      type: oauth2
+      description: 'A `ClientAccessToken` is obtained via the [OAuth 2.0 Client Credentials grant](https://www.oauth.com/oauth2-servers/access-tokens/client-credentials/) and carries authorization to access all functionalities and data in your Enode account.
+
+        Full details at [The ClientAccessToken](/api#getting-an-access-token)
+
+        '
+      flows:
+        clientCredentials:
+          tokenUrl: https://oauth.production.enode.io/oauth2/token
+          scopes: {}

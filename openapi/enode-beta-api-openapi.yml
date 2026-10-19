@@ -1,0 +1,1617 @@
+openapi: 3.2.0
+info:
+  title: Enode Beta API
+  version: '2023-08-01'
+  description: One integration, 1000+ energy devices.
+  license:
+    name: Enode Commercial License
+    url: https://enode.com
+servers:
+- url: https://enode-api.production.enode.io
+tags:
+- name: Beta
+  description: This product or endpoint is now feature complete and the implementation will not change. There may be bugs or stability issues but they are actively being worked on. We are still open to receiving feedback before delivering a stable release. See Versioning Labels.
+paths:
+  /batteries:
+    get:
+      summary: List Batteries
+      operationId: listBatteries
+      description: Returns a paginated list of all Batteries.
+      tags:
+      - Beta
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/PaginationQueryAfter'
+      - $ref: '#/components/parameters/PaginationQueryBefore'
+      - $ref: '#/components/parameters/PaginationQueryPageSize'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBatteryList'
+  /users/{userId}/batteries:
+    get:
+      summary: List User Batteries
+      description: Returns a paginated list of batteries for the given userId.
+      operationId: listUserBatteries
+      tags:
+      - Beta
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/UserPathId'
+      - $ref: '#/components/parameters/PaginationQueryAfter'
+      - $ref: '#/components/parameters/PaginationQueryBefore'
+      - $ref: '#/components/parameters/PaginationQueryPageSize'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBatteryList'
+  /batteries/{batteryId}:
+    get:
+      summary: Get Battery
+      operationId: getBattery
+      tags:
+      - Beta
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/PathBatteryId'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Battery'
+  /batteries/{batteryId}/operation-mode:
+    post:
+      summary: Set Operation Mode for Battery
+      operationId: postUserSetOperationMode
+      description: 'Set the operation mode of a battery: whether it optimizes on its own, charges, discharges, or holds its current charge level. Use this to steer your user''s stored energy in line with optimization goals and grid signals; the `operationMode` field below describes each mode.
+
+
+        The change is asynchronous: the request returns an Action that retries until the battery reports the new mode. Track it via the `user:vendor-action:updated` webhook event or Get Operation Mode Action; sending a different request cancels a pending Action, while an identical one reuses it. See Controlling devices for how Actions behave. Regardless of mode, the battery will not discharge below the user''s `dischargeLimit` reserve except in emergency power situations.'
+      tags:
+      - Beta
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/PathBatteryTargetId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/setBatteryOperationModePayload'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              example:
+                id: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+                userId: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+                createdAt: '2023-08-01T01:00:00Z'
+                updatedAt: '2023-08-01T01:00:00Z'
+                completedAt: null
+                state: PENDING
+                failureReason: null
+                targetId: f723fed5-73aa-4004-b7f0-89e5173ee15e
+                targetType: battery
+                targetState:
+                  operationMode: IMPORT_FOCUS
+              schema:
+                $ref: '#/components/schemas/OperationModeAction'
+        '400':
+          description: A precondition check failed that is unlikely to change within the action's timeout window. This occurs if the battery cannot perform the action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /batteries/actions/{actionId}:
+    get:
+      summary: Get Operation Mode Action
+      description: Returns the current state of the requested Action.
+      operationId: getBatteriesAction
+      tags:
+      - Beta
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/ActionPathId'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              example:
+                id: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+                userId: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+                createdAt: '2023-08-01T01:00:00Z'
+                updatedAt: '2023-08-01T01:00:12Z'
+                completedAt: '2023-08-01T01:00:12Z'
+                state: CONFIRMED
+                failureReason: null
+                targetId: f723fed5-73aa-4004-b7f0-89e5173ee15e
+                targetType: battery
+                targetState:
+                  operationMode: IMPORT_FOCUS
+              schema:
+                $ref: '#/components/schemas/OperationModeAction'
+        '404':
+          description: Action not found.
+  /batteries/actions/{actionId}/cancel:
+    post:
+      summary: Cancel Battery Action
+      description: 'Cancels a pending battery Action, halting any further attempts by Enode to execute it.
+
+
+        Note: This only updates the Action''s status to `CANCELLED` within Enode and does not reflect a change in the vendor''s cloud. Thus any pending Action in the vendor''s cloud might still be executed.'
+      operationId: cancelBatteryAction
+      tags:
+      - Beta
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/ActionPathId'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              example:
+                id: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+                userId: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+                createdAt: '2023-08-01T01:00:00Z'
+                updatedAt: '2023-08-01T01:00:12Z'
+                completedAt: '2023-08-01T01:00:12Z'
+                state: CANCELLED
+                failureReason:
+                  type: REQUESTED_CANCELLATION
+                  detail: The action was cancelled following an external request.
+                targetId: f723fed5-73aa-4004-b7f0-89e5173ee15e
+                targetType: battery
+                targetState:
+                  operationMode: IMPORT_FOCUS
+              schema:
+                $ref: '#/components/schemas/OperationModeAction'
+        '404':
+          description: Action not found.
+        '409':
+          description: Action already in a resolved state and can therefore not be cancelled.
+          content:
+            application/json:
+              example:
+                id: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+                userId: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+                createdAt: '2023-08-01T01:00:00Z'
+                updatedAt: '2023-08-01T01:00:12Z'
+                completedAt: '2023-08-01T01:00:12Z'
+                state: CONFIRMED
+                failureReason: null
+                targetId: f723fed5-73aa-4004-b7f0-89e5173ee15e
+                targetType: battery
+                targetState:
+                  operationMode: IMPORT_FOCUS
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+                    x-format:
+                      guid: true
+                    description: The ID of the action.
+                  userId:
+                    type: string
+                    description: The ID of the user that owns the target of this action.
+                    example: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+                  createdAt:
+                    type: string
+                    format: date-time
+                    description: Time when this action was created
+                    example: '2020-04-07T17:04:26Z'
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    description: Time when this action was last updated
+                    example: '2020-04-07T17:04:26Z'
+                  completedAt:
+                    type:
+                    - string
+                    - 'null'
+                    format: date-time
+                    description: Time when the action transitioned to a non-pending state.
+                    example: '2020-04-07T17:04:26Z'
+                  targetId:
+                    type: string
+                    description: ID of the battery which this action is controlling.
+                    example: ac03a513-5494-4e1c-9dd7-2a29dc024312
+                  targetType:
+                    type: string
+                    enum:
+                    - battery
+                  targetState:
+                    $ref: '#/components/schemas/setBatteryOperationModePayload'
+                  failureReason:
+                    allOf:
+                    - $ref: '#/components/schemas/ActionFailureReason'
+                  state:
+                    type: string
+                    enum:
+                    - CONFIRMED
+                    - FAILED
+                    - CANCELLED
+                    description: "The real-time status of an action executed on a target. \n\n * `CONFIRMED`: Successful transition of the target to the desired state. \n * `FAILED`: The target did not respond to the action before timing out. Enode has ceased sending additional commands. \n * `CANCELLED`: A required precondition was not met during the action's timeout window or another action has been sent to the target, overriding this one."
+                required:
+                - id
+                - userId
+                - createdAt
+                - updatedAt
+                - completedAt
+                - targetId
+                - targetType
+                - targetState
+                - failureReason
+                - state
+                additionalProperties: false
+  /batteries/{batteryId}/refresh-hint:
+    post:
+      summary: Refresh Battery Data
+      description: 'Use this endpoint to initiate an expedited data refresh for the specified battery.
+
+
+        Note: The Enode platform keeps data automatically up-to-date and detects changes in the OEM APIs within seconds to a few minutes. We change the refresh interval dynamically based on a number of heuristics. This ensures we find the best trade-off between the stability of the connection to the OEM and freshness of the data.
+
+        This method overrides most of our heuristics and should therefore be used with caution. You may use it when you have a strong reason to believe the data might be stale.'
+      operationId: batteriesRefreshHint
+      tags:
+      - Beta
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/PathBatteryTargetId'
+      responses:
+        '204':
+          description: Refresh hint registered successfully.
+          content: {}
+        '404':
+          description: The specified battery was not found.
+        '429':
+          description: Rate limited. Retry after the number of seconds given in the Retry-After header.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                pattern: ^\d+$
+                description: Seconds until the current UTC hour resets and another refresh hint can be submitted.
+                example: '1800'
+              required: true
+              description: Seconds until the current UTC hour resets and another refresh hint can be submitted.
+          content:
+            application/problem+json:
+              example:
+                type: https://docs.enode.io/api/problems/rate-limited
+                title: Rate limited
+                detail: You have reached the maximum number of 9 refresh-hints per hour for this device.
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /chargers/{chargerId}/charge-rate-limit:
+    post:
+      summary: Set Charge Rate Limit
+      operationId: postSetChargerChargeRateLimit
+      description: 'Sets the charge rate limit for a charger in kW. Creates an Action that retries until the charger''s `chargeRateLimit` matches the target value. Setting chargeRateLimit also changes maxCurrent.
+
+
+        Start/stop Actions and limit Actions (max current and charge rate limit) are handled separately. A new start or stop cancels a pending start or stop and moves it to `CANCELLED`; a new limit cancels a pending limit in the same way. Repeating an identical request returns the Action that is still pending. A pending Action of the other group on this charger is not affected. Track transitions via the user:vendor-action:updated webhook or Get Charger Action.
+
+
+        We recommend updating this setting no more than once every 15 minutes. Frequent changes to the charge rate limit may cause the vehicle to interrupt the charging session.'
+      tags:
+      - Beta
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/ChargerPathId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChargeRateLimitPayload'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              example:
+                id: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+                userId: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+                createdAt: '2023-08-01T01:00:00Z'
+                updatedAt: '2023-08-01T01:00:00Z'
+                completedAt: null
+                state: PENDING
+                failureReason: null
+                targetId: f723fed5-73aa-4004-b7f0-89e5173ee15e
+                targetType: charger
+                targetState:
+                  chargeRateLimit: 5.2
+              schema:
+                $ref: '#/components/schemas/ChargeRateLimitAction'
+        '400':
+          description: A precondition check failed that is unlikely to change within the action's timeout window. This occurs if the charger cannot perform the action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /meters/{meterId}:
+    get:
+      summary: Get Meter
+      operationId: getMeter
+      tags:
+      - Beta
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/PathMeterId'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Meter'
+  /meters/{meterId}/refresh-hint:
+    post:
+      summary: Refresh meter data
+      description: 'Use this endpoint to initiate an expedited data refresh for the specified meter.
+
+
+        Note: The Enode platform keeps data automatically up-to-date and detects changes in the OEM APIs within seconds to a few minutes. We change the refresh interval dynamically based on a number of heuristics. This ensures we find the best trade-off between the stability of the connection to the OEM and freshness of the data.
+
+        This method overrides most of our heuristics and should therefore be used with caution. You may use it when you have a strong reason to believe the data might be stale.'
+      operationId: metersRefreshHint
+      tags:
+      - Beta
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/PathMeterId'
+      responses:
+        '204':
+          description: Refresh hint registered successfully.
+          content: {}
+        '404':
+          description: The specified meter was not found.
+        '429':
+          description: Rate limited. Retry after the number of seconds given in the Retry-After header.
+          headers:
+            Retry-After:
+              schema:
+                type: string
+                pattern: ^\d+$
+                description: Seconds until the current UTC hour resets and another refresh hint can be submitted.
+                example: '1800'
+              required: true
+              description: Seconds until the current UTC hour resets and another refresh hint can be submitted.
+          content:
+            application/problem+json:
+              example:
+                type: https://docs.enode.io/api/problems/rate-limited
+                title: Rate limited
+                detail: You have reached the maximum number of 9 refresh-hints per hour for this device.
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /users/{userId}/meters:
+    get:
+      summary: List User Meters
+      description: Returns a paginated list of meters for the given userId.
+      operationId: listUserMeters
+      tags:
+      - Beta
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/UserPathId'
+      - $ref: '#/components/parameters/PaginationQueryAfter'
+      - $ref: '#/components/parameters/PaginationQueryBefore'
+      - $ref: '#/components/parameters/PaginationQueryPageSize'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMeterList'
+  /meters:
+    get:
+      summary: List Meters
+      operationId: listMeters
+      description: Returns a paginated list of all Meters.
+      tags:
+      - Beta
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/PaginationQueryAfter'
+      - $ref: '#/components/parameters/PaginationQueryBefore'
+      - $ref: '#/components/parameters/PaginationQueryPageSize'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMeterList'
+  /users/{userId}/vendor-statistics:
+    get:
+      deprecated: true
+      summary: Get Vendor Statistics For Inverters
+      operationId: getInverterVendorStatistics
+      description: 'Returns statistics about power production for the given inverter in the form of a time series, collected from vendor APIs.
+
+
+        This endpoint has been deprecated in favor of the 2024-10-01 Inverter Statistics endpoint.
+
+
+        Please be aware that errors, inaccuracies, and breaking changes may occur without prior notice.
+
+
+        We only support querying for a maximum of 1 month of data at once.
+
+
+        It is not possible to select a timezone for the aggregated daily stats;
+
+        the timezone reported by the inverter is used.
+
+        To aggregate data in other timezones,
+
+        we recommend fetching hourly data.
+
+        Inverters in non-integer timezone offsets have not been tested,
+
+        and may not return correct data.
+
+
+        Please note that currently,
+
+        requests may take a long time to complete.
+
+        Fetching shorter intervals,
+
+        such as a week or a few days at a time,
+
+        is the recommended workaround if you experience timeouts.
+
+
+        Data for the current day/hour (not available for all vendors) is cached for up to 15 minutes.
+
+        Older data is cached indefinitely,
+
+        so retroactive updates to existing data by the vendor are not reflected in the API.
+
+        This could happen,
+
+        for instance,
+
+        if the inverter is actually an array of inverters,
+
+        and an inverter is added or removed.'
+      tags:
+      - Beta
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - schema:
+          type: string
+          description: The ID of the User
+        required: true
+        description: The ID of the User
+        name: userId
+        in: path
+      - schema:
+          type: string
+          enum:
+          - HOUR
+          - DAY
+          description: The duration of each time bucket the returned time series is divided into. Each entry in the response array corresponds to aggregated data of the specified time range.
+          example: DAY
+        required: true
+        description: The duration of each time bucket the returned time series is divided into. Each entry in the response array corresponds to aggregated data of the specified time range.
+        name: resolution
+        in: query
+      - schema:
+          type: string
+          format: date-time
+          description: 'The earliest date (UTC) to include in the response. Cannot be greater than endDate. Example: `2021-03-21T02:00:00Z`'
+          example: '2021-03-21T02:00:00Z'
+        required: true
+        description: 'The earliest date (UTC) to include in the response. Cannot be greater than endDate. Example: `2021-03-21T02:00:00Z`'
+        name: startDate
+        in: query
+      - schema:
+          type: string
+          format: date-time
+          description: 'The latest date (UTC) to include in the response. Defaults to the current date/time. Example: `2021-03-21T05:00:00Z`'
+          example: '2021-03-21T05:00:00Z'
+        required: false
+        description: 'The latest date (UTC) to include in the response. Defaults to the current date/time. Example: `2021-03-21T05:00:00Z`'
+        name: endDate
+        in: query
+      - schema:
+          type: string
+          example: 99a4a9a6-f015-450c-ab78-39fe8d13edae
+          x-format:
+            guid: true
+          description: ID of the Inverter.
+        required: true
+        description: ID of the Inverter.
+        name: inverterId
+        in: query
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              example:
+                production:
+                  unit: kWh
+                  data:
+                  - date: '2020-01-01T01:23:45.000Z'
+                    value: 1.1
+              schema:
+                $ref: '#/components/schemas/InverterStatistics'
+        '404':
+          description: Asset not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /health/batteries:
+    get:
+      summary: Check Available Battery Vendors
+      operationId: getHealthBatteryVendors
+      description: Lists the available battery vendors, including the activated vendors that your client has access to. Learn more about vendors requiring activation.
+      tags:
+      - Beta
+      security:
+      - ClientAccessToken: []
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BatteryHealth'
+                example:
+                - vendor: ENPHASE
+                  displayName: Enphase
+                  portalName: Enphase
+                  status: READY
+                  linkingStatus: READY
+                - vendor: HUAWEI
+                  displayName: Huawei
+                  portalName: Huawei
+                  status: READY
+                  linkingStatus: READY
+                - vendor: TESLA
+                  displayName: Tesla
+                  portalName: Tesla
+                  status: READY
+                  linkingStatus: READY
+  /health/meters:
+    get:
+      summary: Check Available Meter Vendors
+      operationId: getHealthMeterVendors
+      description: Lists the available Meter vendors, including the activated vendors that your client has access to. Learn more about vendors requiring activation.
+      tags:
+      - Beta
+      security:
+      - ClientAccessToken: []
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MeterHealth'
+                example:
+                - vendor: TESLA
+                  displayName: Tesla
+                  portalName: Tesla
+                  status: READY
+                  linkingStatus: READY
+components:
+  schemas:
+    InverterStatistics:
+      type: object
+      properties:
+        production:
+          allOf:
+          - $ref: '#/components/schemas/InverterStatisticsBuckets'
+          description: Contains information about power production statistics.
+      required:
+      - production
+      additionalProperties: false
+      example:
+        production:
+          unit: kWh
+          data:
+          - date: '2024-01-19T09:00:00.000Z'
+            value: 11.1
+          - date: '2024-01-19T10:00:00.000Z'
+            value: 15.4
+    PaginatedMeterList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Meter'
+          description: Paginated list of meters
+        pagination:
+          $ref: '#/components/schemas/PaginationCursors'
+      required:
+      - data
+      - pagination
+      additionalProperties: false
+      description: Paginated response of meters
+    ActionState:
+      type: string
+      enum:
+      - PENDING
+      - CONFIRMED
+      - FAILED
+      - CANCELLED
+      description: "The real-time status of an action executed on a target. \n\n * `PENDING`: The initial state. Enode is actively sending commands and monitoring the target for changes. \n * `CONFIRMED`: Successful transition of the target to the desired state. \n * `FAILED`: The target did not respond to the action before timing out. Enode has ceased sending additional commands. \n * `CANCELLED`: A required precondition was not met during the action's timeout window or another action has been sent to the target, overriding this one."
+    Brand:
+      type: string
+      description: A formatted and properly cased OEM brand name, suitable for reading by humans. May contain special characters.
+      example: Tesla
+    ChargerPathId:
+      type: string
+      description: ID of the Charger.
+      example: ad84e742-0f46-4cf4-b0db-7d890f8f23f5
+    InverterStatisticsBuckets:
+      type: object
+      properties:
+        unit:
+          type: string
+          enum:
+          - kWh
+          description: The unit of measurement for power production data. Always kWh.
+          example: kWh
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/InverterStatisticsTimeseriesBucket'
+          description: An array of data points representing the power production statistics.
+          example:
+          - date: '2021-01-19T09:37:36.845Z'
+            value: 1.1
+      required:
+      - unit
+      - data
+      additionalProperties: false
+    setBatteryOperationModePayload:
+      type: object
+      properties:
+        operationMode:
+          type: string
+          enum:
+          - IMPORT_FOCUS
+          - EXPORT_FOCUS
+          - TIME_OF_USE
+          - SELF_RELIANCE
+          - IDLE
+          description: "Desired operation mode of the battery.\n\n * `SELF_RELIANCE`: The battery optimizes itself to maximize self-consumption: it charges from solar surplus if available, discharges to cover household load, and the household only imports from the grid when both fall short. Excess solar may still be exported to the grid. This is the default mode on most batteries.\n * `TIME_OF_USE`: The battery optimizes itself against an electricity price schedule configured in the manufacturer's app: it charges when electricity is cheap and discharges when it is expensive. Energy may flow to or from the grid depending on prices and the user's settings.\n * `IMPORT_FOCUS`: Steers the battery to charge from any available source. Use this to increase household demand, fill the battery ahead of high prices, or support other optimization strategies.\n * `EXPORT_FOCUS`: Steers the battery to discharge: powers the household first and exports any excess to the grid where allowed. Use this to decrease household demand by releasing stored energy or support grid shortfalls.\n * `IDLE`: Holds the current charge level: the battery neither charges nor discharges. Use this to pass solar production through to the household or grid, or to hold the battery's charge for later.\n\nAll modes set a **target behavior**. Actual behavior can vary with the device's configuration, the user's settings in the manufacturer's app, reserve limits, and local grid rules."
+          example: IMPORT_FOCUS
+        powerLimit:
+          type: number
+          description: Requested charge or discharge power in kW. Omit for the battery's own maximum. Rejected when the battery reports no allowed range for the selected mode, or when the value falls outside that range. Zero and negative values are rejected, because stopping is the `IDLE` mode rather than a rate. Ignored for modes which do not modulate power.
+          example: 3.7
+          exclusiveMinimum: 0
+      required:
+      - operationMode
+      additionalProperties: false
+      description: Target battery operation mode
+    Capability:
+      type: object
+      properties:
+        isCapable:
+          type: boolean
+          description: The entity is fully capable of providing this data or functionality. If false, support is partial or missing. A capable entity (`true`) may still list recommended interventions in `interventionIds`.
+          example: false
+        interventionIds:
+          type: array
+          items:
+            type: string
+            example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+            x-format:
+              guid: true
+          description: 'IDs of interventions the user can make to alter the availability of this capability.
+
+            Interventions may be present even when `isCapable` is `true` (recommended, non-blocking actions). See [the interventions guide](/docs/interventions#accessing-interventions-via-our-api).'
+      required:
+      - isCapable
+      - interventionIds
+      additionalProperties: false
+    BatteryChargeState:
+      type: object
+      properties:
+        status:
+          allOf:
+          - $ref: '#/components/schemas/BatteryStatus'
+        batteryCapacity:
+          type:
+          - number
+          - 'null'
+          description: Battery capacity in kWh.
+          example: 13.5
+        batteryLevel:
+          type:
+          - number
+          - 'null'
+          description: Remaining battery charge level in percent.
+          example: 80
+        chargeRate:
+          type:
+          - number
+          - 'null'
+          description: The current charge rate in kW. A positive value indicates that the battery is charging.
+          example: 4.6
+        dischargeLimit:
+          type:
+          - number
+          - 'null'
+          description: Minimum charge level for a battery, expressed as a percentage. Batteries will not discharge below this user-set reserve level except in emergency power situations.
+          example: 20
+        lastUpdated:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Time of last received charge state update
+          example: '2020-04-07T17:04:26Z'
+      required:
+      - status
+      - batteryCapacity
+      - batteryLevel
+      - chargeRate
+      - dischargeLimit
+      - lastUpdated
+      additionalProperties: false
+      description: Latest information about the battery. `null` values indicate we are unable to determine a value for the field based on the information coming from the vendor.
+    PaginationQueryAfter:
+      type: string
+      description: Opaque cursor used to fetch next page. Cannot be set together with `before`. Refer to [Pagination](/api#pagination) for more information.
+      example: MjAyMy0wNy0xOFQxMDowODowMi4zNzNa
+    BatteryOperationMode:
+      type: string
+      enum:
+      - IMPORT_FOCUS
+      - EXPORT_FOCUS
+      - TIME_OF_USE
+      - SELF_RELIANCE
+      - IDLE
+      - UNKNOWN
+      description: "The current operation mode of the battery.\n\n * `SELF_RELIANCE`: The battery optimizes itself to maximize self-consumption: it charges from solar surplus if available, discharges to cover household load, and the household only imports from the grid when both fall short. Excess solar may still be exported to the grid. This is the default mode on most batteries.\n * `TIME_OF_USE`: The battery optimizes itself against an electricity price schedule configured in the manufacturer's app: it charges when electricity is cheap and discharges when it is expensive. Energy may flow to or from the grid depending on prices and the user's settings.\n * `IMPORT_FOCUS`: Steers the battery to charge from any available source. Use this to increase household demand, fill the battery ahead of high prices, or support other optimization strategies.\n * `EXPORT_FOCUS`: Steers the battery to discharge: powers the household first and exports any excess to the grid where allowed. Use this to decrease household demand by releasing stored energy or support grid shortfalls.\n * `IDLE`: Holds the current charge level: the battery neither charges nor discharges. Use this to pass solar production through to the household or grid, or to hold the battery's charge for later.\n * `UNKNOWN`: Reported when Enode cannot map the manufacturer's current mode to one of the modes above. This value cannot be set; the battery can usually be moved out of it by setting one of the modes above.\n\nAll modes set a **target behavior**. Actual behavior can vary with the device's configuration, the user's settings in the manufacturer's app, reserve limits, and local grid rules."
+    PaginationQueryBefore:
+      type: string
+      description: Opaque cursor used to fetch previous page. Cannot be used together with `after`. Refer to [Pagination](/api#pagination) for more information.
+      example: MjAyMy0wNy0xOFQxMDowODowMi4zNzNa
+    ChargeableVendorType:
+      type: string
+      enum:
+      - vehicle
+      - charger
+    Meter:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the meter object
+        userId:
+          type: string
+          description: The ID of the user that linked this meter.
+          example: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+        vendor:
+          $ref: '#/components/schemas/MeterVendor'
+        lastSeen:
+          type: string
+          format: date-time
+          description: The last time Enode successfully communicated with the vendor or when the meter was initially linked.
+          example: '2020-04-07T17:04:26Z'
+        isReachable:
+          type: boolean
+          description: Indicates whether Enode can currently access live data from the meter. If the meter is not reachable, data updates will be delayed.
+        information:
+          $ref: '#/components/schemas/MeterInformation'
+        energyState:
+          $ref: '#/components/schemas/MeterEnergyState'
+        location:
+          $ref: '#/components/schemas/MeterLocation'
+        capabilities:
+          $ref: '#/components/schemas/MeterCapabilities'
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Scopes that the user has granted for this meter.
+          example:
+          - meter:read:data
+          - meter:read:location
+      required:
+      - id
+      - userId
+      - vendor
+      - lastSeen
+      - isReachable
+      - information
+      - energyState
+      - location
+      - capabilities
+      - scopes
+      additionalProperties: false
+    OperationModeAction:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+          x-format:
+            guid: true
+          description: The ID of the action.
+        userId:
+          type: string
+          description: The ID of the user that owns the target of this action.
+          example: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+        createdAt:
+          type: string
+          format: date-time
+          description: Time when this action was created
+          example: '2020-04-07T17:04:26Z'
+        updatedAt:
+          type: string
+          format: date-time
+          description: Time when this action was last updated
+          example: '2020-04-07T17:04:26Z'
+        completedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Time when the action transitioned to a non-pending state.
+          example: '2020-04-07T17:04:26Z'
+        state:
+          $ref: '#/components/schemas/ActionState'
+        targetId:
+          type: string
+          description: ID of the battery which this action is controlling.
+          example: ac03a513-5494-4e1c-9dd7-2a29dc024312
+        targetType:
+          type: string
+          enum:
+          - battery
+        targetState:
+          $ref: '#/components/schemas/setBatteryOperationModePayload'
+        failureReason:
+          allOf:
+          - $ref: '#/components/schemas/ActionFailureReason'
+      required:
+      - id
+      - userId
+      - createdAt
+      - updatedAt
+      - completedAt
+      - state
+      - targetId
+      - targetType
+      - targetState
+      - failureReason
+      additionalProperties: false
+      title: Battery Operation Mode Action
+    BatteryHealth:
+      type: object
+      properties:
+        vendor:
+          $ref: '#/components/schemas/BatteryVendor'
+        displayName:
+          $ref: '#/components/schemas/Brand'
+        status:
+          type: string
+          enum:
+          - READY
+          - ELEVATED_ERROR_RATE
+          - OUTAGE
+          - MAINTENANCE
+          description: "Ready-state of the Vendor.\n\n  * `READY`: We are not aware of any issues with this Vendor.\n  * `ELEVATED_ERROR_RATE`: Performance is degraded. Data updates may arrive slower than usual, and actions may fail.\n  * `OUTAGE`: Connectivity to this Vendor is broken. Data updates and actions are failing until this is resolved.\n  * `MAINTENANCE`: Planned maintenance at the Vendor. Data updates and actions may be unavailable until it completes.\n\nThis follows the incidents and in-progress maintenance windows we publish on [our status page](https://status.enode.com) and may lag them. A maintenance window that has been announced but has not started does not change this field. It reports only what we have detected and declared, so `READY` means we are not aware of an issue, not that we have confirmed the Vendor is healthy. It is informational: whether a user can link is `linkingStatus`."
+          example: READY
+        portalName:
+          type: string
+          description: The name of the first party service or app that the user normally logs into.
+        linkingStatus:
+          type: string
+          enum:
+          - READY
+          - ELEVATED_ERROR_RATE
+          - OUTAGE
+          - MAINTENANCE
+          description: "Ready-state for linking with the Vendor.\n\n  * `READY`: The Vendor is ready to be linked with.\n  * `ELEVATED_ERROR_RATE`: Multiple attempts may be needed to link successfully. We are showing a warning in Link UI.\n  * `OUTAGE`: The Vendor is currently not available for linking. We will show an error in Link UI and not let the user attempt to link with the Vendor.\n  * `MAINTENANCE`: The Vendor is temporarily unavailable for linking due to planned maintenance. We will show a planned maintenance screen in Link UI and not let the user attempt to link with the Vendor."
+          example: READY
+      required:
+      - vendor
+      - displayName
+      - status
+      - portalName
+      - linkingStatus
+      additionalProperties: false
+    MeterCapabilities:
+      type: object
+      properties:
+        measuresConsumption:
+          allOf:
+          - $ref: '#/components/schemas/Capability'
+          description: Indicates if the meter can measure consumed energy.
+        measuresProduction:
+          allOf:
+          - $ref: '#/components/schemas/Capability'
+          description: Indicates if the meter can measure energy produced or generated.
+      required:
+      - measuresConsumption
+      - measuresProduction
+      additionalProperties: false
+      description: The specific meter's capabilities for recording energy consumption and production data.
+    InverterStatisticsTimeseriesBucket:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date-time
+          description: Date (UTC) at the start of the data point.
+          example: '2023-01-19T09:00:00.000Z'
+        value:
+          type: number
+          description: The energy produced (kWh) in the specified interval.
+          example: 1.1
+      required:
+      - date
+      - value
+      additionalProperties: false
+    BatteryVendor:
+      type: string
+      enum:
+      - ENPHASE
+      - GIVENERGY
+      - FOXESS
+      - HUAWEI
+      - SMA
+      - SOLAREDGE
+      - SOLAX
+      - SOLIS
+      - TESLA
+      - SUNGROW
+      - GROWATT
+      description: Machine-friendly name of the vendor. Use this in API requests.
+      example: TESLA
+    BatteryInformation:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Battery vendor ID
+          example: 7deb27f8-794f-467b-855e-5c61dd9f2cb3
+        brand:
+          $ref: '#/components/schemas/Brand'
+        model:
+          type: string
+          description: Battery model
+          example: Powerwall
+        siteName:
+          type: string
+          description: Name of the site, as set by the user on the device/vendor. If no user-specified name is available, we construct a fallback name using the vendor/device/model names.
+          example: Powerwall Home
+        installationDate:
+          type: string
+          format: date-time
+          description: Battery installation date
+          example: '2020-04-07T17:04:26Z'
+      required:
+      - id
+      - brand
+      - model
+      - siteName
+      - installationDate
+      additionalProperties: false
+      description: Descriptive information about the battery
+    PathBatteryId:
+      type: string
+      description: The ID of the battery to look up.
+      example: 54d827e1-8355-4fed-97b5-55940d1d09ba
+    ChargeRateLimitAction:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+          x-format:
+            guid: true
+          description: The ID of the action.
+        userId:
+          type: string
+          description: The ID of the user that owns the target of this action.
+          example: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+        createdAt:
+          type: string
+          format: date-time
+          description: Time when this action was created
+          example: '2020-04-07T17:04:26Z'
+        updatedAt:
+          type: string
+          format: date-time
+          description: Time when this action was last updated
+          example: '2020-04-07T17:04:26Z'
+        completedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Time when the action transitioned to a non-pending state.
+          example: '2020-04-07T17:04:26Z'
+        state:
+          $ref: '#/components/schemas/ActionState'
+        targetId:
+          type: string
+          description: ID of the entity which this action is controlling.
+        targetType:
+          $ref: '#/components/schemas/ChargeableVendorType'
+        targetState:
+          $ref: '#/components/schemas/ChargeRateLimitPayload'
+        failureReason:
+          allOf:
+          - $ref: '#/components/schemas/ActionFailureReason'
+      required:
+      - id
+      - userId
+      - createdAt
+      - updatedAt
+      - completedAt
+      - state
+      - targetId
+      - targetType
+      - targetState
+      - failureReason
+      additionalProperties: false
+      title: Charge Rate Limit Action
+    UserPathId:
+      type: string
+      description: ID of the User.
+    MeterEnergyState:
+      type: object
+      properties:
+        power:
+          type:
+          - number
+          - 'null'
+          description: "The current power measured by the meter in kW. \n\n * Positive value: Power is imported from the grid to the site, indicating consumption. \n * Negative value: Power is exported to the grid, typically when the site generates excess electricity (e.g. from solar panels, or battery discharge). "
+          example: 2.2
+        lastUpdated:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Time of last received energy state update.
+          example: '2022-03-01T12:34:56Z'
+      required:
+      - power
+      - lastUpdated
+      additionalProperties: false
+      description: Latest information about meter load. `null` values indicate we are unable to determine a value for the field based on the information coming from the vendor.
+    PaginationQueryPageSize:
+      type: integer
+      description: Number of records to return per page. Default page size is 50.
+      example: 50
+      exclusiveMinimum: 0
+    BatteryConfig:
+      type: object
+      properties:
+        operationMode:
+          allOf:
+          - $ref: '#/components/schemas/BatteryOperationMode'
+        powerLimit:
+          type:
+          - number
+          - 'null'
+          description: Power setting in kW reported by the vendor for the current operation. This is a reported setting, not measured power. `null` means the vendor has not reported an active setting. It can remain `null` after a request is accepted.
+          example: 3.7
+        lastUpdated:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Time of last received configuration update
+          example: '2020-04-07T17:04:26Z'
+      required:
+      - operationMode
+      - powerLimit
+      - lastUpdated
+      additionalProperties: false
+    ChargeRateLimitPayload:
+      type: object
+      properties:
+        chargeRateLimit:
+          type: number
+          description: Desired charge rate limit in kilowatts (kW)
+          example: 5.2
+          exclusiveMinimum: 0
+      required:
+      - chargeRateLimit
+      additionalProperties: false
+      description: Target charge rate limit for charger
+    PathBatteryTargetId:
+      type: string
+      description: The ID of the battery being targeted.
+      example: 54d827e1-8355-4fed-97b5-55940d1d09ba
+    ActionPathId:
+      type: string
+      example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+      x-format:
+        guid: true
+      description: ID of the Action.
+    Problem:
+      type: object
+      properties:
+        type:
+          type: string
+          description: A URI reference that identifies the problem type.
+        title:
+          type: string
+          description: A short, human-readable summary of the problem type.
+        detail:
+          type: string
+          description: A human-readable explanation specific to this occurrence of the problem.
+        issues:
+          type: array
+          items:
+            type: object
+            properties: {}
+          description: A list of validation issues which occurred while validating some component of the network payload.
+      required:
+      - type
+      - title
+      - detail
+      description: Standard Problem Error
+      example:
+        type: https://docs.enode.io/api/problems/not-found
+        title: Not Found
+        detail: The requested asset wasn't found.
+    BatteryLocation:
+      type: object
+      properties:
+        longitude:
+          type:
+          - number
+          - 'null'
+          description: Longitude in degrees
+          example: 10.7197486
+        latitude:
+          type:
+          - number
+          - 'null'
+          description: Latitude in degrees
+          example: 59.9173985
+      required:
+      - longitude
+      - latitude
+      additionalProperties: false
+      description: Battery's GPS coordinates
+    PaginatedBatteryList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Battery'
+          description: Paginated list of batteries
+        pagination:
+          $ref: '#/components/schemas/PaginationCursors'
+      required:
+      - data
+      - pagination
+      additionalProperties: false
+      description: Paginated response of batteries
+    BatteryCapabilities:
+      type: object
+      properties:
+        exportFocus:
+          allOf:
+          - $ref: '#/components/schemas/BatteryModePowerLimitCapability'
+          description: Supports EXPORT_FOCUS operation mode.
+        importFocus:
+          allOf:
+          - $ref: '#/components/schemas/BatteryModePowerLimitCapability'
+          description: Supports IMPORT_FOCUS operation mode.
+        timeOfUse:
+          allOf:
+          - $ref: '#/components/schemas/Capability'
+          description: Supports TIME_OF_USE operation mode.
+        selfReliance:
+          allOf:
+          - $ref: '#/components/schemas/Capability'
+          description: Supports SELF_RELIANCE operation mode.
+        idle:
+          allOf:
+          - $ref: '#/components/schemas/Capability'
+          description: Supports IDLE operation mode.
+      required:
+      - exportFocus
+      - importFocus
+      - timeOfUse
+      - selfReliance
+      - idle
+      additionalProperties: false
+      description: A collection of descriptors that describe the capabilities of this specific battery
+    BatteryStatus:
+      type: string
+      enum:
+      - CHARGING
+      - DISCHARGING
+      - IDLE
+      - FAULT
+      - UNKNOWN
+      description: The power delivery state of the battery.
+      example: CHARGING
+    MeterHealth:
+      type: object
+      properties:
+        vendor:
+          $ref: '#/components/schemas/MeterVendor'
+        displayName:
+          $ref: '#/components/schemas/Brand'
+        status:
+          type: string
+          enum:
+          - READY
+          - ELEVATED_ERROR_RATE
+          - OUTAGE
+          - MAINTENANCE
+          description: "Ready-state of the Vendor.\n\n  * `READY`: We are not aware of any issues with this Vendor.\n  * `ELEVATED_ERROR_RATE`: Performance is degraded. Data updates may arrive slower than usual, and actions may fail.\n  * `OUTAGE`: Connectivity to this Vendor is broken. Data updates and actions are failing until this is resolved.\n  * `MAINTENANCE`: Planned maintenance at the Vendor. Data updates and actions may be unavailable until it completes.\n\nThis follows the incidents and in-progress maintenance windows we publish on [our status page](https://status.enode.com) and may lag them. A maintenance window that has been announced but has not started does not change this field. It reports only what we have detected and declared, so `READY` means we are not aware of an issue, not that we have confirmed the Vendor is healthy. It is informational: whether a user can link is `linkingStatus`."
+          example: READY
+        portalName:
+          type: string
+          description: The name of the first party service or app that the user normally logs into.
+        linkingStatus:
+          type: string
+          enum:
+          - READY
+          - ELEVATED_ERROR_RATE
+          - OUTAGE
+          - MAINTENANCE
+          description: "Ready-state for linking with the Vendor.\n\n  * `READY`: The Vendor is ready to be linked with.\n  * `ELEVATED_ERROR_RATE`: Multiple attempts may be needed to link successfully. We are showing a warning in Link UI.\n  * `OUTAGE`: The Vendor is currently not available for linking. We will show an error in Link UI and not let the user attempt to link with the Vendor.\n  * `MAINTENANCE`: The Vendor is temporarily unavailable for linking due to planned maintenance. We will show a planned maintenance screen in Link UI and not let the user attempt to link with the Vendor."
+          example: READY
+      required:
+      - vendor
+      - displayName
+      - status
+      - portalName
+      - linkingStatus
+      additionalProperties: false
+    BatteryModePowerLimitCapability:
+      type: object
+      properties:
+        isCapable:
+          type: boolean
+          description: The entity is fully capable of providing this data or functionality. If false, support is partial or missing. A capable entity (`true`) may still list recommended interventions in `interventionIds`.
+          example: false
+        interventionIds:
+          type: array
+          items:
+            type: string
+            example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+            x-format:
+              guid: true
+          description: 'IDs of interventions the user can make to alter the availability of this capability.
+
+            Interventions may be present even when `isCapable` is `true` (recommended, non-blocking actions). See [the interventions guide](/docs/interventions#accessing-interventions-via-our-api).'
+        powerLimit:
+          type: object
+          properties:
+            allowedRange:
+              type: object
+              properties:
+                kW:
+                  type: object
+                  properties:
+                    min:
+                      type:
+                      - number
+                      - 'null'
+                      description: Minimum selectable power in kW. `null` when Enode cannot offer a verified range for this mode.
+                    max:
+                      type:
+                      - number
+                      - 'null'
+                      description: Maximum selectable power in kW. `null` when Enode cannot offer a verified range for this mode.
+                  required:
+                  - min
+                  - max
+                  additionalProperties: false
+              required:
+              - kW
+              additionalProperties: false
+          required:
+          - allowedRange
+          additionalProperties: false
+      required:
+      - isCapable
+      - interventionIds
+      additionalProperties: false
+    MeterLocation:
+      type: object
+      properties:
+        id:
+          type:
+          - string
+          - 'null'
+          example: 8d90101b-3f2f-462a-bbb4-1ed320d33bbe
+          x-format:
+            guid: true
+          description: ID of the location the meter is currently positioned at (if any).
+        longitude:
+          type:
+          - number
+          - 'null'
+          description: Longitude in degrees
+          example: 10.7197486
+        latitude:
+          type:
+          - number
+          - 'null'
+          description: Latitude in degrees
+          example: 59.9173985
+        lastUpdated:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Time of last received location state update
+          example: '2024-01-07T17:04:26.000Z'
+      required:
+      - id
+      - longitude
+      - latitude
+      - lastUpdated
+      additionalProperties: false
+      description: Meter's GPS coordinates
+    ActionFailureReason:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - NO_RESPONSE
+          - FAILED_PRECONDITION
+          - CONFLICT
+          - NOT_FOUND
+          - UNNECESSARY
+          - REQUESTED_CANCELLATION
+          description: "A machine-readable high level error category.\n\n * `NO_RESPONSE`: The device did not react to our commands within the action's timeout window.  \n * `FAILED_PRECONDITION`: The device did not meet all required preconditions for this action to be executed during the action's timeout window. \n * `UNNECESSARY`: The action was not carried out given that the device was already in the desired state. \n * `CONFLICT`: A newer action for this device, or for a device paired with it, has replaced this action. This action is now abandoned.  \n * `REQUESTED_CANCELLATION`: This action was cancelled by request of the controlling owner. The controlling owner may refer to another Enode entity which initiated the command, such as a schedule or smart override. \n * `NOT_FOUND`: The device was deleted while the action was `PENDING`.\n"
+        detail:
+          type: string
+          description: A human-readable explanation of why the action was unsuccessful.
+          example: The device remained unreachable.
+      required:
+      - type
+      - detail
+      description: Information about why was this action not executed successfully.
+    PathMeterId:
+      type: string
+      description: The ID of the meter you are looking up
+      example: 54d827e1-8355-4fed-97b5-55940d1d09ba
+    MeterVendor:
+      type: string
+      enum:
+      - ENPHASE
+      - GIVENERGY
+      - FOXESS
+      - HUAWEI
+      - SMA
+      - SOLAREDGE
+      - SOLIS
+      - SOLAX
+      - SUNGROW
+      - TESLA
+      - GROWATT
+      description: Machine-friendly name of the vendor. Use this in API requests.
+      example: TESLA
+    Battery:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the battery object
+          example: 54d827e1-8355-4fed-97b5-55940d1d09ba
+        userId:
+          type: string
+          description: The ID of the user that linked this battery.
+          example: bb28471e-cde6-4eff-ace4-9a7f4f50882a
+        vendor:
+          $ref: '#/components/schemas/BatteryVendor'
+        lastSeen:
+          type: string
+          format: date-time
+          description: The last time Enode successfully communicated with the vendor or when the battery was initially linked.
+          example: '2020-04-07T17:04:26Z'
+        isReachable:
+          type: boolean
+          description: Indicates whether Enode can currently access live data from the battery. If the battery is not reachable, data updates will be delayed.
+        chargeState:
+          $ref: '#/components/schemas/BatteryChargeState'
+        config:
+          $ref: '#/components/schemas/BatteryConfig'
+        information:
+          $ref: '#/components/schemas/BatteryInformation'
+        capabilities:
+          $ref: '#/components/schemas/BatteryCapabilities'
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Scopes that the user has granted for this battery.
+          example:
+          - battery:control:operation_mode
+          - battery:read:data
+          - battery:read:location
+        locationId:
+          type:
+          - string
+          - 'null'
+          example: 8d90101b-3f2f-462a-bbb4-1ed320d33bbe
+          x-format:
+            guid: true
+          description: ID of the location the battery is currently positioned at (if any).
+        location:
+          $ref: '#/components/schemas/BatteryLocation'
+      required:
+      - id
+      - userId
+      - vendor
+      - lastSeen
+      - isReachable
+      - chargeState
+      - config
+      - information
+      - capabilities
+      - scopes
+      - locationId
+      - location
+      additionalProperties: false
+      description: Battery object
+    MeterInformation:
+      type: object
+      properties:
+        brand:
+          $ref: '#/components/schemas/Brand'
+        model:
+          type: string
+          description: Meter model
+          example: Tesla Powerwall built-in meter
+        siteName:
+          type: string
+          description: Name of the site, as set by the user on the device/vendor. If no user-specified name is available, we construct a fallback name using the vendor/device/model names.
+          example: Powerwall Home
+        installationDate:
+          type: string
+          format: date-time
+          description: Meter installation date
+          example: '2020-04-07T17:04:26Z'
+      required:
+      - brand
+      - model
+      - siteName
+      - installationDate
+      additionalProperties: false
+      description: Descriptive information about the meter
+    PaginationCursors:
+      type: object
+      properties:
+        after:
+          type:
+          - string
+          - 'null'
+          example: MjAyMy0wNy0xOFQxMDowODowMi4zNzNa
+        before:
+          type:
+          - string
+          - 'null'
+          example: MjAyMy0wNi0xNlQwOTowMzowMS4yNjJa
+      required:
+      - after
+      - before
+      additionalProperties: false
+      description: Cursors to the pages before and after current page. See the [Pagination](/api#pagination) section for reference.
+  parameters:
+    PathBatteryTargetId:
+      schema:
+        $ref: '#/components/schemas/PathBatteryTargetId'
+      required: true
+      description: The ID of the battery being targeted.
+      name: batteryId
+      in: path
+    ChargerPathId:
+      schema:
+        $ref: '#/components/schemas/ChargerPathId'
+      required: true
+      description: ID of the Charger.
+      name: chargerId
+      in: path
+    PathBatteryId:
+      schema:
+        $ref: '#/components/schemas/PathBatteryId'
+      required: true
+      description: The ID of the battery to look up.
+      name: batteryId
+      in: path
+    UserPathId:
+      schema:
+        $ref: '#/components/schemas/UserPathId'
+      required: true
+      description: ID of the User.
+      name: userId
+      in: path
+    PaginationQueryBefore:
+      schema:
+        $ref: '#/components/schemas/PaginationQueryBefore'
+      required: false
+      description: Opaque cursor used to fetch previous page. Cannot be used together with `after`. Refer to [Pagination](/api#pagination) for more information.
+      name: before
+      in: query
+    ActionPathId:
+      schema:
+        $ref: '#/components/schemas/ActionPathId'
+      required: true
+      description: ID of the Action.
+      name: actionId
+      in: path
+    PathMeterId:
+      schema:
+        $ref: '#/components/schemas/PathMeterId'
+      required: true
+      description: The ID of the meter you are looking up
+      name: meterId
+      in: path
+    PaginationQueryPageSize:
+      schema:
+        $ref: '#/components/schemas/PaginationQueryPageSize'
+      required: false
+      description: Number of records to return per page. Default page size is 50.
+      name: pageSize
+      in: query
+    PaginationQueryAfter:
+      schema:
+        $ref: '#/components/schemas/PaginationQueryAfter'
+      required: false
+      description: Opaque cursor used to fetch next page. Cannot be set together with `before`. Refer to [Pagination](/api#pagination) for more information.
+      name: after
+      in: query
+  securitySchemes:
+    ClientAccessToken:
+      type: oauth2
+      description: 'A `ClientAccessToken` is obtained via the [OAuth 2.0 Client Credentials grant](https://www.oauth.com/oauth2-servers/access-tokens/client-credentials/) and carries authorization to access all functionalities and data in your Enode account.
+
+        Full details at [The ClientAccessToken](/api#getting-an-access-token)
+
+        '
+      flows:
+        clientCredentials:
+          tokenUrl: https://oauth.production.enode.io/oauth2/token
+          scopes: {}

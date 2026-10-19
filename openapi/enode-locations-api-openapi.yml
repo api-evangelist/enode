@@ -1,0 +1,325 @@
+openapi: 3.2.0
+info:
+  title: Enode Locations API
+  version: '2023-08-01'
+  description: One integration, 1000+ energy devices.
+  license:
+    name: Enode Commercial License
+    url: https://enode.com
+servers:
+- url: https://enode-api.production.enode.io
+tags:
+- name: Locations
+  description: Locations are used to assign devices to a geographical group. This is useful when running schedules, smart charging, or smart heating, as target behavior usually depends on a common locality of demand (charging, heating, cooling, etc.) and supply (tariff, battery, inverter, etc.) of energy.
+paths:
+  /locations:
+    get:
+      summary: List Locations
+      operationId: getLocations
+      description: Returns a paginated list of all Locations.
+      tags:
+      - Locations
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/PaginationQueryAfter'
+      - $ref: '#/components/parameters/PaginationQueryBefore'
+      - $ref: '#/components/parameters/PaginationQueryPageSize'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedLocationList'
+  /users/{userId}/locations:
+    get:
+      summary: List User Locations
+      operationId: getUserlocations
+      description: Returns a paginated list of Locations for the given user.
+      tags:
+      - Locations
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/UserPathId'
+      - $ref: '#/components/parameters/PaginationQueryAfter'
+      - $ref: '#/components/parameters/PaginationQueryBefore'
+      - $ref: '#/components/parameters/PaginationQueryPageSize'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedLocationList'
+    post:
+      summary: Create Location
+      description: Create a Location for a User. Each Location defines a geofence with a 200 m enter radius and a 270 m exit radius. A user's Locations must be at least 200 m apart. The API rejects any new Location whose coordinates fall within the geofence of an existing one.
+      operationId: createLocation
+      tags:
+      - Locations
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/UserPathId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocationPayload'
+      responses:
+        '200':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationResponse'
+  /locations/{locationId}:
+    get:
+      summary: Get Location
+      description: Fetch a Location.
+      operationId: getLocation
+      tags:
+      - Locations
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/LocationPathId'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationResponse'
+    delete:
+      summary: Delete Location
+      operationId: deleteLocation
+      description: Delete a Location.
+      tags:
+      - Locations
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/LocationPathId'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationResponse'
+    put:
+      summary: Update Location
+      operationId: updateLocation
+      description: 'Updates a Location. Note: the API does not re-validate the minimum distance constraint on update. If you move a Location''s coordinates, ensure they remain at least 200 m from any other Location belonging to the same user.'
+      tags:
+      - Locations
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/LocationPathId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartialLocation'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationResponse'
+components:
+  schemas:
+    PaginationQueryAfter:
+      type: string
+      description: Opaque cursor used to fetch next page. Cannot be set together with `before`. Refer to [Pagination](/api#pagination) for more information.
+      example: MjAyMy0wNy0xOFQxMDowODowMi4zNzNa
+    PaginationQueryBefore:
+      type: string
+      description: Opaque cursor used to fetch previous page. Cannot be used together with `after`. Refer to [Pagination](/api#pagination) for more information.
+      example: MjAyMy0wNy0xOFQxMDowODowMi4zNzNa
+    LocationPathId:
+      type: string
+      example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+      x-format:
+        guid: true
+      description: ID of the Location.
+    UserPathId:
+      type: string
+      description: ID of the User.
+    PaginationQueryPageSize:
+      type: integer
+      description: Number of records to return per page. Default page size is 50.
+      example: 50
+      exclusiveMinimum: 0
+    LocationResponse:
+      type: object
+      properties:
+        name:
+          type: string
+          description: User-supplied name for the Location
+          example: Enode
+        latitude:
+          type: number
+          minimum: -90
+          maximum: 90
+          description: Latitude in degrees
+          example: 59.9165915
+        longitude:
+          type: number
+          minimum: -180
+          maximum: 180
+          description: Longitude in degrees
+          example: 10.7582268
+        timezoneName:
+          type: string
+          description: An IANA TZ database timezone name. This value will be used to convert rules and deadlines for tariffs, smart charging, and schedules into local time.
+          example: Europe/Oslo
+        id:
+          type: string
+          example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+          x-format:
+            guid: true
+          description: The ID of the Location.
+        userId:
+          type: string
+          description: User ID the location belongs to
+          example: 0fc4b1e7-9bdf-4958-b343-86eff3d9f92f
+        createdAt:
+          type: string
+          format: date-time
+          description: Time when the Location was created
+          example: '2020-04-07T17:04:26Z'
+      required:
+      - name
+      - latitude
+      - longitude
+      - timezoneName
+      - id
+      - userId
+      - createdAt
+      additionalProperties: false
+    LocationPayload:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/PartialLocation'
+      - type: object
+        properties:
+          timezoneName:
+            type: string
+            description: An IANA TZ database timezone name. This value will be used to convert rules and deadlines for tariffs, smart charging, and schedules into local time. Defaults to `UTC`.
+            example: Europe/Oslo
+            default: UTC
+        required:
+        - name
+        - latitude
+        - longitude
+    PartialLocation:
+      type: object
+      properties:
+        name:
+          type: string
+          description: User-supplied name for the Location
+          example: Enode
+        latitude:
+          type: number
+          minimum: -90
+          maximum: 90
+          description: Latitude in degrees
+          example: 59.9165915
+        longitude:
+          type: number
+          minimum: -180
+          maximum: 180
+          description: Longitude in degrees
+          example: 10.7582268
+        timezoneName:
+          type: string
+          description: An IANA TZ database timezone name. This value will be used to convert rules and deadlines for tariffs, smart charging, and schedules into local time.
+          example: Europe/Oslo
+      additionalProperties: false
+    PaginatedLocationList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/LocationResponse'
+          description: Paginated list of locations
+        pagination:
+          $ref: '#/components/schemas/PaginationCursors'
+      required:
+      - data
+      - pagination
+      additionalProperties: false
+      description: Paginated response of locations
+    PaginationCursors:
+      type: object
+      properties:
+        after:
+          type:
+          - string
+          - 'null'
+          example: MjAyMy0wNy0xOFQxMDowODowMi4zNzNa
+        before:
+          type:
+          - string
+          - 'null'
+          example: MjAyMy0wNi0xNlQwOTowMzowMS4yNjJa
+      required:
+      - after
+      - before
+      additionalProperties: false
+      description: Cursors to the pages before and after current page. See the [Pagination](/api#pagination) section for reference.
+  parameters:
+    PaginationQueryPageSize:
+      schema:
+        $ref: '#/components/schemas/PaginationQueryPageSize'
+      required: false
+      description: Number of records to return per page. Default page size is 50.
+      name: pageSize
+      in: query
+    UserPathId:
+      schema:
+        $ref: '#/components/schemas/UserPathId'
+      required: true
+      description: ID of the User.
+      name: userId
+      in: path
+    PaginationQueryAfter:
+      schema:
+        $ref: '#/components/schemas/PaginationQueryAfter'
+      required: false
+      description: Opaque cursor used to fetch next page. Cannot be set together with `before`. Refer to [Pagination](/api#pagination) for more information.
+      name: after
+      in: query
+    PaginationQueryBefore:
+      schema:
+        $ref: '#/components/schemas/PaginationQueryBefore'
+      required: false
+      description: Opaque cursor used to fetch previous page. Cannot be used together with `after`. Refer to [Pagination](/api#pagination) for more information.
+      name: before
+      in: query
+    LocationPathId:
+      schema:
+        $ref: '#/components/schemas/LocationPathId'
+      required: true
+      description: ID of the Location.
+      name: locationId
+      in: path
+  securitySchemes:
+    ClientAccessToken:
+      type: oauth2
+      description: 'A `ClientAccessToken` is obtained via the [OAuth 2.0 Client Credentials grant](https://www.oauth.com/oauth2-servers/access-tokens/client-credentials/) and carries authorization to access all functionalities and data in your Enode account.
+
+        Full details at [The ClientAccessToken](/api#getting-an-access-token)
+
+        '
+      flows:
+        clientCredentials:
+          tokenUrl: https://oauth.production.enode.io/oauth2/token
+          scopes: {}

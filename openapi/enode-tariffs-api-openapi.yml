@@ -1,0 +1,341 @@
+openapi: 3.2.0
+info:
+  title: Enode Tariffs API
+  version: '2023-08-01'
+  description: One integration, 1000+ energy devices.
+  license:
+    name: Enode Commercial License
+    url: https://enode.com
+servers:
+- url: https://enode-api.production.enode.io
+tags:
+- name: Tariffs
+  description: Use the Tariffs API to submit pricing information to Enode. These prices will be preferred over market prices in Enode's smart products, like Smart Charging, and will be used to calculate costs in Statistics.
+paths:
+  /tariffs/{tariffId}:
+    get:
+      summary: Get Tariff
+      operationId: getTariffInformation
+      description: Get a tariff using its ID.
+      tags:
+      - Tariffs
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - schema:
+          type: string
+          pattern: '[\w-]+'
+          maxLength: 36
+        required: true
+        description: ID of the Tariff.
+        name: tariffId
+        in: path
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tariff'
+    put:
+      summary: Create a Tariff
+      operationId: sendTariffInformation
+      description: Create a tariff using a list of names and prices. Before the tariff can be used in Enode products, it must be linked to a location.
+      tags:
+      - Tariffs
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - schema:
+          type: string
+          pattern: '[\w-]+'
+          maxLength: 36
+        required: true
+        description: ID of the Tariff.
+        name: tariffId
+        in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Tariff'
+      responses:
+        '204':
+          description: Successfully updated.
+          content: {}
+  /locations/{locationId}/tariff:
+    put:
+      summary: Link Tariff to Location
+      operationId: associateUserLocationWithTariff
+      description: Link a tariff to a Location using a daily schedule. Each new schedule overwrites any previous requests. Devices positioned at this location will use the schedule to calculate electricity costs. The schedule must ensure that there are no overlapping intervals, although gaps are permissible. In case of gaps, the system will default to market prices.
+      tags:
+      - Tariffs
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/LocationPathId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocationTariffInterval'
+      responses:
+        '204':
+          description: Successful
+          content: {}
+        '400':
+          description: Overlapping tariff schedule. Ensure that the schedule has no overlaps.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Location or tariff not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    get:
+      summary: Get Tariff Schedule
+      operationId: getUserLocationTariff
+      description: Get the tariff schedule linked to a location.
+      tags:
+      - Tariffs
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/LocationPathId'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationTariffSchedule'
+        '404':
+          description: Location not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+components:
+  schemas:
+    LocationPathId:
+      type: string
+      example: 4eaeb363-296d-4ccc-a973-7805e6f400bd
+      x-format:
+        guid: true
+      description: ID of the Location.
+    LocationTariffSchedule:
+      type: array
+      items:
+        type: object
+        properties:
+          weekday:
+            type: integer
+            enum:
+            - 0
+            - 1
+            - 2
+            - 3
+            - 4
+            - 5
+            - 6
+            description: Weekday to apply the named tariff. A weekday starts with 0 for Monday, and ends with 6 for Sunday. If not specified, named tariff is applied for entire week
+          fromHourMinute:
+            type: string
+            pattern: ^(((?:[01]\d|2[0-3]):[0-5]\d)|24:00)$
+            description: Interval from time (inclusive, UTC)
+            example: 08:00
+          toHourMinute:
+            type: string
+            pattern: ^(((?:[01]\d|2[0-3]):[0-5]\d)|24:00)$
+            description: Interval to time (exclusive, UTC)
+            example: 09:00
+          tariffId:
+            type: string
+            description: Energy Provider Tariff ID
+          tariffName:
+            type: string
+            description: Rate name
+        required:
+        - weekday
+        - fromHourMinute
+        - toHourMinute
+        - tariffId
+        - tariffName
+        additionalProperties: false
+      example:
+      - weekday: 0
+        fromHourMinute: 00:00
+        toHourMinute: '18:00'
+        tariffId: FLEX-TARIFF-A
+        tariffName: OFF-PEAK
+      - weekday: 0
+        fromHourMinute: '18:00'
+        toHourMinute: '24:00'
+        tariffId: FLEX-TARIFF-A
+        tariffName: PEAK
+    TariffRate:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/TariffRateName'
+        cost:
+          $ref: '#/components/schemas/TariffIntervalCost'
+      required:
+      - name
+      - cost
+      additionalProperties: false
+    TariffIntervalCost:
+      type: string
+      pattern: ^[+-]?(\d{1,9}([.]\d{0,9})?|[.]\d{1,9})$
+      description: Rate cost (decimal string)
+      example: '12.34'
+    Tariff:
+      type: array
+      items:
+        $ref: '#/components/schemas/TariffRate'
+      example:
+      - name: PEAK
+        cost: '13.37'
+      - name: OFF-PEAK
+        cost: '12.34'
+    TariffRateInterval:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Rate name
+        weekdays:
+          type: array
+          items:
+            type: integer
+            enum:
+            - 0
+            - 1
+            - 2
+            - 3
+            - 4
+            - 5
+            - 6
+          example:
+          - 0
+          - 1
+          - 2
+          - 3
+          - 4
+          - 5
+          description: An array of weekdays to apply the named tariff. A weekday starts with 0 for Monday, and ends with 6 for Sunday. If not specified, named tariff is applied for entire week
+        from:
+          type: string
+          pattern: ^(((?:[01]\d|2[0-3]):[0-5]\d)|24:00)$
+          description: Interval from time (inclusive), format `HH:mm`. Interpreted in the timezone specified in the `timezoneName` field of the Location.
+          example: 08:00
+        to:
+          type: string
+          pattern: ^(((?:[01]\d|2[0-3]):[0-5]\d)|24:00)$
+          description: Interval to time (exclusive), format `HH:mm`. Interpreted in the timezone specified in the `timezoneName` field of the Location.
+          example: 09:00
+      required:
+      - name
+      - from
+      - to
+      additionalProperties: false
+    LocationTariffInterval:
+      type: object
+      properties:
+        tariffId:
+          type: string
+          description: The Tariff ID
+        tariffIntervals:
+          type: array
+          items:
+            $ref: '#/components/schemas/TariffRateInterval'
+          description: List of time intervals at which to apply the specified tariff rates.
+          example:
+          - name: OFF-PEAK-WEEKDAY
+            from: 00:00
+            to: '12:00'
+            weekdays:
+            - 0
+            - 1
+            - 2
+            - 3
+            - 4
+          - name: PEAK-WEEKDAY
+            from: '12:00'
+            to: '24:00'
+            weekdays:
+            - 0
+            - 1
+            - 2
+            - 3
+            - 4
+          - name: OFF-PEAK-WEEKEND
+            weekdays:
+            - 5
+            - 6
+            from: 00:00
+            to: 06:00
+          - name: PEAK-WEEKEND
+            weekdays:
+            - 5
+            - 6
+            from: 06:00
+            to: '24:00'
+      required:
+      - tariffId
+      - tariffIntervals
+      additionalProperties: false
+    Problem:
+      type: object
+      properties:
+        type:
+          type: string
+          description: A URI reference that identifies the problem type.
+        title:
+          type: string
+          description: A short, human-readable summary of the problem type.
+        detail:
+          type: string
+          description: A human-readable explanation specific to this occurrence of the problem.
+        issues:
+          type: array
+          items:
+            type: object
+            properties: {}
+          description: A list of validation issues which occurred while validating some component of the network payload.
+      required:
+      - type
+      - title
+      - detail
+      description: Standard Problem Error
+      example:
+        type: https://docs.enode.io/api/problems/not-found
+        title: Not Found
+        detail: The requested asset wasn't found.
+    TariffRateName:
+      type: string
+      description: Per-tariff unique interval name
+      example: OFF-PEAK
+  parameters:
+    LocationPathId:
+      schema:
+        $ref: '#/components/schemas/LocationPathId'
+      required: true
+      description: ID of the Location.
+      name: locationId
+      in: path
+  securitySchemes:
+    ClientAccessToken:
+      type: oauth2
+      description: 'A `ClientAccessToken` is obtained via the [OAuth 2.0 Client Credentials grant](https://www.oauth.com/oauth2-servers/access-tokens/client-credentials/) and carries authorization to access all functionalities and data in your Enode account.
+
+        Full details at [The ClientAccessToken](/api#getting-an-access-token)
+
+        '
+      flows:
+        clientCredentials:
+          tokenUrl: https://oauth.production.enode.io/oauth2/token
+          scopes: {}

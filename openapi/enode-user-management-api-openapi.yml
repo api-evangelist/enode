@@ -1,0 +1,472 @@
+openapi: 3.2.0
+info:
+  title: Enode User Management API
+  version: '2023-08-01'
+  description: One integration, 1000+ energy devices.
+  license:
+    name: Enode Commercial License
+    url: https://enode.com
+servers:
+- url: https://enode-api.production.enode.io
+tags:
+- name: User Management
+  description: Endpoints used to link and unlink users or vendors.
+paths:
+  /users:
+    get:
+      summary: List Users
+      operationId: listUsers
+      description: Returns a paginated list of all users.
+      tags:
+      - User Management
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/PaginationQueryAfter'
+      - $ref: '#/components/parameters/PaginationQueryBefore'
+      - $ref: '#/components/parameters/PaginationQueryPageSize'
+      responses:
+        '200':
+          description: Paginated list of users. Use query parameters to retrieve more results.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUsersListResponse'
+  /users/{userId}:
+    get:
+      summary: Get User
+      operationId: getUser
+      description: Returns metadata about the given User ID, including a list of vendors for which the User has provided credentials.
+      tags:
+      - User Management
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/UserPathId'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              example:
+                id: 123456789-ABc
+                linkedVendors:
+                - vendor: TESLA
+                  vendorType: vehicle
+                  isValid: true
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+    delete:
+      summary: Unlink User
+      operationId: deleteUsersUserid
+      description: Deletes a User and all of their data permanently and invalidates any associated sessions, authorization codes, and access/refresh tokens.
+      tags:
+      - User Management
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/UserPathId'
+      responses:
+        '204':
+          description: No Content
+          content: {}
+  /users/{userId}/vendors/{vendor}:
+    delete:
+      summary: Disconnect Vendor
+      operationId: disconnectUserVendor
+      description: 'Disconnect a single Vendor from the User''s account.
+
+
+        All stored data about their Vendor account will be deleted, and any assets that were provided by that Vendor will disappear from the system.'
+      tags:
+      - User Management
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/UserPathId'
+      - schema:
+          allOf:
+          - $ref: '#/components/schemas/Vendor'
+          description: Vendor to be unlinked.
+        required: true
+        description: Vendor to be unlinked.
+        name: vendor
+        in: path
+      responses:
+        '204':
+          description: No Content
+          content: {}
+  /users/{userId}/vendors/{vendor}/{vendorType}:
+    delete:
+      summary: Disconnect Vendor Type
+      operationId: disconnectUserVendorVendorType
+      description: Disconnect a specific vendor type from the User's account. Assets of this type from that Vendor will be removed. If no other types from that vendor remain, all its stored data will be deleted.
+      tags:
+      - User Management
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/UserPathId'
+      - schema:
+          allOf:
+          - $ref: '#/components/schemas/Vendor'
+          description: Vendor to be unlinked.
+        required: true
+        description: Vendor to be unlinked.
+        name: vendor
+        in: path
+      - schema:
+          $ref: '#/components/schemas/VendorType'
+        required: true
+        name: vendorType
+        in: path
+      responses:
+        '204':
+          description: No Content
+          content: {}
+  /users/{userId}/link:
+    post:
+      summary: Link User
+      operationId: postUsersUseridLink
+      description: This endpoint is no longer supported in API version 2023-08-01.
+      deprecated: true
+      tags:
+      - User Management
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/UserPathIdForLinking'
+      responses:
+        '410':
+          description: This version is no longer supported
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /users/{userId}/authorization:
+    delete:
+      summary: Deauthorize User
+      operationId: deleteUsersUseridAuthorization
+      description: 'Deletes the User''s stored vendor authorizations and credentials, invalidates any associated sessions, authorization codes, and access/refresh tokens.
+
+
+        All other User data is retained, and if the User is sent through the Link User flow in the future, their account will be just as they left it.
+
+
+        There is no dedicated webhook event but you''ll receive deleted events for all assets that were associated with the user.'
+      tags:
+      - User Management
+      security:
+      - ClientAccessToken: []
+      parameters:
+      - $ref: '#/components/parameters/UserPathId'
+      responses:
+        '204':
+          description: No Content
+          content: {}
+components:
+  schemas:
+    PaginationQueryAfter:
+      type: string
+      description: Opaque cursor used to fetch next page. Cannot be set together with `before`. Refer to [Pagination](/api#pagination) for more information.
+      example: MjAyMy0wNy0xOFQxMDowODowMi4zNzNa
+    PaginationQueryBefore:
+      type: string
+      description: Opaque cursor used to fetch previous page. Cannot be used together with `after`. Refer to [Pagination](/api#pagination) for more information.
+      example: MjAyMy0wNy0xOFQxMDowODowMi4zNzNa
+    UserPathId:
+      type: string
+      description: ID of the User.
+    PaginationQueryPageSize:
+      type: integer
+      description: Number of records to return per page. Default page size is 50.
+      example: 50
+      exclusiveMinimum: 0
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 123456789-ABc
+          description: The user's ID.
+        linkedVendors:
+          type: array
+          items:
+            type: object
+            properties:
+              vendor:
+                $ref: '#/components/schemas/Vendor'
+              vendorType:
+                $ref: '#/components/schemas/VendorType'
+              isValid:
+                type: boolean
+                description: Whether the provided credentials are currently valid. A `false` value here indicates that a credential has become invalidated, and [Link User](/api#postUsersUseridLink) should be used to get new credentials from this user.
+            required:
+            - vendor
+            - vendorType
+            - isValid
+            additionalProperties: false
+      required:
+      - id
+      - linkedVendors
+      additionalProperties: false
+    VendorType:
+      type: string
+      enum:
+      - vehicle
+      - charger
+      - hvac
+      - inverter
+      - battery
+      - meter
+      example: vehicle
+    UsersListEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          minLength: 1
+          description: ID of the user.
+          example: ad84e742-0f46-4cf4-b0db-7d890f8f23f5
+        createdAt:
+          type: string
+          format: date-time
+          description: ISO8601 UTC timestamp
+          example: '2020-04-07T17:04:26Z'
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Scopes for the user.
+          deprecated: true
+          example:
+          - all
+      required:
+      - id
+      - createdAt
+      - scopes
+      additionalProperties: false
+    Problem:
+      type: object
+      properties:
+        type:
+          type: string
+          description: A URI reference that identifies the problem type.
+        title:
+          type: string
+          description: A short, human-readable summary of the problem type.
+        detail:
+          type: string
+          description: A human-readable explanation specific to this occurrence of the problem.
+        issues:
+          type: array
+          items:
+            type: object
+            properties: {}
+          description: A list of validation issues which occurred while validating some component of the network payload.
+      required:
+      - type
+      - title
+      - detail
+      description: Standard Problem Error
+      example:
+        type: https://docs.enode.io/api/problems/not-found
+        title: Not Found
+        detail: The requested asset wasn't found.
+    Vendor:
+      type: string
+      enum:
+      - ACURA
+      - ADAX
+      - AFORE
+      - ALFAROMEO
+      - ALPINE
+      - APSYSTEMS
+      - AUDI
+      - BMW
+      - BOSCH
+      - BYD
+      - CADILLAC
+      - CHARGEAMPS
+      - CHARGEPOINT
+      - CHEVROLET
+      - CHRYSLER
+      - CITROEN
+      - CSISolar
+      - CUPRA
+      - DACIA
+      - DAIKIN
+      - DODGE
+      - DS
+      - Deye
+      - EASEE
+      - ECOBEE
+      - ELLI
+      - ENELX
+      - ENPHASE
+      - FIAT
+      - FORD
+      - FOXESS
+      - FRONIUS
+      - FUJITSU
+      - GARO
+      - GIVENERGY
+      - GMC
+      - GOE
+      - GOODWE
+      - GROWATT
+      - HEIDELBERG
+      - HONDA
+      - HONEYWELL
+      - HUAWEI
+      - HYUNDAI
+      - Hoymiles
+      - INDRA
+      - INVT
+      - JAGUAR
+      - JEEP
+      - KEBA
+      - KIA
+      - LANCIA
+      - LANDROVER
+      - LEAPMOTOR
+      - LEXUS
+      - LUCID
+      - MAZDA
+      - MERCEDES
+      - MG
+      - MICROMATIC
+      - MILL
+      - MINI
+      - MITSUBISHI
+      - MYENERGI
+      - NEST
+      - NETATMO
+      - NIBE
+      - NIO
+      - NISSAN
+      - OHME
+      - OMODA
+      - OPEL
+      - PANASONIC
+      - PEBLAR
+      - PEUGEOT
+      - PODPOINT
+      - POLESTAR
+      - PORSCHE
+      - RAM
+      - RENAULT
+      - RESIDEO
+      - RIVIAN
+      - SCHNEIDER
+      - SEAT
+      - SENSIBO
+      - SKODA
+      - SMA
+      - SMART
+      - SOFAR
+      - SOLAREDGE
+      - SOLARK
+      - SOLAX
+      - SOLIS
+      - SOLPLANET
+      - SUBARU
+      - SUNGROW
+      - SUNSYNK
+      - TADO
+      - TESLA
+      - TOSHIBA
+      - TOYOTA
+      - TSUN
+      - VAUXHALL
+      - VOLKSWAGEN
+      - VOLVO
+      - WALLBOX
+      - XPENG
+      - ZAPTEC
+      description: Machine-friendly name of the vendor. Use this in API requests.
+      example: TESLA
+    PaginatedUsersListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UsersListEntry'
+          description: Paginated list of users.
+        pagination:
+          $ref: '#/components/schemas/PaginationCursors'
+      required:
+      - data
+      - pagination
+      additionalProperties: false
+      description: Paginated response of users.
+    UserPathIdForLinking:
+      type: string
+      description: A unique identifier of your choice representing your user, e.g. a stable UUID you keep in your datastore. If a user entity matching the provided `userId` does not exist in your client, it will be created before the link session is created.
+    PaginationCursors:
+      type: object
+      properties:
+        after:
+          type:
+          - string
+          - 'null'
+          example: MjAyMy0wNy0xOFQxMDowODowMi4zNzNa
+        before:
+          type:
+          - string
+          - 'null'
+          example: MjAyMy0wNi0xNlQwOTowMzowMS4yNjJa
+      required:
+      - after
+      - before
+      additionalProperties: false
+      description: Cursors to the pages before and after current page. See the [Pagination](/api#pagination) section for reference.
+  parameters:
+    PaginationQueryPageSize:
+      schema:
+        $ref: '#/components/schemas/PaginationQueryPageSize'
+      required: false
+      description: Number of records to return per page. Default page size is 50.
+      name: pageSize
+      in: query
+    UserPathId:
+      schema:
+        $ref: '#/components/schemas/UserPathId'
+      required: true
+      description: ID of the User.
+      name: userId
+      in: path
+    PaginationQueryAfter:
+      schema:
+        $ref: '#/components/schemas/PaginationQueryAfter'
+      required: false
+      description: Opaque cursor used to fetch next page. Cannot be set together with `before`. Refer to [Pagination](/api#pagination) for more information.
+      name: after
+      in: query
+    PaginationQueryBefore:
+      schema:
+        $ref: '#/components/schemas/PaginationQueryBefore'
+      required: false
+      description: Opaque cursor used to fetch previous page. Cannot be used together with `after`. Refer to [Pagination](/api#pagination) for more information.
+      name: before
+      in: query
+    UserPathIdForLinking:
+      schema:
+        $ref: '#/components/schemas/UserPathIdForLinking'
+      required: true
+      description: A unique identifier of your choice representing your user, e.g. a stable UUID you keep in your datastore. If a user entity matching the provided `userId` does not exist in your client, it will be created before the link session is created.
+      name: userId
+      in: path
+  securitySchemes:
+    ClientAccessToken:
+      type: oauth2
+      description: 'A `ClientAccessToken` is obtained via the [OAuth 2.0 Client Credentials grant](https://www.oauth.com/oauth2-servers/access-tokens/client-credentials/) and carries authorization to access all functionalities and data in your Enode account.
+
+        Full details at [The ClientAccessToken](/api#getting-an-access-token)
+
+        '
+      flows:
+        clientCredentials:
+          tokenUrl: https://oauth.production.enode.io/oauth2/token
+          scopes: {}
