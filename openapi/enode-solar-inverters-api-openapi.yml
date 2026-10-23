@@ -462,3 +462,9 @@ components:
         clientCredentials:
           tokenUrl: https://oauth.production.enode.io/oauth2/token
           scopes: {}
+x-provenance:
+  method: harvested
+  publisher: Enode
+  source: https://enode-api.production.enode.io/openapi/v1.json
+  note: split by refine-openapis from the provider's own published document, verified by fetch (openapi/_original/*.fetch.json);
+    stamped by stamp-openapi-provenance.py (roadmap#793)
