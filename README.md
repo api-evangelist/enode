@@ -1,4 +1,4 @@
-# Enode (enode)
+# Enode
 
 <!-- API-EVANGELIST-PROVENANCE:BEGIN -->
 > ### About this repository
@@ -66,181 +66,133 @@
 
 Enode provides a single API to connect and control electric vehicles, chargers, HVAC systems, batteries, solar inverters, and smart meters across more than a thousand hardware brands. The energy-transition API links end-user devices via OAuth, normalizes telemetry, and exposes smart-charging and device-control endpoints for energy apps, VPPs, and home energy management.
 
-**APIs.json:** [https://raw.githubusercontent.com/api-evangelist/enode/refs/heads/main/apis.yml](https://raw.githubusercontent.com/api-evangelist/enode/refs/heads/main/apis.yml)
+**Areas:** Energy · Electric Vehicles · EV Charging · Smart Charging · Energy Transition · Mobility
 
-## Tags
+## Enode on APIs.io
 
-- Energy
-- Electric Vehicles
-- EV Charging
-- Smart Charging
-- Energy Transition
+Everything profiled for Enode is published on APIs.io rather than in this repository. Start at the provider page — **[apis.io/providers/enode/](https://apis.io/providers/enode/)** — or go straight to one of the APIs or properties below.
 
-## Timestamps
+### APIs (9)
 
-- **Created:** 2026-06-21
-- **Modified:** 2026-06-21
+- [Enode Batteries API](https://apis.io/apis/enode/enode-batteries-api/) — Read and control connected home batteries.
+- [Enode Chargers API](https://apis.io/apis/enode/enode-chargers-api/) — Read and control connected EV chargers.
+- [Enode HVAC API](https://apis.io/apis/enode/enode-hvac-api/) — Read and control connected HVAC units.
+- [Enode Inverters API](https://apis.io/apis/enode/enode-inverters-api/) — Read connected solar inverters.
+- [Enode Meters API](https://apis.io/apis/enode/enode-meters-api/) — Read connected smart meters.
+- [Enode Smart Charging API](https://apis.io/apis/enode/enode-smart-charging-api/) — Configure smart-charging policies and overrides for vehicles.
+- [Enode Users API](https://apis.io/apis/enode/enode-users-api/) — Manage end users and Link sessions.
+- [Enode Vehicles API](https://apis.io/apis/enode/enode-vehicles-api/) — Read and control connected electric vehicles.
+- [Enode Webhooks API](https://apis.io/apis/enode/enode-webhooks-api/) — Manage event webhooks.
 
-## APIs
+### Published properties
 
-### Enode Users & Link API
+Each property below is a page on APIs.io carrying the machine-readable artifact and what it says.
 
-Create and manage end users and generate Link sessions so users can authorize Enode to access their connected energy devices via vendor OAuth.
+#### Agentic access (1)
 
-- **Human URL:** [https://developers.enode.com/api/reference#users](https://developers.enode.com/api/reference#users)
-- **Base URL:** `https://enode-api.production.enode.io`
+Which operations an agent can call, which act, and which need a human in the loop.
 
-#### Tags
+- [Enode Agentic Access](https://apis.io/agentic-access/enode/enode-agentic-access/)
 
-- Users
-- Link
-- OAuth
+#### Collections (10)
 
-#### Properties
+Postman and Open Collection request collections.
 
-- [Documentation](https://developers.enode.com/docs/linking)
-- [API Reference](https://developers.enode.com/api/reference#users)
-- [OpenAPI](openapi/enode-openapi.yml) — [OpenAPI Specification](https://spec.openapis.org/oas/latest.html)
-- [Postman Collection](collections/enode.postman_collection.json) — [Postman Collection 2.1](https://schema.getpostman.com/json/collection/v2.1.0/collection.json)
-- [Open Collection](collections/enode.opencollection.json) — [Open Collection 1.0](https://schema.opencollection.com/opencollection/v1.0.0.json)
+- [Enode API](https://apis.io/collections/enode/open-enode/)
+- [Enode Batteries API](https://apis.io/collections/enode/open-enode-batteries-api/)
+- [Enode Batteries Chargers API](https://apis.io/collections/enode/open-enode-chargers-api/)
+- [Enode Batteries HVAC API](https://apis.io/collections/enode/open-enode-hvac-api/)
+- [Enode Batteries Inverters API](https://apis.io/collections/enode/open-enode-inverters-api/)
+- [Enode Batteries Meters API](https://apis.io/collections/enode/open-enode-meters-api/)
+- [Enode Batteries Smart Charging API](https://apis.io/collections/enode/open-enode-smart-charging-api/)
+- [Enode Batteries Users API](https://apis.io/collections/enode/open-enode-users-api/)
+- [Enode Batteries Vehicles API](https://apis.io/collections/enode/open-enode-vehicles-api/)
+- [Enode Batteries Webhooks API](https://apis.io/collections/enode/open-enode-webhooks-api/)
 
-### Enode Vehicles API
+#### Security (3)
 
-List and read connected electric vehicles, retrieve charge state, battery, location, and odometer telemetry, and issue charge start/stop and max-current control actions.
+Authentication, trust centre, and vulnerability disclosure.
 
-- **Human URL:** [https://developers.enode.com/api/reference#vehicles](https://developers.enode.com/api/reference#vehicles)
-- **Base URL:** `https://enode-api.production.enode.io`
+- [Enode Authentication](https://apis.io/security/enode/enode-authentication/)
+- [Enode Domain Security](https://apis.io/security/enode/enode-domain-security/)
+- [Enode Vulnerability Disclosure](https://apis.io/security/enode/enode-vulnerability-disclosure/)
 
-#### Tags
+#### Plans and pricing (1)
 
-- Vehicles
-- Electric Vehicles
-- Telemetry
+Published plans, tiers and prices.
 
-#### Properties
+- [Enode Plans Pricing](https://apis.io/plans/enode/enode-plans-pricing/)
 
-- [Documentation](https://developers.enode.com/docs/vehicles)
-- [API Reference](https://developers.enode.com/api/reference#vehicles)
-- [OpenAPI](openapi/enode-openapi.yml) — [OpenAPI Specification](https://spec.openapis.org/oas/latest.html)
-- [Postman Collection](collections/enode.postman_collection.json) — [Postman Collection 2.1](https://schema.getpostman.com/json/collection/v2.1.0/collection.json)
-- [Open Collection](collections/enode.opencollection.json) — [Open Collection 1.0](https://schema.opencollection.com/opencollection/v1.0.0.json)
+#### Rate limits (1)
 
-### Enode Chargers API
+Published request limits.
 
-List and read connected EV chargers, monitor charge state and power draw, and control charging including start/stop, max-current, and charge-rate limits.
+- [Enode Rate Limits](https://apis.io/rate-limits/enode/enode-rate-limits/)
 
-- **Human URL:** [https://developers.enode.com/api/reference#chargers](https://developers.enode.com/api/reference#chargers)
-- **Base URL:** `https://enode-api.production.enode.io`
+#### FinOps (1)
 
-#### Tags
+What the API costs to run, by operation.
 
-- Chargers
-- EV Charging
-- Control
+- [Enode Finops](https://apis.io/finops/enode/enode-finops/)
 
-#### Properties
+## Where to find this API
 
-- [Documentation](https://developers.enode.com/docs/chargers)
-- [API Reference](https://developers.enode.com/api/reference#chargers)
-- [OpenAPI](openapi/enode-openapi.yml) — [OpenAPI Specification](https://spec.openapis.org/oas/latest.html)
-- [Postman Collection](collections/enode.postman_collection.json) — [Postman Collection 2.1](https://schema.getpostman.com/json/collection/v2.1.0/collection.json)
-- [Open Collection](collections/enode.opencollection.json) — [Open Collection 1.0](https://schema.opencollection.com/opencollection/v1.0.0.json)
+Links to the company's own pages. This repository publishes no copy of their specifications — the canonical document is theirs and lives at the URLs below.
 
-### Enode HVAC API
-
-List and read connected HVAC units such as heat pumps and thermostats, and control set point, mode, schedule following, and permanent hold.
-
-- **Human URL:** [https://developers.enode.com/api/reference#hvacs](https://developers.enode.com/api/reference#hvacs)
-- **Base URL:** `https://enode-api.production.enode.io`
-
-#### Tags
-
-- HVAC
-- Heat Pumps
-- Thermostats
-
-#### Properties
-
-- [Documentation](https://developers.enode.com/docs/hvac)
-- [API Reference](https://developers.enode.com/api/reference#hvacs)
-- [OpenAPI](openapi/enode-openapi.yml) — [OpenAPI Specification](https://spec.openapis.org/oas/latest.html)
-- [Postman Collection](collections/enode.postman_collection.json) — [Postman Collection 2.1](https://schema.getpostman.com/json/collection/v2.1.0/collection.json)
-- [Open Collection](collections/enode.opencollection.json) — [Open Collection 1.0](https://schema.opencollection.com/opencollection/v1.0.0.json)
-
-### Enode Batteries & Inverters API
-
-List and read connected home batteries and solar inverters, retrieve charge level and production statistics, and set battery operation mode.
-
-- **Human URL:** [https://developers.enode.com/api/reference#batteries](https://developers.enode.com/api/reference#batteries)
-- **Base URL:** `https://enode-api.production.enode.io`
-
-#### Tags
-
-- Batteries
-- Inverters
-- Solar
-
-#### Properties
-
-- [Documentation](https://developers.enode.com/docs/batteries)
-- [API Reference](https://developers.enode.com/api/reference#batteries)
-- [OpenAPI](openapi/enode-openapi.yml) — [OpenAPI Specification](https://spec.openapis.org/oas/latest.html)
-- [Postman Collection](collections/enode.postman_collection.json) — [Postman Collection 2.1](https://schema.getpostman.com/json/collection/v2.1.0/collection.json)
-- [Open Collection](collections/enode.opencollection.json) — [Open Collection 1.0](https://schema.opencollection.com/opencollection/v1.0.0.json)
-
-### Enode Smart Charging API
-
-Configure smart-charging policies, plans, overrides, and status for vehicles, optimizing charging against electricity tariffs, location, and user deadlines.
-
-- **Human URL:** [https://developers.enode.com/api/reference#smart-charging](https://developers.enode.com/api/reference#smart-charging)
-- **Base URL:** `https://enode-api.production.enode.io`
-
-#### Tags
-
-- Smart Charging
-- Optimization
-- Tariffs
-
-#### Properties
-
-- [Documentation](https://developers.enode.com/docs/smart-charging)
-- [API Reference](https://developers.enode.com/api/reference#smart-charging)
-- [OpenAPI](openapi/enode-openapi.yml) — [OpenAPI Specification](https://spec.openapis.org/oas/latest.html)
-- [Postman Collection](collections/enode.postman_collection.json) — [Postman Collection 2.1](https://schema.getpostman.com/json/collection/v2.1.0/collection.json)
-- [Open Collection](collections/enode.opencollection.json) — [Open Collection 1.0](https://schema.opencollection.com/opencollection/v1.0.0.json)
-
-### Enode Webhooks API
-
-Register, list, update, test, and delete webhooks to receive near-real-time device-update and user-event notifications instead of polling.
-
-- **Human URL:** [https://developers.enode.com/api/reference#webhooks](https://developers.enode.com/api/reference#webhooks)
-- **Base URL:** `https://enode-api.production.enode.io`
-
-#### Tags
-
-- Webhooks
-- Events
-- Notifications
-
-#### Properties
-
-- [Documentation](https://developers.enode.com/docs/webhooks)
-- [API Reference](https://developers.enode.com/api/reference#webhooks)
-- [OpenAPI](openapi/enode-openapi.yml) — [OpenAPI Specification](https://spec.openapis.org/oas/latest.html)
-- [Postman Collection](collections/enode.postman_collection.json) — [Postman Collection 2.1](https://schema.getpostman.com/json/collection/v2.1.0/collection.json)
-- [Open Collection](collections/enode.opencollection.json) — [Open Collection 1.0](https://schema.opencollection.com/opencollection/v1.0.0.json)
-
-## Common Properties
-
-- [GitHub Organization](https://github.com/enode)
-- [LinkedIn](https://www.linkedin.com/company/enode-energy)
 - [Website](https://www.enode.com)
 - [Documentation](https://developers.enode.com/docs)
-- [Plans](plans/enode-plans-pricing.yml)
-- [Rate Limits](rate-limits/enode-rate-limits.yml)
-- [Fin Ops](finops/enode-finops.yml)
+- [Blog](https://www.enode.com/blog)
+- [GitHub](https://github.com/enode)
 
-## Maintainers
+## API Evangelist rating
 
-**FN:** Kin Lane
-**Email:** kin@apievangelist.com
+**Kin Score 27.3** — thin · rubric 0.24.0 · scored 2026-10-17
+
+| Facet | Score |
+|---|---|
+| Discoverability | 66.1 |
+| Contract quality | 44.7 |
+| Contract governance | 0.0 |
+| Operational transparency | 10.5 |
+| Developer ergonomics | 32.1 |
+| Access clarity | 5.3 |
+
+**Agent readiness 17.9** — agent-aware
+
+| Agent-readiness dimension | Result |
+|---|---|
+| Spec Presence | yes |
+| Agentic Access | derived (partial credit) |
+| Reversibility Documented | — |
+| MCP Server | — |
+| Auth Clarity | bearer (partial credit) |
+| Idempotency | — |
+| Error Semantics | — |
+| OpenAPI Examples | — |
+| Rate Limit Signal | derived (partial credit) |
+| Event Surface Described | — |
+| Agent Skills | — |
+| Well Known Catalog | — |
+| Consent Identity | — |
+| Agent Card | — |
+| Dry Run Mode | — |
+| Delegated Identity | — |
+| Protected Resource Metadata | — |
+| Dynamic Client Registration | — |
+| Agentic Commerce | — |
+
+**Regulatory alignment 14.8** — Energy & Utilities
+
+The rubric is published at [github.com/api-evangelist/kin-score](https://github.com/api-evangelist/kin-score). The per-check breakdown behind these numbers — which checks were earned, partial or missed — along with score history and how this provider compares to its peers, is available at [apis.io/providers/enode/](https://apis.io/providers/enode/).
+
+## How this profile is made
+
+API Evangelist profiles a company's public API surface the way a developer would find it: the website, developer portal and documentation, the specifications it publishes, its public repositories, and its pricing, status and changelog pages. From that it derives the properties above — contracts split per API, workflows, schemas, collections, governance rules, plans and rate limits — and scores them against the published [Kin Score rubric](https://github.com/api-evangelist/kin-score).
+
+The artifacts are published on [APIs.io](https://apis.io), not in this repository. This repository is the public record for Enode: the place to say something is wrong, missing or out of date, and to ask for a re-score or a removal.
+
+## Open an issue
+
+- **Something about this listing** — a wrong description, a missing API, a stale artifact or a question about the rating: [open an issue on this repository](https://github.com/api-evangelist/enode/issues/new).
+- **A new API, or one that is not in the catalog yet** — [submit it on APIs.io](https://apis.io/add/).
+- **Anything else** — [the APIs.io inbox](https://github.com/api-search/inbox/issues/new) or [info@apievangelist.com](mailto:info@apievangelist.com).
